@@ -20,6 +20,10 @@ const Navbar = () => {
             <Link href="/usuarios">
               <div className="text-black font-bold text-lg">Usuarios</div>
             </Link>
+            {/* Carga Masiva */}
+            <Link href="/carga_masiva">
+              <div className="text-black font-bold text-lg">Carga Masiva</div>
+            </Link>
             {/* Guia Entrada */}
             <Link href="/guia-entrada">
               <div className="text-black font-bold text-lg">Guia Entrada</div>
