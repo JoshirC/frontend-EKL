@@ -81,13 +81,13 @@ const Navbar = () => {
               {openAdquisiciones && (
                 <ul className="mt-10 w-30 bg-amber-400 text-l text-black shadow-lg rounded-md sm:absolute">
                   <li className="px-4 py-2 hover:bg-amber-200">
-                    <Link href="/adquisiciones/solicitud">
+                    <Link href="/adquisiciones/acopio">
                       <div onClick={handleCloseMenu}> Ordenes de Acopio</div>
                     </Link>
                   </li>
                   <li className="px-4 py-2 hover:bg-amber-200">
-                    <Link href="/adquisiciones/solicitud/solicitud">
-                      Registros
+                    <Link href="/adquisiciones/registro">
+                      <div onClick={handleCloseMenu}>Registros</div>
                     </Link>
                   </li>
                 </ul>
