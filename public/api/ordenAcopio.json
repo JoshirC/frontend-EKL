@@ -1,0 +1,32 @@
+[
+  {
+    "idAcopio": 1,
+    "CentroCosto": "Pucobre",
+    "Fecha": "2025-04-01",
+    "Estado": "Pendiente"
+  },
+  {
+    "idAcopio": 2,
+    "CentroCosto": "Pucobre",
+    "Fecha": "2025-04-02",
+    "Estado": "Terminado"
+  },
+  {
+    "idAcopio": 3,
+    "CentroCosto": "Rio Blanco",
+    "Fecha": "2025-04-03",
+    "Estado": "Pendiente"
+  },
+  {
+    "idAcopio": 4,
+    "CentroCosto": "CNN",
+    "Fecha": "2025-04-04",
+    "Estado": "Pendiente"
+  },
+  {
+    "idAcopio": 5,
+    "CentroCosto": "Aura",
+    "Fecha": "2025-04-05",
+    "Estado": "Terminado"
+  }
+]

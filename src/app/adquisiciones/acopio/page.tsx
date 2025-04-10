@@ -1,14 +1,44 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NuevaOrdenAcopio from "@/components/adquisiciones/nuevaOrdenAcopio";
+
+type OrdenAcopio = {
+  idAcopio: number;
+  CentroCosto: string;
+  Fecha: string;
+  Estado: string;
+};
+
 const AcopioPage: React.FC = () => {
   const [modalNuevaOrdenAcopio, setModalNuevaOrdenAcopio] = useState(false);
+  const [ordenes, setOrdenes] = useState<OrdenAcopio[]>([]);
+
   const abrirModalNuevaOrdenAcopio = () => {
-    setModalNuevaOrdenAcopio(!modalNuevaOrdenAcopio);
+    setModalNuevaOrdenAcopio(true);
   };
+
   const cerrarModalNuevaOrdenAcopio = () => {
-    setModalNuevaOrdenAcopio(!modalNuevaOrdenAcopio);
+    setModalNuevaOrdenAcopio(false);
   };
+
+  useEffect(() => {
+    const fetchOrdenes = async () => {
+      try {
+        const response = await fetch("/api/ordenAcopio.json");
+        const data = await response.json();
+        // El backend debe traerme ya filtrado este dato.
+        const ordenesPendientes = data.filter(
+          (orden: OrdenAcopio) => orden.Estado === "Pendiente"
+        );
+        setOrdenes(ordenesPendientes);
+      } catch (error) {
+        console.error("Error al cargar el JSON:", error);
+      }
+    };
+
+    fetchOrdenes();
+  }, []);
+
   return (
     <div className="p-10">
       <NuevaOrdenAcopio
@@ -21,9 +51,7 @@ const AcopioPage: React.FC = () => {
           <div className="text-2xl font-semibold">Lista de Acopio</div>
           <button
             className="bg-amber-400 text-white font-semibold p-4 rounded hover:bg-amber-500 transition duration-300"
-            onClick={() => {
-              abrirModalNuevaOrdenAcopio();
-            }}
+            onClick={abrirModalNuevaOrdenAcopio}
           >
             Nueva Orden de Acopio
           </button>
@@ -31,36 +59,45 @@ const AcopioPage: React.FC = () => {
         <table className="table-fixed w-full border-collapse border border-gray-200 mt-2">
           <thead className="bg-gray-200">
             <tr>
-              <th className="border border-gray-300 p-2 text-left">ID</th>
-              <th className="border border-gray-300 p-2 text-left">
-                Centro Costo
-              </th>
-              <th className="border border-gray-300 p-2 text-left">
+              <th className="border border-gray-300 px-4 py-2 ">ID</th>
+              <th className="border border-gray-300 px-4 py-2">Centro Costo</th>
+              <th className="border border-gray-300 px-4 py-2">
                 Fecha Ingreso
               </th>
-              <th className="border border-gray-300 p-2 text-left">Estado</th>
-              <th className="border border-gray-300 p-2 text-left">Acciones</th>
+              <th className="border border-gray-300 px-4 py-2">Estado</th>
+              <th className="border border-gray-300 px-4 py-2">Acciones</th>
             </tr>
           </thead>
-          {/* Hacer un Map de las listas con estado Pendiente */}
           <tbody>
-            <tr className="hover:bg-gray-100">
-              <td className="border border-gray-300 p-2">1</td>
-              <td className="border border-gray-300 p-2">Centro 1</td>
-              <td className="border border-gray-300 p-2">2023-10-01</td>
-              <td className="border border-gray-300 p-2">Pendiente</td>
-              <td className="p-2 flex justify-center">
-                <button className="bg-amber-400 text-white font-semibold px-4 py-2 rounded hover:bg-amber-500 transition duration-300">
-                  Editar
-                </button>
-                <button className="bg-red-500 text-white font-semibold px-4 py-2 rounded hover:bg-red-600 transition duration-300 ml-2">
-                  Eliminar
-                </button>
-                <button className="bg-blue-500 text-white font-semibold px-4 py-2 rounded hover:bg-blue-600 transition duration-300 ml-2">
-                  Confirmar
-                </button>
-              </td>
-            </tr>
+            {ordenes.map((orden) => (
+              <tr key={orden.idAcopio}>
+                <td className="border border-gray-300 px-4 py-2">
+                  {orden.idAcopio}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {orden.CentroCosto}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {orden.Fecha}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {orden.Estado}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <div className="flex justify-center space-x-4">
+                    <button className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-600 transition duration-300">
+                      Editar
+                    </button>
+                    <button className="bg-amber-700 text-white font-semibold px-4 py-2 rounded hover:bg-amber-800 transition duration-300">
+                      Eliminar
+                    </button>
+                    <button className="bg-amber-400 text-white font-semibold px-4 py-2 rounded hover:bg-amber-500 transition duration-300">
+                      Confirmar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

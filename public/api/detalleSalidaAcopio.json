@@ -1,0 +1,32 @@
+[
+  {
+    "idDetalleSalidaAcopio": 1,
+    "idAcopio": 1,
+    "FolioGuia": "FG-1001",
+    "ConceptoGuia": "Despacho a Sucursal Norte"
+  },
+  {
+    "idDetalleSalidaAcopio": 2,
+    "idAcopio": 2,
+    "FolioGuia": "FG-1002",
+    "ConceptoGuia": "Retiro para planta central"
+  },
+  {
+    "idDetalleSalidaAcopio": 3,
+    "idAcopio": 3,
+    "FolioGuia": "FG-1003",
+    "ConceptoGuia": "Entrega cliente especial"
+  },
+  {
+    "idDetalleSalidaAcopio": 4,
+    "idAcopio": 4,
+    "FolioGuia": "FG-1004",
+    "ConceptoGuia": "Transporte urgente"
+  },
+  {
+    "idDetalleSalidaAcopio": 5,
+    "idAcopio": 5,
+    "FolioGuia": "FG-1005",
+    "ConceptoGuia": "Transferencia entre centros"
+  }
+]

@@ -1,0 +1,72 @@
+[
+  {
+    "idDetalleOrdenAcopio": 1,
+    "idAcopio": 1,
+    "FamiliaProducto": "Lácteos",
+    "CodigoProducto": "P001",
+    "Cantidad": 20
+  },
+  {
+    "idDetalleOrdenAcopio": 2,
+    "idAcopio": 2,
+    "FamiliaProducto": "Bebidas",
+    "CodigoProducto": "P002",
+    "Cantidad": 15
+  },
+  {
+    "idDetalleOrdenAcopio": 3,
+    "idAcopio": 1,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P003",
+    "Cantidad": 40
+  },
+  {
+    "idDetalleOrdenAcopio": 4,
+    "idAcopio": 3,
+    "FamiliaProducto": "Snacks",
+    "CodigoProducto": "P004",
+    "Cantidad": 30
+  },
+  {
+    "idDetalleOrdenAcopio": 5,
+    "idAcopio": 4,
+    "FamiliaProducto": "Panadería",
+    "CodigoProducto": "P005",
+    "Cantidad": 25
+  },
+  {
+    "idDetalleOrdenAcopio": 6,
+    "idAcopio": 1,
+    "FamiliaProducto": "Frutas",
+    "CodigoProducto": "P006",
+    "Cantidad": 50
+  },
+  {
+    "idDetalleOrdenAcopio": 7,
+    "idAcopio": 1,
+    "FamiliaProducto": "Verduras",
+    "CodigoProducto": "P007",
+    "Cantidad": 35
+  },
+  {
+    "idDetalleOrdenAcopio": 8,
+    "idAcopio": 1,
+    "FamiliaProducto": "Cereales",
+    "CodigoProducto": "P008",
+    "Cantidad": 60
+  },
+  {
+    "idDetalleOrdenAcopio": 9,
+    "idAcopio": 1,
+    "FamiliaProducto": "Lácteos",
+    "CodigoProducto": "P009",
+    "Cantidad": 25
+  },
+  {
+    "idDetalleOrdenAcopio": 10,
+    "idAcopio": 1,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "Cantidad": 45
+  }
+]
