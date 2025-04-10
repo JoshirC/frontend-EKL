@@ -8,23 +8,40 @@ const Navbar = () => {
   const [openEntrada, setOpenEntrada] = useState(false);
   const [openSalida, setOpenSalida] = useState(false);
   const [openMenuUsuario, setOpenMenuUsuario] = useState(false);
+  const [openAdquisiciones, setOpenAdquisiciones] = useState(false);
 
-  const userRole = "Administrador"; // Cambiar según el rol del usuario
+  const userRole = "Adquisiciones"; // Cambiar según el rol del usuario
   const handleOpenEntrada = () => {
     setOpenEntrada(!openEntrada);
     setOpenSalida(false);
     setOpenMenuUsuario(false);
+    setOpenAdquisiciones(false);
   };
   const handleOpenSalida = () => {
     setOpenSalida(!openSalida);
     setOpenEntrada(false);
     setOpenMenuUsuario(false);
+    setOpenAdquisiciones(false);
   };
   const handleOpenMenuUsuario = () => {
     setOpenMenuUsuario(!openMenuUsuario);
     setOpenEntrada(false);
     setOpenSalida(false);
+    setOpenAdquisiciones(false);
   };
+  const handleOpenAdquisiciones = () => {
+    setOpenAdquisiciones(!openAdquisiciones);
+    setOpenEntrada(false);
+    setOpenSalida(false);
+    setOpenMenuUsuario(false);
+  };
+  const handleCloseMenu = () => {
+    setOpenEntrada(false);
+    setOpenSalida(false);
+    setOpenMenuUsuario(false);
+    setOpenAdquisiciones(false);
+  };
+
   {
     /* Roles: Administrador, Adquisiciones, Jefe Bodega, Bodeguero */
   }
@@ -50,6 +67,33 @@ const Navbar = () => {
                 <div className="text-black font-semibold text-lg">Usuarios</div>
               </Link>
             )}
+            {/* Adquisiciones */}
+            <div className="relative flex justify-center">
+              {!["Jefe Bodega", "Bodeguero"].includes(userRole) && (
+                <button
+                  onClick={handleOpenAdquisiciones}
+                  className="text-black font-semibold text-lg"
+                >
+                  Adquisiciones
+                </button>
+              )}
+              {/* Dropdown Menu Adquisiciones */}
+              {openAdquisiciones && (
+                <ul className="mt-10 w-30 bg-amber-400 text-l text-black shadow-lg rounded-md sm:absolute">
+                  <li className="px-4 py-2 hover:bg-amber-200">
+                    <Link href="/adquisiciones/solicitud">
+                      <div onClick={handleCloseMenu}> Ordenes de Acopio</div>
+                    </Link>
+                  </li>
+                  <li className="px-4 py-2 hover:bg-amber-200">
+                    <Link href="/adquisiciones/solicitud/solicitud">
+                      Registros
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </div>
+
             {/* Entrada */}
             <div className="relative flex justify-center">
               <button
@@ -63,14 +107,7 @@ const Navbar = () => {
                 <ul className="mt-10 w-30 bg-amber-400 text-l text-black shadow-lg rounded-md sm:absolute">
                   <li className="px-4 py-2 hover:bg-amber-200">
                     <Link href="/entrada/productos">
-                      <div
-                        onClick={() => {
-                          setOpenEntrada(false);
-                          setOpenSalida(false);
-                        }}
-                      >
-                        Ingreso de Productos
-                      </div>
+                      <div onClick={handleCloseMenu}>Ingreso de Productos</div>
                     </Link>
                   </li>
                   {!["Bodeguero"].includes(userRole) && (

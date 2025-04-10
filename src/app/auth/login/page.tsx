@@ -14,12 +14,12 @@ export default function Login() {
             </h1>
             <div className="mt-6">
               <label className="block text-lg font-semi-bold text-gray-700 mb-2">
-                Correo Electrónico
+                Rut
               </label>
               <div className="flex items-center border border-gray-300 rounded">
                 <input
                   type="text"
-                  placeholder="Ingrese su correo"
+                  placeholder="Ingrese su número de Rut"
                   className="w-full px-3 py-2 focus:outline-none"
                   //value={correo}
                   //onChange={(e) => setCorreo(e.target.value)}
