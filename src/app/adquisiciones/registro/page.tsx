@@ -62,7 +62,12 @@ const RegistroPage: React.FC = () => {
                   {orden.Estado}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
-                  <button className="bg-amber-400 text-white font-semibold px-4 py-2 w-full rounded hover:bg-amber-500 transition duration-300">
+                  <button
+                    className="bg-amber-400 text-white font-semibold px-4 py-2 w-full rounded hover:bg-amber-500 transition duration-300"
+                    onClick={() =>
+                      (window.location.href = `/adquisiciones/${orden.idAcopio}`)
+                    }
+                  >
                     Detalles
                   </button>
                 </td>

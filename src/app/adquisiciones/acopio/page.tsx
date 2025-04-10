@@ -84,17 +84,14 @@ const AcopioPage: React.FC = () => {
                   {orden.Estado}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
-                  <div className="flex justify-center space-x-4">
-                    <button className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-600 transition duration-300">
-                      Editar
-                    </button>
-                    <button className="bg-amber-700 text-white font-semibold px-4 py-2 rounded hover:bg-amber-800 transition duration-300">
-                      Eliminar
-                    </button>
-                    <button className="bg-amber-400 text-white font-semibold px-4 py-2 rounded hover:bg-amber-500 transition duration-300">
-                      Confirmar
-                    </button>
-                  </div>
+                  <button
+                    className="bg-amber-400 text-white font-semibold px-4 py-2 w-full rounded hover:bg-amber-500 transition duration-300"
+                    onClick={() =>
+                      (window.location.href = `/adquisiciones/${orden.idAcopio}`)
+                    }
+                  >
+                    Detalles
+                  </button>
                 </td>
               </tr>
             ))}
