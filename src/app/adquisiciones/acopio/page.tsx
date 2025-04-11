@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import NuevaOrdenAcopio from "@/components/adquisiciones/nuevaOrdenAcopio";
+import { useAdquisicionStore } from "@/store/adquisicionStore";
 
 type OrdenAcopio = {
   idAcopio: number;
@@ -13,6 +14,7 @@ const AcopioPage: React.FC = () => {
   const [modalNuevaOrdenAcopio, setModalNuevaOrdenAcopio] = useState(false);
   const [ordenes, setOrdenes] = useState<OrdenAcopio[]>([]);
 
+  const { estadoOrdenAcopio, setEstadoOrdenAcopio } = useAdquisicionStore();
   const abrirModalNuevaOrdenAcopio = () => {
     setModalNuevaOrdenAcopio(true);
   };
@@ -86,9 +88,10 @@ const AcopioPage: React.FC = () => {
                 <td className="border border-gray-300 px-4 py-2">
                   <button
                     className="bg-amber-400 text-white font-semibold px-4 py-2 w-full rounded hover:bg-amber-500 transition duration-300"
-                    onClick={() =>
-                      (window.location.href = `/adquisiciones/${orden.idAcopio}`)
-                    }
+                    onClick={() => {
+                      window.location.href = `/adquisiciones/${orden.idAcopio}`;
+                      setEstadoOrdenAcopio(orden.Estado);
+                    }}
                   >
                     Detalles
                   </button>

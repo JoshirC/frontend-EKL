@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-
+import { useAdquisicionStore } from "@/store/adquisicionStore";
 type OrdenAcopio = {
   idAcopio: number;
   CentroCosto: string;
@@ -9,6 +9,7 @@ type OrdenAcopio = {
 };
 const RegistroPage: React.FC = () => {
   const [ordenes, setOrdenes] = useState<OrdenAcopio[]>([]);
+  const { setEstadoOrdenAcopio } = useAdquisicionStore();
   useEffect(() => {
     const fetchOrdenes = async () => {
       try {
@@ -31,7 +32,7 @@ const RegistroPage: React.FC = () => {
       <div className="bg-white p-6 rounded shadow">
         <div className="flex justify-between items-center mb-4">
           <div className="text-2xl font-semibold">
-            Registro de Ordenes de Compras
+            Registro de Ordenes de Acopio
           </div>
         </div>
         <table className="table-fixed w-full border-collapse border border-gray-200 mt-2">
@@ -64,9 +65,10 @@ const RegistroPage: React.FC = () => {
                 <td className="border border-gray-300 px-4 py-2">
                   <button
                     className="bg-amber-400 text-white font-semibold px-4 py-2 w-full rounded hover:bg-amber-500 transition duration-300"
-                    onClick={() =>
-                      (window.location.href = `/adquisiciones/${orden.idAcopio}`)
-                    }
+                    onClick={() => {
+                      window.location.href = `/adquisiciones/${orden.idAcopio}`;
+                      setEstadoOrdenAcopio(orden.Estado);
+                    }}
                   >
                     Detalles
                   </button>

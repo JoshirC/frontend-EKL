@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, use } from "react";
+import { useAdquisicionStore } from "@/store/adquisicionStore";
 
 type DetalleOrdenAcopio = {
   idDetalleOrdenAcopio: number;
@@ -19,7 +20,8 @@ export default function AcopioIdPage({
 }) {
   // Correcto: usando use() para desempaquetar la Promise
   const { id: id_acopio } = use(params);
-  const estadoOrdenAcopio = "Pendiente"; // Cambiar según el estado de la orden de acopio con el backend o guardar el estado en una constante global.
+  const { estadoOrdenAcopio } = useAdquisicionStore();
+  //const estadoOrdenAcopio = "Listo"; // Cambiar según el estado de la orden de acopio con el backend o guardar el estado en una constante global.
   const [detalleOrdenAcopio, setDetalleOrdenAcopio] = useState<
     DetalleOrdenAcopio[]
   >([]);
@@ -86,8 +88,10 @@ export default function AcopioIdPage({
     <div className="p-10">
       <div className="bg-white p-6 rounded shadow">
         <div className="flex justify-between items-center mb-4">
-          <div className="text-2xl font-semibold">Detalles de Acopio</div>
-          {estadoOrdenAcopio === "Pendiente" && (
+          <div className="text-2xl font-semibold">
+            Detalles de Acopio N°: {id_acopio}
+          </div>
+          {estadoOrdenAcopio && ["Pendiente"].includes(estadoOrdenAcopio) && (
             <div>
               <button className="bg-amber-400 text-white font-semibold p-4 rounded hover:bg-amber-500 transition duration-300">
                 Confirmar Acopio
