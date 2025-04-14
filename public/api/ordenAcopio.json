@@ -9,7 +9,7 @@
     "idAcopio": 2,
     "CentroCosto": "Pucobre",
     "Fecha": "2025-04-02",
-    "Estado": "Terminado"
+    "Estado": "Proceso"
   },
   {
     "idAcopio": 3,
@@ -21,12 +21,12 @@
     "idAcopio": 4,
     "CentroCosto": "CNN",
     "Fecha": "2025-04-04",
-    "Estado": "Pendiente"
+    "Estado": "Proceso"
   },
   {
     "idAcopio": 5,
     "CentroCosto": "Aura",
     "Fecha": "2025-04-05",
-    "Estado": "Terminado"
+    "Estado": "Cerrado"
   }
 ]

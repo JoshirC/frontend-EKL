@@ -17,7 +17,7 @@ const RegistroPage: React.FC = () => {
         const data = await response.json();
         // El backend debe traerme ya filtrado este dato.
         const ordenesPendientes = data.filter(
-          (orden: OrdenAcopio) => orden.Estado === "Terminado"
+          (orden: OrdenAcopio) => orden.Estado === "Cerrado"
         );
         setOrdenes(ordenesPendientes);
       } catch (error) {

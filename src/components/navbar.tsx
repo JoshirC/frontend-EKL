@@ -46,7 +46,7 @@ const Navbar = () => {
     /* Roles: Administrador, Adquisiciones, Jefe Bodega, Bodeguero */
   }
   return (
-    <header className="bg-gradient-to-r from-white to-amber-400 shadow-md sticky top-0 z-50">
+    <header className="bg-gradient-to-r from-white to-orange-400 shadow-md sticky top-0 z-50">
       {/* Navbar Container */}
       <div className="mx-auto max-w-screen px-4">
         <div className="flex h-20 items-center justify-between">
@@ -79,8 +79,8 @@ const Navbar = () => {
               )}
               {/* Dropdown Menu Adquisiciones */}
               {openAdquisiciones && (
-                <ul className="mt-10 w-30 bg-amber-400 text-l text-black shadow-lg rounded-md sm:absolute">
-                  <li className="px-4 py-2 hover:bg-amber-200">
+                <ul className="mt-10 w-30 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
+                  <li className="px-4 py-2 hover:bg-orange-200">
                     <Link href="/adquisiciones/acopio">
                       <div onClick={handleCloseMenu}> Ordenes de Acopio</div>
                     </Link>
@@ -104,8 +104,8 @@ const Navbar = () => {
               </button>
               {/* Dropdown Menu Entrada */}
               {openEntrada && (
-                <ul className="mt-10 w-30 bg-amber-400 text-l text-black shadow-lg rounded-md sm:absolute">
-                  <li className="px-4 py-2 hover:bg-amber-200">
+                <ul className="mt-10 w-30 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
+                  <li className="px-4 py-2 hover:bg-orange-200">
                     <Link href="/entrada/productos">
                       <div onClick={handleCloseMenu}>Ingreso de Productos</div>
                     </Link>
@@ -130,18 +130,20 @@ const Navbar = () => {
               </button>
               {/* Dropdown Menu Salida */}
               {openSalida && (
-                <ul className="mt-10 w-30 bg-amber-400 text-l text-black shadow-lg rounded-md sm:absolute">
-                  <li className="px-4 py-2 hover:bg-amber-200">
-                    <Link href="/salida/productos">Acopio de Productos</Link>
+                <ul className="mt-10 w-30 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
+                  <li className="px-4 py-2 hover:bg-orange-200">
+                    <Link href="/salida/acopio_productos">
+                      Acopio de Productos
+                    </Link>
                   </li>
 
                   {!["Bodeguero"].includes(userRole) && (
                     <ul>
                       <li className="px-4 py-2 hover:bg-amber-200">
-                        <Link href="/salida/entrega">Revisión</Link>
+                        <Link href="/salida/revision">Revisión</Link>
                       </li>
                       <li className="px-4 py-2 hover:bg-amber-200">
-                        <Link href="/salida/carga">Carga Masiva</Link>
+                        <Link href="/salida/carga_masiva">Carga Masiva</Link>
                       </li>
                     </ul>
                   )}
@@ -158,7 +160,7 @@ const Navbar = () => {
             {/* Datos Usuario */}
             <div className="relative flex justify-center mr-12">
               <button
-                className="w-10 h-10 bg-black text-amber-400 rounded-full flex items-center justify-center"
+                className="w-10 h-10 bg-black text-orange-400 rounded-full flex items-center justify-center"
                 onClick={handleOpenMenuUsuario}
               >
                 <svg
@@ -179,11 +181,11 @@ const Navbar = () => {
               {/* Dropdown Menu Datos Usuario */}
               {/* Manejar con MODALS */}
               {openMenuUsuario && (
-                <ul className="mt-10 w-30 bg-amber-400 text-l text-black shadow-lg rounded-md sm:absolute">
-                  <li className="px-4 py-2 hover:bg-amber-200">
+                <ul className="mt-10 w-30 bg-orange-400 text-l text-black shadow-lg rounded-md sm:absolute">
+                  <li className="px-4 py-2 hover:bg-orange-200">
                     <Link href="/usuario/perfil">Cambiar Contraseña</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-amber-200">
+                  <li className="px-4 py-2 hover:bg-orange-200">
                     <Link href="/usuario/salir">Salir</Link>
                   </li>
                 </ul>
