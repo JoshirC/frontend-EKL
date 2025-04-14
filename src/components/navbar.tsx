@@ -10,7 +10,7 @@ const Navbar = () => {
   const [openMenuUsuario, setOpenMenuUsuario] = useState(false);
   const [openAdquisiciones, setOpenAdquisiciones] = useState(false);
 
-  const userRole = "Adquisiciones"; // Cambiar según el rol del usuario
+  const userRole = "Administrador"; // Cambiar según el rol del usuario
   const handleOpenEntrada = () => {
     setOpenEntrada(!openEntrada);
     setOpenSalida(false);
@@ -46,7 +46,7 @@ const Navbar = () => {
     /* Roles: Administrador, Adquisiciones, Jefe Bodega, Bodeguero */
   }
   return (
-    <header className="bg-amber-400 shadow-md sticky top-0 z-50">
+    <header className="bg-gradient-to-r from-white to-amber-400 shadow-md sticky top-0 z-50">
       {/* Navbar Container */}
       <div className="mx-auto max-w-screen px-4">
         <div className="flex h-20 items-center justify-between">
