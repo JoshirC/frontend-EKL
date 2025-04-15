@@ -19,7 +19,6 @@ const AcopioProductosPage: React.FC = () => {
         console.error("Error al cargar el JSON:", error);
       }
     };
-
     fetchCentrosDeCostos();
   }, []);
   return (

@@ -133,17 +133,20 @@ const Navbar = () => {
                 <ul className="mt-10 w-30 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
                   <li className="px-4 py-2 hover:bg-orange-200">
                     <Link href="/salida/acopio_productos">
-                      Acopio de Productos
+                      <div onClick={handleCloseMenu}>Acopio de Productos</div>
                     </Link>
                   </li>
-
                   {!["Bodeguero"].includes(userRole) && (
                     <ul>
                       <li className="px-4 py-2 hover:bg-amber-200">
-                        <Link href="/salida/revision">Revisión</Link>
+                        <Link href="/salida/revision">
+                          <div onClick={handleCloseMenu}>Revisión</div>
+                        </Link>
                       </li>
                       <li className="px-4 py-2 hover:bg-amber-200">
-                        <Link href="/salida/carga_masiva">Carga Masiva</Link>
+                        <Link href="/salida/carga_masiva">
+                          <div onClick={handleCloseMenu}>Carga Masiva</div>
+                        </Link>
                       </li>
                     </ul>
                   )}
@@ -183,10 +186,14 @@ const Navbar = () => {
               {openMenuUsuario && (
                 <ul className="mt-10 w-30 bg-orange-400 text-l text-black shadow-lg rounded-md sm:absolute">
                   <li className="px-4 py-2 hover:bg-orange-200">
-                    <Link href="/usuario/perfil">Cambiar Contraseña</Link>
+                    <Link href="/usuario/perfil">
+                      <div onClick={handleCloseMenu}>Cambiar Contraseña</div>
+                    </Link>
                   </li>
                   <li className="px-4 py-2 hover:bg-orange-200">
-                    <Link href="/usuario/salir">Salir</Link>
+                    <Link href="/usuario/salir">
+                      <div onClick={handleCloseMenu}>Salir</div>
+                    </Link>
                   </li>
                 </ul>
               )}

@@ -6,7 +6,10 @@
     "CodigoProducto": "P001",
     "DescripcionProducto": "Yogur",
     "UnidadMedida": "Litros",
-    "Cantidad": 20
+    "Cantidad": 20,
+    "CantidadEnviada": 0, 
+    "Enviado": false,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 2,
@@ -15,7 +18,10 @@
     "CodigoProducto": "P002",
     "DescripcionProducto": "Agua Mineral",
     "UnidadMedida": "Litros",
-    "Cantidad": 15
+    "Cantidad": 15,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : false
   },
   {
     "idDetalleOrdenAcopio": 3,
@@ -24,7 +30,10 @@
     "CodigoProducto": "P003",
     "DescripcionProducto": "Pollo",
     "UnidadMedida": "Kilogramos",
-    "Cantidad": 40
+    "Cantidad": 40,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : false
   },
   {
     "idDetalleOrdenAcopio": 4,
@@ -33,7 +42,10 @@
     "CodigoProducto": "P004",
     "DescripcionProducto": "Chips",
     "UnidadMedida": "Paquete",
-    "Cantidad": 30
+    "Cantidad": 30,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 5,
@@ -42,7 +54,10 @@
     "CodigoProducto": "P005",
     "DescripcionProducto": "Pan",
     "UnidadMedida": "Bolsas",
-    "Cantidad": 25
+    "Cantidad": 25,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 6,
@@ -51,7 +66,10 @@
     "CodigoProducto": "P006",
     "DescripcionProducto": "Manzanas",
     "UnidadMedida": "Kilogramos",
-    "Cantidad": 50
+    "Cantidad": 50,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 7,
@@ -60,7 +78,10 @@
     "CodigoProducto": "P007",
     "DescripcionProducto": "Zanahorias",
     "UnidadMedida": "Kilogramos", 
-    "Cantidad": 35
+    "Cantidad": 35,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : false
   },
   {
     "idDetalleOrdenAcopio": 8,
@@ -69,7 +90,10 @@
     "CodigoProducto": "P008",
     "DescripcionProducto": "Arroz",
     "UnidadMedida": "Kilogramos",
-    "Cantidad": 60
+    "Cantidad": 60,
+    "CantidadEnviada": 10,
+    "Enviado": true,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 9,
@@ -78,7 +102,10 @@
     "CodigoProducto": "P009",
     "DescripcionProducto": "Leche",
     "UnidadMedida": "Litros",
-    "Cantidad": 25
+    "Cantidad": 25,
+    "CantidadEnviada": 40,
+    "Enviado": true,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 10,
@@ -87,6 +114,82 @@
     "CodigoProducto": "P010",
     "DescripcionProducto": "Res",
     "UnidadMedida": "Kilogramos",
-    "Cantidad": 45
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 11,
+    "idAcopio": 1,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 12,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 13,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 14,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 15,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 16,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Vacuno",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
   }
+
 ]
