@@ -49,7 +49,7 @@
   },
   {
     "idDetalleOrdenAcopio": 5,
-    "idAcopio": 4,
+    "idAcopio": 2,
     "FamiliaProducto": "Panadería",
     "CodigoProducto": "P005",
     "DescripcionProducto": "Pan",
@@ -57,7 +57,7 @@
     "Cantidad": 25,
     "CantidadEnviada": 0,
     "Enviado": false,
-    "Trazabilidad" : true
+    "Trazabilidad" : false
   },
   {
     "idDetalleOrdenAcopio": 6,

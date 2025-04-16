@@ -3,7 +3,7 @@
 import React, { useEffect, useState, use } from "react";
 import { useSalidaStore } from "@/store/salidaStore";
 import CambiarProducto from "@/components/salida_acopio/cambiarProducto";
-
+import DropdownAcciones from "@/components/salida_acopio/DropdownAcciones";
 type DetalleOrdenAcopio = {
   idDetalleOrdenAcopio: number;
   idAcopio: number;
@@ -33,30 +33,37 @@ export default function AcopioSalidaIdPage({
     Record<number, number>
   >({});
 
-  useEffect(() => {
-    const fetchDetalleOrden = async () => {
-      try {
-        const response = await fetch(`/api/detalleOrdenAcopio.json`);
-        const data = await response.json();
-        const detalleOrdenAcopioId = data.filter(
-          (detalle: DetalleOrdenAcopio) =>
-            detalle.idAcopio === Number(id_acopio)
-        );
-        setDetalleOrdenAcopio(detalleOrdenAcopioId);
+  const [productoSeleccionadoId, setProductoSeleccionadoId] = useState<
+    string | null
+  >(null);
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
 
-        // Inicializar cantidades temporales
-        const iniciales: Record<number, number> = detalleOrdenAcopioId.reduce(
-          (acc: Record<number, number>, item: DetalleOrdenAcopio) => {
-            acc[item.idDetalleOrdenAcopio] = item.CantidadEnviada;
-            return acc;
-          },
-          {}
-        );
-        setCantidadesTemporales(iniciales);
-      } catch (error) {
-        console.error("Error al cargar el JSON:", error);
-      }
-    };
+  const handleDropdownClick = (id: number) => {
+    setDropdownOpen(dropdownOpen === id ? null : id);
+  };
+  const fetchDetalleOrden = async () => {
+    try {
+      const response = await fetch(`/api/detalleOrdenAcopio.json`);
+      const data = await response.json();
+      const detalleOrdenAcopioId = data.filter(
+        (detalle: DetalleOrdenAcopio) => detalle.idAcopio === Number(id_acopio)
+      );
+      setDetalleOrdenAcopio(detalleOrdenAcopioId);
+
+      // Inicializar cantidades temporales
+      const iniciales: Record<number, number> = detalleOrdenAcopioId.reduce(
+        (acc: Record<number, number>, item: DetalleOrdenAcopio) => {
+          acc[item.idDetalleOrdenAcopio] = item.CantidadEnviada;
+          return acc;
+        },
+        {}
+      );
+      setCantidadesTemporales(iniciales);
+    } catch (error) {
+      console.error("Error al cargar el JSON:", error);
+    }
+  };
+  useEffect(() => {
     fetchDetalleOrden();
   }, [id_acopio]);
 
@@ -87,9 +94,6 @@ export default function AcopioSalidaIdPage({
   };
   const [modalCambiarProductoAbierto, setModalCambiarProductoAbierto] =
     useState(false);
-  const [productoSeleccionadoId, setProductoSeleccionadoId] = useState<
-    string | null
-  >(null);
 
   const abrirModalCambiarProducto = (codigoProducto: string) => {
     setProductoSeleccionadoId(codigoProducto);
@@ -120,13 +124,13 @@ export default function AcopioSalidaIdPage({
         )}
         <div className="flex justify-around items-center my-4 space-x-6 font-bold">
           <div className="bg-gray-200 p-4 text-black rounded w-full text-center">
-            {centroCosto}
+            Centro de Costo - {centroCosto}
           </div>
           <div className="bg-gray-200 p-4 text-black rounded w-full text-center">
-            {fecha}
+            Fecha - {fecha}
           </div>
           <div className="bg-gray-200 p-4 text-black rounded w-full text-center">
-            {estado}
+            Estado - {estado}
           </div>
         </div>
         <table className="table-auto w-full border-collapse border border-gray-200 mt-2">
@@ -152,85 +156,101 @@ export default function AcopioSalidaIdPage({
           </thead>
           <tbody>
             {detalleOrdenAcopio.map((detalle) => (
-              <tr key={detalle.idDetalleOrdenAcopio}>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.FamiliaProducto}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.CodigoProducto}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.DescripcionProducto}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.UnidadMedida}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.Cantidad}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  <div className="flex justify-between items-center space-x-2">
-                    {detalle.Enviado ? (
-                      <span className="p-2">{detalle.CantidadEnviada}</span>
-                    ) : (
-                      <input
-                        type="number"
-                        placeholder={String(
-                          cantidadesTemporales[detalle.idDetalleOrdenAcopio] ||
-                            0
-                        )}
-                        onChange={(e) =>
-                          handleCambioCantidad(
-                            detalle.idDetalleOrdenAcopio,
-                            Number(e.target.value)
-                          )
-                        }
-                        className="w-full border border-gray-300 rounded p-2"
-                        min="1"
-                        max={detalle.Cantidad}
-                      />
-                    )}
-                    {!detalle.Enviado && (
-                      <button
-                        onClick={() =>
-                          handleGuardarCantidad(detalle.idDetalleOrdenAcopio)
-                        }
-                        className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
-                      >
-                        Guardar
-                      </button>
-                    )}
-                  </div>
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {estado === "Confirmacion" && detalle.Enviado === true ? (
-                    <button
-                      className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200"
-                      onClick={() => (detalle.Enviado = !detalle.Enviado)}
-                    >
-                      Modificar
-                    </button>
-                  ) : detalle.Enviado ? (
-                    <div></div>
-                  ) : (
-                    <button
-                      className="bg-orange-400 hover:bg-orange-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200"
-                      onClick={() =>
-                        abrirModalCambiarProducto(detalle.CodigoProducto)
-                      }
-                    >
-                      Cambiar
-                    </button>
-                  )}
-                </td>
-                {detalle.Trazabilidad && (
+              <React.Fragment key={detalle.idDetalleOrdenAcopio}>
+                <tr>
                   <td className="border border-gray-300 px-4 py-2">
-                    <button className="bg-amber-400 hover:bg-amber-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200">
-                      Seleccionar Lote
-                    </button>
+                    {detalle.FamiliaProducto}
                   </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {detalle.CodigoProducto}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {detalle.DescripcionProducto}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {detalle.UnidadMedida}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {detalle.Cantidad}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    <div className="flex justify-between items-center space-x-2">
+                      {detalle.Enviado ? (
+                        <span className="p-2">{detalle.CantidadEnviada}</span>
+                      ) : (
+                        <input
+                          type="number"
+                          placeholder={String(
+                            cantidadesTemporales[
+                              detalle.idDetalleOrdenAcopio
+                            ] || 0
+                          )}
+                          onChange={(e) =>
+                            handleCambioCantidad(
+                              detalle.idDetalleOrdenAcopio,
+                              Number(e.target.value)
+                            )
+                          }
+                          className="w-full border border-gray-300 rounded p-2"
+                          min="1"
+                          max={detalle.Cantidad}
+                        />
+                      )}
+                      {!detalle.Enviado && (
+                        <button
+                          onClick={() =>
+                            handleGuardarCantidad(detalle.idDetalleOrdenAcopio)
+                          }
+                          className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
+                        >
+                          Guardar
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {estado === "Confirmacion" && detalle.Enviado === true ? (
+                      <button
+                        className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200"
+                        onClick={() => {
+                          detalle.Enviado = !detalle.Enviado;
+                          fetchDetalleOrden();
+                        }}
+                      >
+                        Modificar
+                      </button>
+                    ) : detalle.Enviado ? (
+                      <div></div>
+                    ) : (
+                      <div>
+                        <button
+                          onClick={() => {
+                            handleDropdownClick(detalle.idDetalleOrdenAcopio);
+                          }}
+                          className="bg-orange-400 hover:bg-orange-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
+                        >
+                          Cambiar Producto
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                  {detalle.Trazabilidad && (
+                    <td className="border border-gray-300 px-4 py-2">
+                      <button className="bg-amber-400 hover:bg-amber-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200">
+                        Seleccionar Lote
+                      </button>
+                    </td>
+                  )}
+                </tr>
+                {dropdownOpen === detalle.idDetalleOrdenAcopio && (
+                  <DropdownAcciones
+                    codigoProducto={detalle.CodigoProducto}
+                    descripcion={detalle.DescripcionProducto}
+                    isOpen={dropdownOpen === detalle.idDetalleOrdenAcopio}
+                    onClose={() => setDropdownOpen(null)}
+                  />
                 )}
-              </tr>
+              </React.Fragment>
             ))}
           </tbody>
         </table>

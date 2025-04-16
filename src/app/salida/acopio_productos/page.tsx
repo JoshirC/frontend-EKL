@@ -32,7 +32,7 @@ const AcopioProductosPage: React.FC = () => {
             {centrosDeCostos.map((centro) => (
               <div
                 key={centro.Centro}
-                className="bg-gray-200 text-black text-xl p-4 rounded shadow flex justify-between items-center"
+                className="bg-gray-100 text-black text-xl p-4 rounded shadow flex justify-between items-center"
               >
                 <div className="font-semibold">{centro.Centro}</div>
                 <div className="flex items-center space-x-4">
