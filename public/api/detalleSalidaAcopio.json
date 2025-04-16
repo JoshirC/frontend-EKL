@@ -1,32 +1,319 @@
 [
   {
-    "idDetalleSalidaAcopio": 1,
-    "idAcopio": 1,
-    "FolioGuia": "FG-1001",
-    "ConceptoGuia": "Despacho a Sucursal Norte"
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P001",
+    "nombreProducto": "Cemento Portland",
+    "cantidadEnviada": 50
   },
   {
-    "idDetalleSalidaAcopio": 2,
-    "idAcopio": 2,
-    "FolioGuia": "FG-1002",
-    "ConceptoGuia": "Retiro para planta central"
+    "idOrdenAcopio": 4 ,
+    "idSalida": 1,
+    "codProducto": "P002", 
+    "nombreProducto": "Arena Fina",
+    "cantidadEnviada": 100
   },
   {
-    "idDetalleSalidaAcopio": 3,
-    "idAcopio": 3,
-    "FolioGuia": "FG-1003",
-    "ConceptoGuia": "Entrega cliente especial"
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P003",
+    "nombreProducto": "Ladrillos",
+    "cantidadEnviada": 1000
   },
   {
-    "idDetalleSalidaAcopio": 4,
-    "idAcopio": 4,
-    "FolioGuia": "FG-1004",
-    "ConceptoGuia": "Transporte urgente"
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P004",
+    "nombreProducto": "Varillas de Acero",
+    "cantidadEnviada": 200
   },
   {
-    "idDetalleSalidaAcopio": 5,
-    "idAcopio": 5,
-    "FolioGuia": "FG-1005",
-    "ConceptoGuia": "Transferencia entre centros"
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P005",
+    "nombreProducto": "Clavos",
+    "cantidadEnviada": 500
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P006",
+    "nombreProducto": "Tornillos",
+    "cantidadEnviada": 1000
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P007",
+    "nombreProducto": "Tuberías PVC",
+    "cantidadEnviada": 30
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P008",
+    "nombreProducto": "Cable Eléctrico",
+    "cantidadEnviada": 200
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P009",
+    "nombreProducto": "Interruptores",
+    "cantidadEnviada": 50
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P010",
+    "nombreProducto": "Tomacorrientes",
+    "cantidadEnviada": 50
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P011",
+    "nombreProducto": "Pintura Blanca",
+    "cantidadEnviada": 20
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P012",
+    "nombreProducto": "Pintura Negra",
+    "cantidadEnviada": 20
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P013",
+    "nombreProducto": "Yeso",
+    "cantidadEnviada": 100
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P014",
+    "nombreProducto": "Madera",
+    "cantidadEnviada": 50
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P015",
+    "nombreProducto": "Azulejos",
+    "cantidadEnviada": 200
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P016",
+    "nombreProducto": "Pegamento",
+    "cantidadEnviada": 30
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P017",
+    "nombreProducto": "Silicona",
+    "cantidadEnviada": 40
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P018",
+    "nombreProducto": "Cinta Aislante",
+    "cantidadEnviada": 100
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P019",
+    "nombreProducto": "Llaves de Agua",
+    "cantidadEnviada": 20
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P020",
+    "nombreProducto": "Grifería",
+    "cantidadEnviada": 15
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P021",
+    "nombreProducto": "Sanitarios",
+    "cantidadEnviada": 10
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P022",
+    "nombreProducto": "Lavamanos",
+    "cantidadEnviada": 10
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P023",
+    "nombreProducto": "Duchas",
+    "cantidadEnviada": 8
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P024",
+    "nombreProducto": "Ventanas",
+    "cantidadEnviada": 15
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P025",
+    "nombreProducto": "Puertas",
+    "cantidadEnviada": 12
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P026",
+    "nombreProducto": "Bisagras",
+    "cantidadEnviada": 100
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P027",
+    "nombreProducto": "Cerraduras",
+    "cantidadEnviada": 30
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P028",
+    "nombreProducto": "Manillas",
+    "cantidadEnviada": 60
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P029",
+    "nombreProducto": "Lámparas",
+    "cantidadEnviada": 25
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 1,
+    "codProducto": "P030",
+    "nombreProducto": "Focos LED",
+    "cantidadEnviada": 100
   }
+  ,
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P031",
+    "nombreProducto": "Pintura Blanca",
+    "cantidadEnviada": 80
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2, 
+    "codProducto": "P032",
+    "nombreProducto": "Brochas",
+    "cantidadEnviada": 40
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P033", 
+    "nombreProducto": "Rodillos",
+    "cantidadEnviada": 25
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P034",
+    "nombreProducto": "Lijas",
+    "cantidadEnviada": 200
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P035",
+    "nombreProducto": "Masilla",
+    "cantidadEnviada": 50
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P036",
+    "nombreProducto": "Sellador",
+    "cantidadEnviada": 30
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P037",
+    "nombreProducto": "Impermeabilizante",
+    "cantidadEnviada": 40
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P038",
+    "nombreProducto": "Cinta Adhesiva",
+    "cantidadEnviada": 100
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P039",
+    "nombreProducto": "Espátulas",
+    "cantidadEnviada": 45
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P040",
+    "nombreProducto": "Guantes de Trabajo",
+    "cantidadEnviada": 150
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P041",
+    "nombreProducto": "Cascos de Seguridad",
+    "cantidadEnviada": 35
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P042",
+    "nombreProducto": "Gafas Protectoras",
+    "cantidadEnviada": 60
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P043",
+    "nombreProducto": "Mascarillas",
+    "cantidadEnviada": 200
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P044",
+    "nombreProducto": "Botas de Seguridad",
+    "cantidadEnviada": 40
+  },
+  {
+    "idOrdenAcopio": 4,
+    "idSalida": 2,
+    "codProducto": "P045",
+    "nombreProducto": "Chalecos Reflectantes",
+    "cantidadEnviada": 50
+  }
+
 ]

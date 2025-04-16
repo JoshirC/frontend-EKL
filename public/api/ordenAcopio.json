@@ -21,7 +21,7 @@
     "idAcopio": 4,
     "CentroCosto": "CNN",
     "Fecha": "2025-04-04",
-    "Estado": "Cerrado"
+    "Estado": "Subir"
   },
   {
     "idAcopio": 5,
@@ -45,7 +45,7 @@
     "idAcopio": 8,
     "CentroCosto": "Aura",
     "Fecha": "2025-04-05",
-    "Estado": "Proceso"
+    "Estado": "Subir"
   },
   {
     "idAcopio": 9,

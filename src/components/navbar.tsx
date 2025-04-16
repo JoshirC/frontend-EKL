@@ -144,8 +144,8 @@ const Navbar = () => {
                         </Link>
                       </li>
                       <li className="px-4 py-2 hover:bg-orange-200">
-                        <Link href="/salida/carga_masiva">
-                          <div onClick={handleCloseMenu}>Carga Masiva</div>
+                        <Link href="/salida/carga_softland">
+                          <div onClick={handleCloseMenu}>Carga Softland</div>
                         </Link>
                       </li>
                     </ul>
