@@ -60,13 +60,13 @@ const UsuariosPage: React.FC = () => {
           <div className="text-2xl font-semibold">Lista de Usuarios</div>
           <div className="flex space-x-4">
             <button
-              className="bg-amber-400 text-white font-semibold p-4 rounded hover:bg-amber-500 transition duration-300"
+              className="bg-orange-400 text-white font-semibold p-4 rounded hover:bg-orange-500 transition duration-300"
               onClick={abrirModalNuevoUsuario}
             >
               Nuevo Usuario
             </button>
             <button
-              className="bg-amber-400 text-white font-semibold p-4 rounded hover:bg-amber-500 transition duration-300"
+              className="bg-red-500 text-white font-semibold p-4 rounded hover:bg-red-600 transition duration-300"
               onClick={() => {
                 window.location.href = "/usuarios/eliminados";
               }}
@@ -75,7 +75,7 @@ const UsuariosPage: React.FC = () => {
             </button>
           </div>
         </div>
-        <table className="table-fixed w-full border-collapse border border-gray-200 mt-2">
+        <table className="table-auto w-full border-collapse border border-gray-200 mt-2">
           <thead className="bg-gray-200">
             <tr>
               <th className="border border-gray-300 px-4 py-2">Rut</th>
@@ -103,7 +103,7 @@ const UsuariosPage: React.FC = () => {
                 <td className="border border-gray-300 px-4 py-2">
                   <div className="flex space-x-2">
                     <button
-                      className="bg-amber-400 text-white w-full font-semibold p-2 rounded hover:bg-amber-600 transition duration-300"
+                      className="bg-amber-400 text-white w-full font-semibold p-2 rounded hover:bg-amber-500 transition duration-300"
                       onClick={() => {
                         abrirModalEditarUsuario();
                         setRutUsuario(usuario.Rut);
@@ -114,10 +114,10 @@ const UsuariosPage: React.FC = () => {
                     >
                       Editar
                     </button>
-                    <button className="bg-amber-400 text-white w-full font-semibold p-2 rounded hover:bg-amber-600 transition duration-300 ml-2">
+                    <button className="bg-orange-400 text-white w-full font-semibold p-2 rounded hover:bg-orange-500 transition duration-300 ml-2">
                       Cambiar Contraseña
                     </button>
-                    <button className="bg-amber-700 text-white w-full font-semibold p-2 rounded hover:bg-amber-800 transition duration-300 ml-2">
+                    <button className="bg-red-500 text-white w-full font-semibold p-2 rounded hover:bg-red-600 transition duration-300 ml-2">
                       Eliminar
                     </button>
                   </div>

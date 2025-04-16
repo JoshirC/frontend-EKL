@@ -41,7 +41,7 @@ const NuevaOrdenAcopio: React.FC<ModalProps> = ({ isOpen, onClose }) => {
             <input
               type="file"
               accept=".xlsx, .xls"
-              className="block w-full mt-4 text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:font-semibold file:bg-gray-400 file:text-white hover:file:bg-gray-500 file:cursor-pointer  border border-gray-300 rounded"
+              className="block w-full mt-4 text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:font-semibold file:bg-amber-400 file:text-white hover:file:bg-amber-500 file:cursor-pointer  border border-gray-300 rounded"
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
                   setArchivo(e.target.files[0]);
@@ -50,7 +50,7 @@ const NuevaOrdenAcopio: React.FC<ModalProps> = ({ isOpen, onClose }) => {
             />
             {/* Botón para subir archivo */}
 
-            <button className="bg-amber-400 text-white font-bold py-2 px-4 rounded hover:bg-amber-500 transition duration-300 w-full mt-18">
+            <button className="bg-orange-400 text-white font-bold py-2 px-4 rounded hover:bg-orange-500 transition duration-300 w-full mt-18">
               Subir Archivo
             </button>
 
@@ -58,9 +58,9 @@ const NuevaOrdenAcopio: React.FC<ModalProps> = ({ isOpen, onClose }) => {
 
             <button
               onClick={handleClose}
-              className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition duration-300 w-full mt-6"
+              className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600 transition duration-300 w-full mt-6"
             >
-              Cerrar
+              Cancelar
             </button>
           </div>
         </div>

@@ -76,13 +76,13 @@ const EditarUsuario: React.FC<ModalProps> = ({ isOpen, onClose }) => {
               <option>Bodeguero</option>
             </select>
             {/* Botón para guardar los cambios */}
-            <button className="bg-amber-400 text-white font-bold py-2 px-4 rounded hover:bg-amber-500 transition duration-300 w-full mt-6">
+            <button className="bg-orange-400 text-white font-bold py-2 px-4 rounded hover:bg-orange-500 transition duration-300 w-full mt-6">
               Guardar Cambios
             </button>
             {/* Botón para cerrar el modal */}
             <button
               onClick={handleClose}
-              className="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition duration-300 w-full mt-4"
+              className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600 transition duration-300 w-full mt-4"
             >
               Cerrar
             </button>

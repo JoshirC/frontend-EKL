@@ -52,7 +52,7 @@ const AcopioPage: React.FC = () => {
         <div className="flex justify-between items-center mb-4">
           <div className="text-2xl font-semibold">Lista de Acopio</div>
           <button
-            className="bg-amber-400 text-white font-semibold p-4 rounded hover:bg-amber-500 transition duration-300"
+            className="bg-orange-400 text-white font-semibold p-4 rounded hover:bg-orange-500 transition duration-300"
             onClick={abrirModalNuevaOrdenAcopio}
           >
             Nueva Orden de Acopio
@@ -87,7 +87,7 @@ const AcopioPage: React.FC = () => {
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
                   <button
-                    className="bg-amber-400 text-white font-semibold px-4 py-2 w-full rounded hover:bg-amber-500 transition duration-300"
+                    className="bg-orange-400 text-white font-semibold px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
                     onClick={() => {
                       window.location.href = `/adquisiciones/${orden.idAcopio}`;
                       setEstadoOrdenAcopio(orden.Estado);

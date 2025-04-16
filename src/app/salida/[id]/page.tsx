@@ -115,11 +115,11 @@ export default function AcopioSalidaIdPage({
       <div className="bg-white p-6 rounded shadow">
         {estado === "Confirmacion" ? (
           <div className="text-2xl font-semibold">
-            Confirmación de Acopio: {id_acopio}
+            Confirmación de Acopio N°{id_acopio}
           </div>
         ) : (
           <div className="text-2xl font-semibold">
-            Detalle de Acopio: {id_acopio}
+            Detalle de Acopio N°{id_acopio}
           </div>
         )}
         <div className="flex justify-around items-center my-4 space-x-6 font-bold">

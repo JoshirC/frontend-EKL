@@ -85,7 +85,7 @@ const Navbar = () => {
                       <div onClick={handleCloseMenu}> Ordenes de Acopio</div>
                     </Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-amber-200">
+                  <li className="px-4 py-2 hover:bg-orange-200">
                     <Link href="/adquisiciones/registro">
                       <div onClick={handleCloseMenu}>Registros</div>
                     </Link>
@@ -112,7 +112,7 @@ const Navbar = () => {
                   </li>
                   {!["Bodeguero"].includes(userRole) && (
                     <ul>
-                      <li className="px-4 py-2 hover:bg-amber-200">
+                      <li className="px-4 py-2 hover:bg-orange-200">
                         <Link href="/entrada/carga">Carga Masiva</Link>
                       </li>
                     </ul>
@@ -138,12 +138,12 @@ const Navbar = () => {
                   </li>
                   {!["Bodeguero"].includes(userRole) && (
                     <ul>
-                      <li className="px-4 py-2 hover:bg-amber-200">
+                      <li className="px-4 py-2 hover:bg-orange-200">
                         <Link href="/salida/revision">
                           <div onClick={handleCloseMenu}>Revisión</div>
                         </Link>
                       </li>
-                      <li className="px-4 py-2 hover:bg-amber-200">
+                      <li className="px-4 py-2 hover:bg-orange-200">
                         <Link href="/salida/carga_masiva">
                           <div onClick={handleCloseMenu}>Carga Masiva</div>
                         </Link>
