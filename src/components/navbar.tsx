@@ -1,16 +1,33 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import CambiarContraseña from "@/components/usuarios/cambiarContraseña";
 
 const Navbar = () => {
   const [openEntrada, setOpenEntrada] = useState(false);
   const [openSalida, setOpenSalida] = useState(false);
   const [openMenuUsuario, setOpenMenuUsuario] = useState(false);
   const [openAdquisiciones, setOpenAdquisiciones] = useState(false);
+  const [modalCambiarContraseña, setModalCambiarContraseña] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const userRole = "Administrador"; // Cambiar según el rol del usuario
+  const rutUsuario = "[tomar del login]";
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        handleCloseMenu();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleOpenEntrada = () => {
     setOpenEntrada(!openEntrada);
     setOpenSalida(false);
@@ -42,13 +59,22 @@ const Navbar = () => {
     setOpenAdquisiciones(false);
   };
 
+  const abrirModalCambiarContraseña = () => {
+    setModalCambiarContraseña(true);
+    handleCloseMenu();
+  };
+
+  const cerrarModalCambiarContraseña = () => {
+    setModalCambiarContraseña(false);
+  };
+
   {
     /* Roles: Administrador, Adquisiciones, Jefe Bodega, Bodeguero */
   }
   return (
     <header className="bg-gradient-to-r from-white to-orange-400 shadow-md sticky top-0 z-50">
       {/* Navbar Container */}
-      <div className="mx-auto max-w-screen px-4">
+      <div className="mx-auto max-w-screen px-4" ref={menuRef}>
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <Link href="/">
@@ -182,13 +208,15 @@ const Navbar = () => {
                 </svg>
               </button>
               {/* Dropdown Menu Datos Usuario */}
-              {/* Manejar con MODALS */}
               {openMenuUsuario && (
                 <ul className="mt-10 w-30 bg-orange-400 text-l text-black shadow-lg rounded-md sm:absolute">
                   <li className="px-4 py-2 hover:bg-orange-200">
-                    <Link href="/usuario/perfil">
-                      <div onClick={handleCloseMenu}>Cambiar Contraseña</div>
-                    </Link>
+                    <div
+                      onClick={abrirModalCambiarContraseña}
+                      className="cursor-pointer"
+                    >
+                      Cambiar Contraseña
+                    </div>
                   </li>
                   <li className="px-4 py-2 hover:bg-orange-200">
                     <Link href="/usuario/salir">
@@ -201,6 +229,11 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      <CambiarContraseña
+        isOpen={modalCambiarContraseña}
+        onClose={cerrarModalCambiarContraseña}
+        rutUsuario={rutUsuario}
+      />
     </header>
   );
 };

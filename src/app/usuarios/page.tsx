@@ -3,6 +3,7 @@ import EditarUsuario from "@/components/usuarios/editarUsuario";
 import NuevoUsuario from "@/components/usuarios/nuevoUsuario";
 import React, { useEffect, useState } from "react";
 import { useModalStore } from "@/store/modalStore";
+import CambiarContraseña from "@/components/usuarios/cambiarContraseña";
 type Usuario = {
   Rut: string;
   Nombre: string;
@@ -14,8 +15,14 @@ const UsuariosPage: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [modalEditarUsuario, setModalEditarUsuario] = useState(false);
   const [modalNuevoUsuario, setModalNuevoUsuario] = useState(false);
-  const { setRutUsuario, setNombreUsuario, setCorreoUsuario, setRolUsuario } =
-    useModalStore();
+  const [modalCambiarContraseña, setModalCambiarContraseña] = useState(false);
+  const {
+    rutUsuario,
+    setRutUsuario,
+    setNombreUsuario,
+    setCorreoUsuario,
+    setRolUsuario,
+  } = useModalStore();
   const abrirModalEditarUsuario = () => {
     setModalEditarUsuario(true);
   };
@@ -27,6 +34,12 @@ const UsuariosPage: React.FC = () => {
   };
   const cerrarModalNuevoUsuario = () => {
     setModalNuevoUsuario(false);
+  };
+  const abrirModalCambiarContraseña = () => {
+    setModalCambiarContraseña(true);
+  };
+  const cerrarModalCambiarContraseña = () => {
+    setModalCambiarContraseña(false);
   };
   useEffect(() => {
     const fetchUsuarios = async () => {
@@ -54,6 +67,11 @@ const UsuariosPage: React.FC = () => {
       <NuevoUsuario
         isOpen={modalNuevoUsuario}
         onClose={cerrarModalNuevoUsuario}
+      />
+      <CambiarContraseña
+        isOpen={modalCambiarContraseña}
+        onClose={cerrarModalCambiarContraseña}
+        rutUsuario={rutUsuario ?? ""}
       />
       <div className="bg-white p-6 rounded shadow">
         <div className="flex justify-between items-center mb-4">
@@ -114,7 +132,13 @@ const UsuariosPage: React.FC = () => {
                     >
                       Editar
                     </button>
-                    <button className="bg-orange-400 text-white w-full font-semibold p-2 rounded hover:bg-orange-500 transition duration-300 ml-2">
+                    <button
+                      className="bg-orange-400 text-white w-full font-semibold p-2 rounded hover:bg-orange-500 transition duration-300 ml-2"
+                      onClick={() => {
+                        abrirModalCambiarContraseña();
+                        setRutUsuario(usuario.Rut);
+                      }}
+                    >
                       Cambiar Contraseña
                     </button>
                     <button className="bg-red-500 text-white w-full font-semibold p-2 rounded hover:bg-red-600 transition duration-300 ml-2">
