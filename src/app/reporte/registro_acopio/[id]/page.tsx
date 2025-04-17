@@ -38,84 +38,86 @@ export default function RegistroAcopioIdPage({
     fetchDetalleSalidaAcopio();
   }, []);
   return (
-    <div className="p-10">
-      <div className="bg-white p-6 rounded shadow">
-        <div className="text-2xl font-semibold">
+    <div className="p-4 sm:p-10">
+      <div className="bg-white p-4 sm:p-6 rounded shadow">
+        <div className="text-xl sm:text-2xl font-semibold">
           Detalles de Salida de la Orden de Acopio N°{id_acopio}
         </div>
-        <table className="table-fixed w-full border-collapse border border-gray-200 mt-4">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="border border-gray-300 px-4 py-2">
-                Código Producto Solicitado
-              </th>
-              <th className="border border-gray-300 px-4 py-2">
-                Nombre Producto Solicitado
-              </th>
-              <th className="border border-gray-300 px-4 py-2">
-                Cantidad Solicitada
-              </th>
-              <th className="border border-gray-300 px-4 py-2">
-                Código Producto Enviado
-              </th>
-              <th className="border border-gray-300 px-4 py-2">
-                Nombre Producto Enviado
-              </th>
-              <th className="border border-gray-300 px-4 py-2">
-                Cantidad Enviada
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {detalleSalidaAcopio.map((detalle) => (
-              <tr
-                key={detalle.idDetalleSalidaAcopio}
-                className={`${
-                  detalle.codProducto !== detalle.codigoProductoReemplazo
-                    ? "bg-orange-100"
-                    : ""
-                }`}
-              >
-                <td className="border border-gray-300 px-4 py-2 ">
-                  {detalle.codigoProductoReemplazo}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.nombreProductoReemplazo}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.cantidadEnviadaReemplazo}
-                </td>
-                <td
-                  className={`border border-gray-300 px-4 py-2 ${
-                    detalle.codProducto !== detalle.codigoProductoReemplazo
-                      ? "bg-orange-100"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  {detalle.codProducto}
-                </td>
-                <td
-                  className={`border border-gray-300 px-4 py-2 ${
-                    detalle.codProducto !== detalle.codigoProductoReemplazo
-                      ? "bg-orange-100"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  {detalle.nombreProducto}
-                </td>
-                <td
-                  className={`border border-gray-300 px-4 py-2 ${
-                    detalle.codProducto !== detalle.codigoProductoReemplazo
-                      ? "bg-orange-100"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  {detalle.cantidadEnviada}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-4 text-sm sm:text-base">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Código Producto Solicitado
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Nombre Producto Solicitado
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Cantidad Solicitada
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Código Producto Enviado
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Nombre Producto Enviado
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Cantidad Enviada
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {detalleSalidaAcopio.map((detalle) => (
+                <tr
+                  key={detalle.idDetalleSalidaAcopio}
+                  className={`${
+                    detalle.codProducto !== detalle.codigoProductoReemplazo
+                      ? "bg-orange-100"
+                      : ""
+                  }`}
+                >
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.codigoProductoReemplazo}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.nombreProductoReemplazo}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.cantidadEnviadaReemplazo}
+                  </td>
+                  <td
+                    className={`border border-gray-300 px-2 sm:px-4 py-2 ${
+                      detalle.codProducto !== detalle.codigoProductoReemplazo
+                        ? "bg-orange-100"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    {detalle.codProducto}
+                  </td>
+                  <td
+                    className={`border border-gray-300 px-2 sm:px-4 py-2 ${
+                      detalle.codProducto !== detalle.codigoProductoReemplazo
+                        ? "bg-orange-100"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    {detalle.nombreProducto}
+                  </td>
+                  <td
+                    className={`border border-gray-300 px-2 sm:px-4 py-2 ${
+                      detalle.codProducto !== detalle.codigoProductoReemplazo
+                        ? "bg-orange-100"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    {detalle.cantidadEnviada}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

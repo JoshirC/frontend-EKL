@@ -527,4 +527,136 @@
     "nombreProductoReemplazo": "Cascos de Seguridad",
     "cantidadEnviadaReemplazo": 35
   }
+  ,{
+    "idDetalleSalidaAcopio": 49,
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P048",
+    "nombreProducto": "Guantes de Nitrilo",
+    "cantidadEnviada": 100,
+    "codigoProductoReemplazo": "P048",
+    "nombreProductoReemplazo": "Guantes de Nitrilo",
+    "cantidadEnviadaReemplazo": 100
+  },
+  {
+    "idDetalleSalidaAcopio": 50, 
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P049",
+    "nombreProducto": "Lentes de Seguridad",
+    "cantidadEnviada": 75,
+    "codigoProductoReemplazo": "P049",
+    "nombreProductoReemplazo": "Lentes de Seguridad",
+    "cantidadEnviadaReemplazo": 75
+  },
+  {
+    "idDetalleSalidaAcopio": 51,
+    "idOrdenAcopio": 8, 
+    "idSalida": 3,
+    "codProducto": "P050",
+    "nombreProducto": "Protectores Auditivos",
+    "cantidadEnviada": 50,
+    "codigoProductoReemplazo": "P050",
+    "nombreProductoReemplazo": "Protectores Auditivos",
+    "cantidadEnviadaReemplazo": 50
+  },
+  {
+    "idDetalleSalidaAcopio": 52,
+    "idOrdenAcopio": 8,
+    "idSalida": 3, 
+    "codProducto": "P051",
+    "nombreProducto": "Arnés de Seguridad",
+    "cantidadEnviada": 20,
+    "codigoProductoReemplazo": "P051",
+    "nombreProductoReemplazo": "Arnés de Seguridad",
+    "cantidadEnviadaReemplazo": 20
+  },
+  {
+    "idDetalleSalidaAcopio": 53,
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P052", 
+    "nombreProducto": "Línea de Vida",
+    "cantidadEnviada": 20,
+    "codigoProductoReemplazo": "P052",
+    "nombreProductoReemplazo": "Línea de Vida",
+    "cantidadEnviadaReemplazo": 20
+  },
+  {
+    "idDetalleSalidaAcopio": 54,
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P053",
+    "nombreProducto": "Zapatos de Seguridad",
+    "cantidadEnviada": 45,
+    "codigoProductoReemplazo": "P053", 
+    "nombreProductoReemplazo": "Zapatos de Seguridad",
+    "cantidadEnviadaReemplazo": 45
+  },
+  {
+    "idDetalleSalidaAcopio": 55,
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P054",
+    "nombreProducto": "Overol de Trabajo",
+    "cantidadEnviada": 30,
+    "codigoProductoReemplazo": "P054",
+    "nombreProductoReemplazo": "Overol de Trabajo", 
+    "cantidadEnviadaReemplazo": 30
+  },
+  {
+    "idDetalleSalidaAcopio": 56,
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P055",
+    "nombreProducto": "Respirador Media Cara",
+    "cantidadEnviada": 25,
+    "codigoProductoReemplazo": "P055",
+    "nombreProductoReemplazo": "Respirador Media Cara",
+    "cantidadEnviadaReemplazo": 25
+  },
+  {
+    "idDetalleSalidaAcopio": 57,
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P056",
+    "nombreProducto": "Filtros para Respirador",
+    "cantidadEnviada": 50,
+    "codigoProductoReemplazo": "P056",
+    "nombreProductoReemplazo": "Filtros para Respirador",
+    "cantidadEnviadaReemplazo": 50
+  },
+  {
+    "idDetalleSalidaAcopio": 58,
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P057",
+    "nombreProducto": "Cinta de Señalización",
+    "cantidadEnviada": 40,
+    "codigoProductoReemplazo": "P057",
+    "nombreProductoReemplazo": "Cinta de Señalización",
+    "cantidadEnviadaReemplazo": 40
+  },
+  {
+    "idDetalleSalidaAcopio": 59,
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P058",
+    "nombreProducto": "Conos de Seguridad",
+    "cantidadEnviada": 30,
+    "codigoProductoReemplazo": "P058",
+    "nombreProductoReemplazo": "Conos de Seguridad",
+    "cantidadEnviadaReemplazo": 30
+  },
+  {
+    "idDetalleSalidaAcopio": 60,
+    "idOrdenAcopio": 8,
+    "idSalida": 3,
+    "codProducto": "P059",
+    "nombreProducto": "Señales de Seguridad",
+    "cantidadEnviada": 25,
+    "codigoProductoReemplazo": "P059",
+    "nombreProductoReemplazo": "Señales de Seguridad",
+    "cantidadEnviadaReemplazo": 25
+  }
 ]

@@ -42,64 +42,74 @@ const AcopioPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-10">
+    <div className="p-4 sm:p-10">
       <NuevaOrdenAcopio
         isOpen={modalNuevaOrdenAcopio}
         onClose={cerrarModalNuevaOrdenAcopio}
       />
 
-      <div className="bg-white p-6 rounded shadow">
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-2xl font-semibold">Lista de Acopio</div>
+      <div className="bg-white p-4 sm:p-6 rounded shadow">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div className="text-xl sm:text-2xl font-semibold">
+            Lista de Acopio
+          </div>
           <button
-            className="bg-orange-400 text-white font-semibold p-4 rounded hover:bg-orange-500 transition duration-300"
+            className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto"
             onClick={abrirModalNuevaOrdenAcopio}
           >
             Nueva Orden de Acopio
           </button>
         </div>
-        <table className="table-fixed w-full border-collapse border border-gray-200 mt-2">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="border border-gray-300 px-4 py-2 ">ID</th>
-              <th className="border border-gray-300 px-4 py-2">Centro Costo</th>
-              <th className="border border-gray-300 px-4 py-2">
-                Fecha Ingreso
-              </th>
-              <th className="border border-gray-300 px-4 py-2">Estado</th>
-              <th className="border border-gray-300 px-4 py-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ordenes.map((orden) => (
-              <tr key={orden.idAcopio}>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.idAcopio}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.CentroCosto}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.Fecha}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.Estado}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  <button
-                    className="bg-orange-400 text-white font-semibold px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
-                    onClick={() => {
-                      window.location.href = `/adquisiciones/${orden.idAcopio}`;
-                      setEstadoOrdenAcopio(orden.Estado);
-                    }}
-                  >
-                    Detalles
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">ID</th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Centro Costo
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Fecha Ingreso
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Estado
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Acciones
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {ordenes.map((orden) => (
+                <tr key={orden.idAcopio}>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.idAcopio}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.CentroCosto}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.Fecha}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.Estado}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    <button
+                      className="bg-orange-400 text-white font-semibold px-3 sm:px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
+                      onClick={() => {
+                        window.location.href = `/adquisiciones/${orden.idAcopio}`;
+                        setEstadoOrdenAcopio(orden.Estado);
+                      }}
+                    >
+                      Detalles
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

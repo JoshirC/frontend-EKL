@@ -23,55 +23,63 @@ const RevisionPage: React.FC = () => {
     fetchOrdenAcopio();
   }, []);
   return (
-    <div className="p-10">
-      <div className="bg-white p-6 rounded shadow">
-        <div className="text-2xl font-semibold">
+    <div className="p-4 sm:p-10">
+      <div className="bg-white p-4 sm:p-6 rounded shadow">
+        <div className="text-xl sm:text-2xl font-semibold">
           Revision de Acopio de Productos
         </div>
-        <table className="table-fixed w-full border-collapse border border-gray-200 mt-2">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="border border-gray-300 px-4 py-2">ID</th>
-              <th className="border border-gray-300 px-4 py-2">
-                Centro de Costo
-              </th>
-              <th className="border border-gray-300 px-4 py-2">Fecha</th>
-              <th className="border border-gray-300 px-4 py-2">Estado</th>
-              <th className="border border-gray-300 px-4 py-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ordenAcopio.map((orden) => (
-              <tr key={orden.idAcopio}>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.idAcopio}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.CentroCosto}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.Fecha}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.Estado}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  <button
-                    className="bg-orange-400 hover:bg-orange-500 w-full text-white font-semibold py-2 px-4 rounded"
-                    onClick={() => {
-                      window.location.href = `/salida/${orden.idAcopio}`;
-                      setEstado(orden.Estado);
-                      setCentroCosto(orden.CentroCosto);
-                      setFecha(orden.Fecha);
-                    }}
-                  >
-                    Ver Detalles
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">ID</th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Centro de Costo
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Fecha
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Estado
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Acciones
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {ordenAcopio.map((orden) => (
+                <tr key={orden.idAcopio}>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.idAcopio}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.CentroCosto}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.Fecha}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.Estado}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    <button
+                      className="bg-orange-400 text-white font-semibold px-3 sm:px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
+                      onClick={() => {
+                        window.location.href = `/salida/${orden.idAcopio}`;
+                        setCentroCosto(orden.CentroCosto);
+                        setFecha(orden.Fecha);
+                        setEstado(orden.Estado);
+                      }}
+                    >
+                      Detalles
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+
 type Usuario = {
   Rut: string;
   Nombre: string;
@@ -7,8 +8,10 @@ type Usuario = {
   Rol: string;
   Eliminado: boolean;
 };
+
 const EliminadosPage: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
@@ -23,18 +26,20 @@ const EliminadosPage: React.FC = () => {
         console.error("Error al cargar el JSON:", error);
       }
     };
+
     fetchUsuarios();
   }, []);
+
   return (
-    <div className="p-10">
-      <div className="bg-white p-6 rounded shadow">
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-2xl font-semibold">
+    <div className="p-4 sm:p-6 md:p-10">
+      <div className="bg-white p-4 sm:p-6 rounded shadow">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div className="text-xl sm:text-2xl font-semibold">
             Lista de Usuarios Eliminados
           </div>
-          <div className="flex space-x-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
             <button
-              className="bg-orange-400 text-white font-semibold p-4 rounded hover:bg-orange-500 transition duration-300"
+              className="bg-orange-400 text-white font-semibold p-2 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto"
               onClick={() => {
                 window.location.href = "/usuarios";
               }}
@@ -43,40 +48,52 @@ const EliminadosPage: React.FC = () => {
             </button>
           </div>
         </div>
-        <table className="table-fixed w-full border-collapse border border-gray-200 mt-2">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="border border-gray-300 px-4 py-2">Rut</th>
-              <th className="border border-gray-300 px-4 py-2">Nombre</th>
-              <th className="border border-gray-300 px-4 py-2">Correo</th>
-              <th className="border border-gray-300 px-4 py-2">Rol</th>
-              <th className="border border-gray-300 px-4 py-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((usuario) => (
-              <tr key={usuario.Rut}>
-                <td className="border border-gray-300 px-4 py-2">
-                  {usuario.Rut}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {usuario.Nombre}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {usuario.Correo}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {usuario.Rol}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  <button className="bg-blue-400 text-white w-full font-semibold p-2 rounded hover:bg-blue-500 transition duration-300">
-                    Restaurar
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="table-auto w-full text-center border-collapse border border-gray-200 mt-2 min-w-[600px]">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                  Rut
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                  Nombre
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                  Correo
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                  Rol
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                  Acciones
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {usuarios.map((usuario) => (
+                <tr key={usuario.Rut}>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    {usuario.Rut}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    {usuario.Nombre}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    {usuario.Correo}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    {usuario.Rol}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    <button className="bg-blue-400 text-white font-semibold p-2 rounded hover:bg-blue-500 transition duration-300 text-sm sm:text-base w-full">
+                      Restaurar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
