@@ -6,7 +6,10 @@
     "CodigoProducto": "P001",
     "DescripcionProducto": "Yogur",
     "UnidadMedida": "Litros",
-    "Cantidad": 20
+    "Cantidad": 20,
+    "CantidadEnviada": 0, 
+    "Enviado": false,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 2,
@@ -15,7 +18,10 @@
     "CodigoProducto": "P002",
     "DescripcionProducto": "Agua Mineral",
     "UnidadMedida": "Litros",
-    "Cantidad": 15
+    "Cantidad": 15,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : false
   },
   {
     "idDetalleOrdenAcopio": 3,
@@ -24,7 +30,10 @@
     "CodigoProducto": "P003",
     "DescripcionProducto": "Pollo",
     "UnidadMedida": "Kilogramos",
-    "Cantidad": 40
+    "Cantidad": 40,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : false
   },
   {
     "idDetalleOrdenAcopio": 4,
@@ -33,16 +42,22 @@
     "CodigoProducto": "P004",
     "DescripcionProducto": "Chips",
     "UnidadMedida": "Paquete",
-    "Cantidad": 30
+    "Cantidad": 30,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 5,
-    "idAcopio": 4,
+    "idAcopio": 2,
     "FamiliaProducto": "Panadería",
     "CodigoProducto": "P005",
     "DescripcionProducto": "Pan",
     "UnidadMedida": "Bolsas",
-    "Cantidad": 25
+    "Cantidad": 25,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : false
   },
   {
     "idDetalleOrdenAcopio": 6,
@@ -51,7 +66,10 @@
     "CodigoProducto": "P006",
     "DescripcionProducto": "Manzanas",
     "UnidadMedida": "Kilogramos",
-    "Cantidad": 50
+    "Cantidad": 50,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 7,
@@ -60,7 +78,10 @@
     "CodigoProducto": "P007",
     "DescripcionProducto": "Zanahorias",
     "UnidadMedida": "Kilogramos", 
-    "Cantidad": 35
+    "Cantidad": 35,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad" : false
   },
   {
     "idDetalleOrdenAcopio": 8,
@@ -69,7 +90,10 @@
     "CodigoProducto": "P008",
     "DescripcionProducto": "Arroz",
     "UnidadMedida": "Kilogramos",
-    "Cantidad": 60
+    "Cantidad": 60,
+    "CantidadEnviada": 10,
+    "Enviado": true,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 9,
@@ -78,7 +102,10 @@
     "CodigoProducto": "P009",
     "DescripcionProducto": "Leche",
     "UnidadMedida": "Litros",
-    "Cantidad": 25
+    "Cantidad": 25,
+    "CantidadEnviada": 40,
+    "Enviado": true,
+    "Trazabilidad" : true
   },
   {
     "idDetalleOrdenAcopio": 10,
@@ -87,6 +114,441 @@
     "CodigoProducto": "P010",
     "DescripcionProducto": "Res",
     "UnidadMedida": "Kilogramos",
-    "Cantidad": 45
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 11,
+    "idAcopio": 1,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 12,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 13,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 14,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 15,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Res",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 16,
+    "idAcopio": 5,
+    "FamiliaProducto": "Carnes",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Vacuno",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 45,
+    "CantidadEnviada": 60,
+    "Enviado": true,
+    "Trazabilidad" : false
+  },
+  {
+    "idDetalleOrdenAcopio": 17,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "1060312500",
+    "DescripcionProducto": "Cemento Portland",
+    "UnidadMedida": "Bolsas",
+    "Cantidad": 50,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 18,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "1020601000",
+    "DescripcionProducto": "Arena Fina",
+    "UnidadMedida": "Metros Cúbicos",
+    "Cantidad": 100,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 19,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P003",
+    "DescripcionProducto": "Ladrillos",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 1000,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 20,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P004",
+    "DescripcionProducto": "Varillas de Acero",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 200,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 21,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P005",
+    "DescripcionProducto": "Clavos",
+    "UnidadMedida": "Kilogramos",
+    "Cantidad": 500,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 22,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P006",
+    "DescripcionProducto": "Tornillos",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 1000,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 23,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P007",
+    "DescripcionProducto": "Tuberías PVC",
+    "UnidadMedida": "Metros",
+    "Cantidad": 30,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 24,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P008",
+    "DescripcionProducto": "Cable Eléctrico",
+    "UnidadMedida": "Metros",
+    "Cantidad": 200,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 25,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P009",
+    "DescripcionProducto": "Interruptores",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 50,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 26,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P010",
+    "DescripcionProducto": "Tomacorrientes",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 50,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 27,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P011",
+    "DescripcionProducto": "Pintura Blanca",
+    "UnidadMedida": "Galones",
+    "Cantidad": 20,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 28,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P012",
+    "DescripcionProducto": "Pintura Negra",
+    "UnidadMedida": "Galones",
+    "Cantidad": 20,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 29,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P013",
+    "DescripcionProducto": "Yeso",
+    "UnidadMedida": "Bolsas",
+    "Cantidad": 100,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 30,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P014",
+    "DescripcionProducto": "Madera",
+    "UnidadMedida": "Metros Cúbicos",
+    "Cantidad": 50,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 31,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P015",
+    "DescripcionProducto": "Azulejos",
+    "UnidadMedida": "Metros Cuadrados",
+    "Cantidad": 200,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 32,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P016",
+    "DescripcionProducto": "Pegamento",
+    "UnidadMedida": "Galones",
+    "Cantidad": 30,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 33,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P017",
+    "DescripcionProducto": "Silicona",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 40,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 34,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P018",
+    "DescripcionProducto": "Cinta Aislante",
+    "UnidadMedida": "Rollos",
+    "Cantidad": 100,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 35,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P019",
+    "DescripcionProducto": "Llaves de Agua",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 20,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 36,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P020",
+    "DescripcionProducto": "Grifería",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 15,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 37,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P021",
+    "DescripcionProducto": "Sanitarios",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 10,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 38,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P022",
+    "DescripcionProducto": "Lavamanos",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 10,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 39,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P023",
+    "DescripcionProducto": "Duchas",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 8,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 40,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P024",
+    "DescripcionProducto": "Ventanas",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 15,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 41,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P025",
+    "DescripcionProducto": "Puertas",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 12,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 42,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P026",
+    "DescripcionProducto": "Bisagras",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 100,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 43,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P027",
+    "DescripcionProducto": "Cerraduras",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 30,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 44,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P028",
+    "DescripcionProducto": "Manillas",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 60,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 45,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P029",
+    "DescripcionProducto": "Lámparas",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 25,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
+  },
+  {
+    "idDetalleOrdenAcopio": 46,
+    "idAcopio": 4,
+    "FamiliaProducto": "Materiales de Construcción",
+    "CodigoProducto": "P030",
+    "DescripcionProducto": "Focos LED",
+    "UnidadMedida": "Unidades",
+    "Cantidad": 100,
+    "CantidadEnviada": 0,
+    "Enviado": false,
+    "Trazabilidad": false
   }
 ]

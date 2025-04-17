@@ -34,7 +34,7 @@ const EliminadosPage: React.FC = () => {
           </div>
           <div className="flex space-x-4">
             <button
-              className="bg-amber-400 text-white font-semibold p-4 rounded hover:bg-amber-500 transition duration-300"
+              className="bg-orange-400 text-white font-semibold p-4 rounded hover:bg-orange-500 transition duration-300"
               onClick={() => {
                 window.location.href = "/usuarios";
               }}
@@ -69,7 +69,7 @@ const EliminadosPage: React.FC = () => {
                   {usuario.Rol}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
-                  <button className="bg-red-500 text-white w-full font-semibold p-2 rounded hover:bg-red-600 transition duration-300">
+                  <button className="bg-blue-400 text-white w-full font-semibold p-2 rounded hover:bg-blue-500 transition duration-300">
                     Restaurar
                   </button>
                 </td>

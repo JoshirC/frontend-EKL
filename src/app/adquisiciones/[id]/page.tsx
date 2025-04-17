@@ -89,14 +89,14 @@ export default function AcopioIdPage({
       <div className="bg-white p-6 rounded shadow">
         <div className="flex justify-between items-center mb-4">
           <div className="text-2xl font-semibold">
-            Detalles de Acopio N°: {id_acopio}
+            Detalles de Acopio N°{id_acopio}
           </div>
           {estadoOrdenAcopio && ["Pendiente"].includes(estadoOrdenAcopio) && (
             <div>
-              <button className="bg-amber-400 text-white font-semibold p-4 rounded hover:bg-amber-500 transition duration-300">
+              <button className="bg-orange-400 text-white font-semibold p-4 rounded hover:bg-orange-500 transition duration-300">
                 Confirmar Acopio
               </button>
-              <button className="bg-red-400 text-white font-semibold p-4 rounded hover:bg-red-500 transition duration-300 ml-2">
+              <button className="bg-red-500 text-white font-semibold p-4 rounded hover:bg-red-600 transition duration-300 ml-2">
                 Cancelar Acopio
               </button>
             </div>

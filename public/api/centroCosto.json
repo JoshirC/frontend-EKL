@@ -1,0 +1,22 @@
+[
+    {
+        "Centro": "Pucobre",
+        "Pendiente": 2,
+        "Proceso": 4
+    },
+    {
+        "Centro": "CNN",
+        "Pendiente": 2,
+        "Proceso": 2
+    },
+    {
+        "Centro": "Rio Blanco",
+        "Pendiente": 3,
+        "Proceso": 4
+    },
+    {
+        "Centro": "Aura",
+        "Pendiente": 1,
+        "Proceso": 0
+    }
+]
