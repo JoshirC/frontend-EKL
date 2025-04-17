@@ -66,7 +66,7 @@ const RegistroPage: React.FC = () => {
                   <button
                     className="bg-orange-400 text-white font-semibold px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
                     onClick={() => {
-                      window.location.href = `/adquisiciones/${orden.idAcopio}`;
+                      window.location.href = `/reporte/registro_acopio/${orden.idAcopio}`;
                       setEstadoOrdenAcopio(orden.Estado);
                     }}
                   >
