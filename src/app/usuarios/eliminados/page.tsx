@@ -1,34 +1,57 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { gql, useQuery, useMutation } from "@apollo/client";
+import React from "react";
 
 type Usuario = {
-  Rut: string;
-  Nombre: string;
-  Correo: string;
-  Rol: string;
-  Eliminado: boolean;
+  id: number;
+  rut: string;
+  nombre: string;
+  correo: string;
+  rol: string;
 };
 
+const GET_USUARIOS_ELIMINADOS = gql`
+  query GetUsuariosEliminados {
+    usersEliminados {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
+
+const EDITAR_ESTADO_ELIMINADO_USER = gql`
+  mutation EditStatusUser($id: Float!) {
+    editStatusUser(id: $id) {
+      id
+    }
+  }
+`;
+
 const EliminadosPage: React.FC = () => {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const { data, loading, error, refetch } = useQuery(GET_USUARIOS_ELIMINADOS);
 
-  useEffect(() => {
-    const fetchUsuarios = async () => {
-      try {
-        // Aquí se debe preguntar por los usuarios que estan eliminados.
-        const response = await fetch("/api/usuario.json");
-        const data = await response.json();
-        const usuariosEliminados = data.filter(
-          (usuario: Usuario) => usuario.Eliminado === true
-        );
-        setUsuarios(usuariosEliminados);
-      } catch (error) {
-        console.error("Error al cargar el JSON:", error);
-      }
-    };
+  const [editStatusUser] = useMutation(EDITAR_ESTADO_ELIMINADO_USER, {
+    onCompleted: () => {
+      refetch();
+    },
+  });
 
-    fetchUsuarios();
-  }, []);
+  const handleRestaurarUsuario = async (id: number) => {
+    try {
+      await editStatusUser({
+        variables: {
+          id,
+        },
+      });
+    } catch (error) {
+      console.error("Error al restaurar usuario:", error);
+    }
+  };
+
+  const usuarios: Usuario[] = data?.usersEliminados || [];
 
   return (
     <div className="p-4 sm:p-6 md:p-10">
@@ -48,52 +71,61 @@ const EliminadosPage: React.FC = () => {
             </button>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="table-auto w-full text-center border-collapse border border-gray-200 mt-2 min-w-[600px]">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                  Rut
-                </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                  Nombre
-                </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                  Correo
-                </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                  Rol
-                </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {usuarios.map((usuario) => (
-                <tr key={usuario.Rut}>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                    {usuario.Rut}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                    {usuario.Nombre}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                    {usuario.Correo}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                    {usuario.Rol}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    <button className="bg-blue-400 text-white font-semibold p-2 rounded hover:bg-blue-500 transition duration-300 text-sm sm:text-base w-full">
-                      Restaurar
-                    </button>
-                  </td>
+        {loading ? (
+          <p>Cargando usuarios...</p>
+        ) : error ? (
+          <p className="text-red-500">Error al cargar los usuarios</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table-auto w-full text-center border-collapse border border-gray-200 mt-2 min-w-[600px]">
+              <thead className="bg-gray-200">
+                <tr>
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    Rut
+                  </th>
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    Nombre
+                  </th>
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    Correo
+                  </th>
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    Rol
+                  </th>
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    Acciones
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {usuarios.map((usuario) => (
+                  <tr key={usuario.id}>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                      {usuario.rut}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                      {usuario.nombre}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                      {usuario.correo}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                      {usuario.rol}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      <button
+                        className="bg-blue-400 text-white font-semibold p-2 rounded hover:bg-blue-500 transition duration-300 text-sm sm:text-base w-full"
+                        onClick={() => handleRestaurarUsuario(usuario.id)}
+                      >
+                        Restaurar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

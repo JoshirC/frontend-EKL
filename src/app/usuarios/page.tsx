@@ -4,7 +4,7 @@ import NuevoUsuario from "@/components/usuarios/nuevoUsuario";
 import CambiarContraseña from "@/components/usuarios/cambiarContraseña";
 import { useModalStore } from "@/store/modalStore";
 import React from "react";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useMutation } from "@apollo/client";
 
 type Usuario = {
   id: number;
@@ -17,6 +17,31 @@ type Usuario = {
 const GET_USUARIOS_NO_ELIMINADOS = gql`
   query GetUsuariosNoEliminados {
     usersNoEliminados {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
+
+const UPDATE_USER = gql`
+  mutation UpdateUser($updateUserInput: UpdateUserInput!) {
+    updateUser(updateUserInput: $updateUserInput) {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
+
+const EDITAR_ESTADO_ELIMINADO_USER = gql`
+  mutation EditStatusUser($id: Float!) {
+    editStatusUser(id: $id) {
+      id
       rut
       nombre
       correo
@@ -38,13 +63,62 @@ const UsuariosPage: React.FC = () => {
   const [modalNuevoUsuario, setModalNuevoUsuario] = React.useState(false);
   const [modalCambiarContraseña, setModalCambiarContraseña] =
     React.useState(false);
+  const [usuarioSeleccionado, setUsuarioSeleccionado] =
+    React.useState<Usuario | null>(null);
 
   const { data, loading, error, refetch } = useQuery(
     GET_USUARIOS_NO_ELIMINADOS
   );
 
-  const abrirModalEditarUsuario = () => setModalEditarUsuario(true);
-  const cerrarModalEditarUsuario = () => setModalEditarUsuario(false);
+  const [updateUser] = useMutation(UPDATE_USER, {
+    onCompleted: () => {
+      cerrarModalEditarUsuario();
+      refetch();
+    },
+  });
+
+  const [editStatusUser] = useMutation(EDITAR_ESTADO_ELIMINADO_USER, {
+    onCompleted: () => {
+      refetch();
+    },
+  });
+
+  const abrirModalEditarUsuario = (usuario: Usuario) => {
+    setUsuarioSeleccionado(usuario);
+    setRutUsuario(usuario.rut);
+    setNombreUsuario(usuario.nombre);
+    setCorreoUsuario(usuario.correo);
+    setRolUsuario(usuario.rol);
+    setModalEditarUsuario(true);
+  };
+
+  const cerrarModalEditarUsuario = () => {
+    setUsuarioSeleccionado(null);
+    setModalEditarUsuario(false);
+  };
+
+  const handleEditarUsuario = async (
+    id: number,
+    nombre: string,
+    correo: string,
+    rol: string
+  ) => {
+    try {
+      await updateUser({
+        variables: {
+          updateUserInput: {
+            id,
+            nombre,
+            correo,
+            rol,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error al actualizar usuario:", error);
+    }
+  };
+
   const abrirModalNuevoUsuario = () => setModalNuevoUsuario(true);
   const cerrarModalNuevoUsuario = () => {
     setModalNuevoUsuario(false);
@@ -53,6 +127,18 @@ const UsuariosPage: React.FC = () => {
   const abrirModalCambiarContraseña = () => setModalCambiarContraseña(true);
   const cerrarModalCambiarContraseña = () => setModalCambiarContraseña(false);
 
+  const handleEliminarUsuario = async (id: number) => {
+    try {
+      await editStatusUser({
+        variables: {
+          id,
+        },
+      });
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error);
+    }
+  };
+
   const usuarios: Usuario[] = data?.usersNoEliminados || [];
 
   return (
@@ -60,6 +146,8 @@ const UsuariosPage: React.FC = () => {
       <EditarUsuario
         isOpen={modalEditarUsuario}
         onClose={cerrarModalEditarUsuario}
+        onSave={handleEditarUsuario}
+        usuarioId={usuarioSeleccionado?.id}
       />
       <NuevoUsuario
         isOpen={modalNuevoUsuario}
@@ -139,13 +227,7 @@ const UsuariosPage: React.FC = () => {
                       <div className="flex flex-col sm:flex-row lg:space-x-2 lg:w-full gap-2">
                         <button
                           className="bg-amber-400 text-white font-semibold p-2 rounded hover:bg-amber-500 transition duration-300 text-sm sm:text-base w-full"
-                          onClick={() => {
-                            abrirModalEditarUsuario();
-                            setRutUsuario(usuario.rut);
-                            setNombreUsuario(usuario.nombre);
-                            setCorreoUsuario(usuario.correo);
-                            setRolUsuario(usuario.rol);
-                          }}
+                          onClick={() => abrirModalEditarUsuario(usuario)}
                         >
                           Editar
                         </button>
@@ -158,7 +240,10 @@ const UsuariosPage: React.FC = () => {
                         >
                           Cambiar Contraseña
                         </button>
-                        <button className="bg-red-500 text-white font-semibold p-2 rounded hover:bg-red-600 transition duration-300 text-sm sm:text-base w-full">
+                        <button
+                          className="bg-red-500 text-white font-semibold p-2 rounded hover:bg-red-600 transition duration-300 text-sm sm:text-base w-full"
+                          onClick={() => handleEliminarUsuario(usuario.id)}
+                        >
                           Eliminar
                         </button>
                       </div>
