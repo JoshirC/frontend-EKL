@@ -7,6 +7,8 @@ export interface User {
   id: string;
   rut: string;
   nombre: string;
+  correo: string;
+  rol: string;
 }
 
 export interface LoginResponse {

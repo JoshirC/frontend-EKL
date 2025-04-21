@@ -6,15 +6,15 @@ import { gql } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { LoginUserInput, LoginResponse } from "@/types/graphql";
 import Cookies from "js-cookie";
+import { useJwtStore } from "@/store/jwtStore";
 
 const LOGIN_MUTATION = gql`
   mutation Login($loginUserInput: LoginUserInput!) {
     login(loginUserInput: $loginUserInput) {
       access_token
       user {
-        id
         rut
-        nombre
+        rol
       }
     }
   }
@@ -25,17 +25,18 @@ export default function Login() {
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const { setToken, setRutUsuario, setRolUsuario } = useJwtStore();
 
   const [login, { loading }] = useMutation<LoginResponse>(LOGIN_MUTATION, {
     onCompleted: (data) => {
-      console.log("Login exitoso:", data);
-      // Guardar el token en las cookies
       Cookies.set("token", data.login.access_token, { expires: 7 }); // Expira en 7 días
+      Cookies.set("rol", data.login.user.rol, { expires: 7 }); // Guardar rol en cookies
+      setToken(data.login.access_token);
+      setRutUsuario(data.login.user.rut);
+      setRolUsuario(data.login.user.rol);
       router.push("/");
     },
     onError: (error) => {
-      console.error("Error en login:", error);
-      // Verificar el tipo de error
       if (error.networkError) {
         setError("Error de conexión. Por favor, intente nuevamente.");
       } else if (error.graphQLErrors && error.graphQLErrors.length > 0) {

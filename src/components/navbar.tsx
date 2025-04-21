@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import CambiarContraseña from "@/components/usuarios/cambiarContraseña";
+import { useJwtStore } from "@/store/jwtStore";
 
 const Navbar = () => {
   const [openEntrada, setOpenEntrada] = useState(false);
@@ -14,9 +15,7 @@ const Navbar = () => {
   const [openReporte, setOpenReporte] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  const userRole = "Administrador"; // Cambiar según el rol del usuario
-  const rutUsuario = "[tomar del login]";
+  const { rutUsuario, rolUsuario } = useJwtStore();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -164,7 +163,7 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {/* Usuarios */}
-            {["Administrador"].includes(userRole) && (
+            {["Administrador"].includes(rolUsuario ?? "") && (
               <Link href="/usuarios">
                 <div className="text-black font-semibold hover:text-gray-100 transition duration-300">
                   Usuarios
@@ -173,7 +172,7 @@ const Navbar = () => {
             )}
 
             {/* Adquisiciones */}
-            {!["Jefe Bodega", "Bodeguero"].includes(userRole) && (
+            {!["Jefe Bodega", "Bodeguero"].includes(rolUsuario ?? "") && (
               <div className="relative flex justify-center">
                 <button
                   onClick={handleOpenAdquisiciones}
@@ -214,7 +213,7 @@ const Navbar = () => {
                       Ingreso de Productos
                     </div>
                   </Link>
-                  {!["Bodeguero"].includes(userRole) && (
+                  {!["Bodeguero"].includes(rolUsuario ?? "") && (
                     <Link href="/entrada/carga">
                       <div
                         className="block px-4 py-2 hover:bg-orange-200"
@@ -246,7 +245,7 @@ const Navbar = () => {
                       Acopio de Productos
                     </div>
                   </Link>
-                  {!["Bodeguero"].includes(userRole) && (
+                  {!["Bodeguero"].includes(rolUsuario ?? "") && (
                     <>
                       <Link href="/salida/revision">
                         <div
@@ -324,14 +323,18 @@ const Navbar = () => {
                   >
                     Cambiar Contraseña
                   </div>
-                  <Link href="/usuario/salir">
-                    <div
-                      className="block px-4 py-2 hover:bg-orange-200 rounded-md"
-                      onClick={handleSelectOption}
-                    >
-                      Salir
-                    </div>
-                  </Link>
+                  <div
+                    className="block px-4 py-2 hover:bg-orange-200 rounded-md cursor-pointer"
+                    onClick={() => {
+                      document.cookie =
+                        "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                      useJwtStore.getState().clearStore();
+                      handleSelectOption();
+                      window.location.href = "/auth/login";
+                    }}
+                  >
+                    Salir
+                  </div>
                 </div>
               )}
             </div>
@@ -343,7 +346,7 @@ const Navbar = () => {
           <div className="md:hidden rounded-lg">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               {/* Usuarios */}
-              {["Administrador"].includes(userRole) && (
+              {["Administrador"].includes(rolUsuario ?? "") && (
                 <Link href="/usuarios">
                   <div
                     className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
@@ -355,7 +358,7 @@ const Navbar = () => {
               )}
 
               {/* Adquisiciones */}
-              {!["Jefe Bodega", "Bodeguero"].includes(userRole) && (
+              {!["Jefe Bodega", "Bodeguero"].includes(rolUsuario ?? "") && (
                 <div>
                   <button
                     onClick={handleOpenAdquisiciones}
@@ -396,7 +399,7 @@ const Navbar = () => {
                         ▶ Ingreso de Productos
                       </div>
                     </Link>
-                    {!["Bodeguero"].includes(userRole) && (
+                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
                       <Link href="/entrada/carga">
                         <div
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
@@ -428,7 +431,7 @@ const Navbar = () => {
                         ▶ Acopio de Productos
                       </div>
                     </Link>
-                    {!["Bodeguero"].includes(userRole) && (
+                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
                       <>
                         <Link href="/salida/revision">
                           <div
@@ -493,14 +496,20 @@ const Navbar = () => {
                     >
                       ▶ Cambiar Contraseña
                     </div>
-                    <Link href="/usuario/salir">
-                      <div
+                    <div>
+                      <Link
+                        href="/auth/login"
                         className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                        onClick={handleSelectOption}
+                        onClick={() => {
+                          document.cookie =
+                            "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                          useJwtStore.getState().clearStore();
+                          handleSelectOption();
+                        }}
                       >
                         ▶ Salir
-                      </div>
-                    </Link>
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
@@ -511,7 +520,7 @@ const Navbar = () => {
       <CambiarContraseña
         isOpen={modalCambiarContraseña}
         onClose={cerrarModalCambiarContraseña}
-        rutUsuario={rutUsuario}
+        rutUsuario={rutUsuario ?? ""}
       />
     </header>
   );
