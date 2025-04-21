@@ -9,6 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@apollo/client": "^3.13.8",
+    "@types/js-cookie": "^3.0.6",
+    "graphql": "^16.10.0",
+    "js-cookie": "^3.0.5",
     "next": "15.2.4",
     "react": "^19.0.0",
     "react-barcode": "^1.6.1",

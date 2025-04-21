@@ -37,59 +37,63 @@ export default function CargaSoftlandDetallePage({
   }, [detalleSalida]);
 
   return (
-    <div className="p-10">
-      <div className="bg-white p-6 rounded shadow">
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-2xl font-semibold">
+    <div className="p-4 sm:p-10">
+      <div className="bg-white p-4 sm:p-6 rounded shadow">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div className="text-xl sm:text-2xl font-semibold">
             Detalle de Guia de Salida N°{id_salida}
           </div>
-          <button className="bg-orange-400 hover:bg-orange-500 font-semibold text-white px-4 py-2 rounded">
+          <button className="bg-orange-400 hover:bg-orange-500 font-semibold text-white p-3 sm:px-4 sm:py-2 rounded w-full sm:w-auto">
             Completar
           </button>
         </div>
-        <table className="table-auto w-full border-collapse border border-gray-200">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="border border-gray-300 px-4 py-2">
-                Código Producto
-              </th>
-              <th className="border border-gray-300 px-4 py-2">
-                Código de Barras Producto
-              </th>
-              <th className="border border-gray-300 px-4 py-2">
-                Descrpción Producto
-              </th>
-              <th className="border border-gray-300 px-4 py-2">Cantidad</th>
-              <th className="border border-gray-300 px-4 py-2">
-                Código de Barras Cantidad
-              </th>
-            </tr>
-          </thead>
-          <tbody className="text-center items-center">
-            {detalleSalida.map((detalle, index) => (
-              <tr key={index}>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.codProducto}
-                </td>
-                <td className="border border-gray-200 px-4 py-2 flex justify-center">
-                  <Barcode value={detalle.codProducto} height={75} />
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.nombreProducto}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {detalle.cantidadEnviada}
-                </td>
-                <td className="border border-gray-200 px-4 py-2 flex justify-center">
-                  <Barcode
-                    value={detalle.cantidadEnviada.toString()}
-                    height={75}
-                  />
-                </td>
+        <div className="overflow-x-auto">
+          <table className="table-auto text-center w-full border-collapse border border-gray-200 text-sm sm:text-base">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Código Producto
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Código de Barras Producto
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Descrpción Producto
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Cantidad
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Código de Barras Cantidad
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {detalleSalida.map((detalle, index) => (
+                <tr key={index}>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.codProducto}
+                  </td>
+                  <td className="border border-gray-200 px-2 sm:px-4 py-2 flex justify-center">
+                    <Barcode value={detalle.codProducto} height={75} />
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.nombreProducto}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.cantidadEnviada}
+                  </td>
+                  <td className="border border-gray-200 px-2 sm:px-4 py-2 flex justify-center">
+                    <Barcode
+                      value={detalle.cantidadEnviada.toString()}
+                      height={75}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

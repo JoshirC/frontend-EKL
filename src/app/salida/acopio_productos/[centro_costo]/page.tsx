@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import { useSalidaStore } from "@/store/salidaStore";
+
 type OrdenAcopio = {
   idAcopio: number;
   CentroCosto: string;
@@ -36,66 +37,73 @@ export default function CentroCostoNamePage({
     };
     fetchOrdenes();
   }, [centro_costo]);
+
   return (
-    <div className="p-10">
-      <div className="bg-white p-6 rounded shadow">
-        <div className="text-2xl font-semibold">
-          Lista de Acopio {centro_costo}{" "}
+    <div className="p-4 sm:p-10">
+      <div className="bg-white p-4 sm:p-6 rounded shadow">
+        <div className="text-xl sm:text-2xl font-semibold mb-4">
+          Lista de Acopio {centro_costo}
         </div>
-        <table className="table-fixed w-full border-collapse border border-gray-200 mt-2">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="border border-gray-300 px-4 py-2">ID</th>
-              <th className="border border-gray-300 px-4 py-2">
-                Fecha Ingreso
-              </th>
-              <th className="border border-gray-300 px-4 py-2">Estado</th>
-              <th className="border border-gray-300 px-4 py-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ordenes.map((orden) => (
-              <tr key={orden.idAcopio}>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.idAcopio}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.Fecha}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.Estado}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {orden.Estado === "Pendiente" ? (
-                    <button
-                      className="bg-orange-400 text-white w-full font-semibold p-4 rounded hover:bg-orange-500 transition duration-300"
-                      onClick={() => {
-                        window.location.href = `/salida/${orden.idAcopio}`;
-                        setCentroCosto(orden.CentroCosto);
-                        setFecha(orden.Fecha);
-                        setEstado(orden.Estado);
-                      }}
-                    >
-                      Comenzar Acopio
-                    </button>
-                  ) : (
-                    <button
-                      className="bg-blue-400 text-white w-full font-semibold p-4 rounded hover:bg-blue-500 transition duration-300"
-                      onClick={() => {
-                        window.location.href = `/salida/${orden.idAcopio}`;
-                        setCentroCosto(orden.CentroCosto);
-                        setFecha(orden.Fecha);
-                        setEstado(orden.Estado);
-                      }}
-                    >
-                      Continuar Acopio
-                    </button>
-                  )}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">ID</th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Fecha Ingreso
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Estado
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Acciones
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {ordenes.map((orden) => (
+                <tr key={orden.idAcopio}>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.idAcopio}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.Fecha}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.Estado}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {orden.Estado === "Pendiente" ? (
+                      <button
+                        className="bg-orange-400 text-white w-full font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300"
+                        onClick={() => {
+                          window.location.href = `/salida/${orden.idAcopio}`;
+                          setCentroCosto(orden.CentroCosto);
+                          setFecha(orden.Fecha);
+                          setEstado(orden.Estado);
+                        }}
+                      >
+                        Comenzar Acopio
+                      </button>
+                    ) : (
+                      <button
+                        className="bg-blue-400 text-white w-full font-semibold p-3 sm:p-4 rounded hover:bg-blue-500 transition duration-300"
+                        onClick={() => {
+                          window.location.href = `/salida/${orden.idAcopio}`;
+                          setCentroCosto(orden.CentroCosto);
+                          setFecha(orden.Fecha);
+                          setEstado(orden.Estado);
+                        }}
+                      >
+                        Continuar Acopio
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
