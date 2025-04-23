@@ -1,6 +1,7 @@
 "use client";
 import { gql, useQuery, useMutation } from "@apollo/client";
-import React from "react";
+import React, { useState } from "react";
+import Alert from "@/components/Alert";
 
 type Usuario = {
   id: number;
@@ -32,10 +33,29 @@ const EDITAR_ESTADO_ELIMINADO_USER = gql`
 
 const EliminadosPage: React.FC = () => {
   const { data, loading, error, refetch } = useQuery(GET_USUARIOS_ELIMINADOS);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
 
   const [editStatusUser] = useMutation(EDITAR_ESTADO_ELIMINADO_USER, {
     onCompleted: () => {
       refetch();
+      setAlertType("exitoso");
+      setAlertMessage("Usuario restaurado correctamente");
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
+    },
+    onError: () => {
+      setAlertType("error");
+      setAlertMessage("Error al restaurar usuario");
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
     },
   });
 
@@ -47,7 +67,12 @@ const EliminadosPage: React.FC = () => {
         },
       });
     } catch (error) {
-      console.error("Error al restaurar usuario:", error);
+      setAlertType("error");
+      setAlertMessage("Error al restaurar usuario");
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
     }
   };
 
@@ -55,6 +80,13 @@ const EliminadosPage: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6 md:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">

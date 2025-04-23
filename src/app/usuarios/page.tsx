@@ -3,8 +3,9 @@ import EditarUsuario from "@/components/usuarios/editarUsuario";
 import NuevoUsuario from "@/components/usuarios/nuevoUsuario";
 import CambiarContraseña from "@/components/usuarios/cambiarContraseña";
 import { useModalStore } from "@/store/modalStore";
-import React from "react";
+import React, { useState } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
+import Alert from "@/components/Alert";
 
 type Usuario = {
   id: number;
@@ -59,12 +60,18 @@ const UsuariosPage: React.FC = () => {
     setRolUsuario,
   } = useModalStore();
 
-  const [modalEditarUsuario, setModalEditarUsuario] = React.useState(false);
-  const [modalNuevoUsuario, setModalNuevoUsuario] = React.useState(false);
-  const [modalCambiarContraseña, setModalCambiarContraseña] =
-    React.useState(false);
+  const [modalEditarUsuario, setModalEditarUsuario] = useState(false);
+  const [modalNuevoUsuario, setModalNuevoUsuario] = useState(false);
+  const [modalCambiarContraseña, setModalCambiarContraseña] = useState(false);
   const [usuarioSeleccionado, setUsuarioSeleccionado] =
-    React.useState<Usuario | null>(null);
+    useState<Usuario | null>(null);
+
+  // Estados para las alertas
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
 
   const { data, loading, error, refetch } = useQuery(
     GET_USUARIOS_NO_ELIMINADOS
@@ -74,14 +81,40 @@ const UsuariosPage: React.FC = () => {
     onCompleted: () => {
       cerrarModalEditarUsuario();
       refetch();
+      mostrarAlerta("exitoso", "Usuario actualizado correctamente");
+    },
+    onError: (error) => {
+      mostrarAlerta(
+        "error",
+        error?.message || "Ocurrió un error al actualizar el usuario"
+      );
     },
   });
 
   const [editStatusUser] = useMutation(EDITAR_ESTADO_ELIMINADO_USER, {
     onCompleted: () => {
       refetch();
+      mostrarAlerta("exitoso", "Usuario eliminado correctamente");
+    },
+    onError: (error) => {
+      mostrarAlerta(
+        "error",
+        error?.message || "Ocurrió un error al eliminar el usuario"
+      );
     },
   });
+
+  const mostrarAlerta = (
+    type: "exitoso" | "error" | "advertencia",
+    message: string
+  ) => {
+    setAlertType(type);
+    setAlertMessage(message);
+    setShowAlert(true);
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 3000);
+  };
 
   const abrirModalEditarUsuario = (usuario: Usuario) => {
     setUsuarioSeleccionado(usuario);
@@ -152,13 +185,27 @@ const UsuariosPage: React.FC = () => {
       <NuevoUsuario
         isOpen={modalNuevoUsuario}
         onClose={cerrarModalNuevoUsuario}
+        onSuccess={() =>
+          mostrarAlerta("exitoso", "Usuario creado correctamente")
+        }
+        onError={() => mostrarAlerta("error", "Error al crear el usuario")}
       />
       <CambiarContraseña
         isOpen={modalCambiarContraseña}
         onClose={cerrarModalCambiarContraseña}
         rutUsuario={rutUsuario ?? ""}
+        onSuccess={() =>
+          mostrarAlerta("exitoso", "Contraseña cambiada correctamente")
+        }
+        onError={() => mostrarAlerta("error", "Error al cambiar la contraseña")}
       />
-
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">

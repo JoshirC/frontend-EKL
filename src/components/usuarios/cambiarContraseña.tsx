@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { gql, useMutation } from "@apollo/client";
+import Alert from "@/components/Alert";
 
 const EDIT_PASSWORD_USER = gql`
   mutation EditPasswordUser(
@@ -22,16 +23,25 @@ interface CambiarContraseñaProps {
   rutUsuario: string;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
+  onError?: () => void;
 }
 
 const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
   rutUsuario,
   isOpen,
   onClose,
+  onSuccess,
+  onError,
 }) => {
   const [nuevaContraseña, setNuevaContraseña] = useState("");
   const [confirmarContraseña, setConfirmarContraseña] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
 
   const [editPasswordUser, { loading }] = useMutation(EDIT_PASSWORD_USER, {
     onCompleted: () => {
@@ -39,25 +49,34 @@ const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
       setNuevaContraseña("");
       setConfirmarContraseña("");
       setError(null);
+      onSuccess?.();
     },
     onError: (error) => {
-      setError(error.message);
+      setAlertType("error");
+      setAlertMessage(error.message);
+      setShowAlert(true);
     },
   });
 
   const handleSubmit = async () => {
     if (!rutUsuario) {
-      setError("No se ha seleccionado un usuario");
+      setAlertType("error");
+      setAlertMessage("No se ha seleccionado un usuario");
+      setShowAlert(true);
       return;
     }
 
     if (nuevaContraseña !== confirmarContraseña) {
-      setError("Las contraseñas no coinciden");
+      setAlertType("error");
+      setAlertMessage("Las contraseñas no coinciden");
+      setShowAlert(true);
       return;
     }
 
     if (nuevaContraseña.length < 8) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+      setAlertType("error");
+      setAlertMessage("La contraseña debe tener al menos 6 caracteres");
+      setShowAlert(true);
       return;
     }
 
@@ -71,7 +90,9 @@ const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
         },
       });
     } catch (error) {
-      console.error("Error al cambiar la contraseña:", error);
+      setAlertType("error");
+      setAlertMessage("Error: " + error);
+      setShowAlert(true);
     }
   };
 
@@ -84,8 +105,17 @@ const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
               Cambiar Contraseña
             </h1>
             <h2 className="text-sm mb-4 text-center">
-              Genera una nueva contraseña para el usuario {rutUsuario}.
+              Genera una nueva contraseña, repite la contraseña para
+              confirmarla.
             </h2>
+            {showAlert && (
+              <Alert
+                type={alertType}
+                message={alertMessage}
+                onClose={() => setShowAlert(false)}
+                modal={true}
+              />
+            )}
             <input
               type="password"
               placeholder="Nueva contraseña"
@@ -100,7 +130,6 @@ const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
               value={confirmarContraseña}
               onChange={(e) => setConfirmarContraseña(e.target.value)}
             />
-            {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
             <div className="flex flex-col space-y-4">
               <button
                 className="bg-orange-400 hover:bg-orange-500 font-semibold text-white px-4 py-2 rounded mt-4 w-full disabled:opacity-50"

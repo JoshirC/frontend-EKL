@@ -2,18 +2,26 @@
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import { CREATE_USER } from "@/graphql/mutations";
+import Alert from "@/components/Alert";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
+  onError?: () => void;
 }
 
-const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose }) => {
+const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [nombre, setNombre] = useState<string>("");
   const [rut, setRut] = useState<string>("");
   const [correo, setCorreo] = useState<string>("");
   const [rol, setRol] = useState<string>("");
   const [contrasena, setContrasena] = useState<string>("");
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
 
   const [createUser, { loading, error }] = useMutation(CREATE_USER);
 
@@ -33,10 +41,12 @@ const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose }) => {
       });
       if (data) {
         onClose();
-        // Aquí puedes agregar un mensaje de éxito o redireccionar
+        onSuccess?.();
       }
     } catch (err) {
-      console.error("Error al crear usuario:", err);
+      setAlertType("error");
+      setAlertMessage(error?.message || "Ocurrió un error al crear el usuario");
+      setShowAlert(true);
     }
   };
 
@@ -48,9 +58,18 @@ const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose }) => {
             <h1 className="text-2xl font-bold mb-4 text-center">
               Nuevo Usuario
             </h1>
+
             <h2 className="text-sm mb-4 text-center">
               Ingresa los datos del nuevo usuario.
             </h2>
+            {showAlert && (
+              <Alert
+                type={alertType}
+                message={alertMessage}
+                onClose={() => setShowAlert(false)}
+                modal={true}
+              />
+            )}
             <form onSubmit={handleSubmit}>
               <input
                 type="text"
@@ -97,11 +116,6 @@ const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose }) => {
                 <option>Jede Bodega</option>
                 <option>Bodeguero</option>
               </select>
-              {error && (
-                <p className="text-red-500 mt-2">
-                  Error al crear usuario: {error.message}
-                </p>
-              )}
               <button
                 type="submit"
                 disabled={loading}

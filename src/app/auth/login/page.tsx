@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { LoginUserInput, LoginResponse } from "@/types/graphql";
 import Cookies from "js-cookie";
 import { useJwtStore } from "@/store/jwtStore";
+import Alert from "@/components/Alert";
 
 const LOGIN_MUTATION = gql`
   mutation Login($loginUserInput: LoginUserInput!) {
@@ -24,6 +25,7 @@ export default function Login() {
   const [rut, setRut] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
   const router = useRouter();
   const { setToken, setRutUsuario, setRolUsuario } = useJwtStore();
 
@@ -37,6 +39,7 @@ export default function Login() {
       router.push("/");
     },
     onError: (error) => {
+      setShowAlert(true);
       if (error.networkError) {
         setError("Error de conexión. Por favor, intente nuevamente.");
       } else if (error.graphQLErrors && error.graphQLErrors.length > 0) {
@@ -51,6 +54,10 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setShowAlert(false);
+    setTimeout(() => {
+      setShowAlert(true);
+    }, 1000);
 
     try {
       console.log("Intentando login con:", { rut, contrasena });
@@ -89,10 +96,12 @@ export default function Login() {
             <h1 className="text-2xl sm:text-3xl text-center font-bold text-gray-700">
               Iniciar Sesión
             </h1>
-            {error && (
-              <div className="mt-4 p-3 bg-red-100 text-red-700 rounded text-sm">
-                {error}
-              </div>
+            {showAlert && (
+              <Alert
+                type="error"
+                message={error}
+                onClose={() => setShowAlert(false)}
+              />
             )}
             <form onSubmit={handleSubmit} className="mt-4 sm:mt-6">
               <label className="block text-base sm:text-lg font-semi-bold text-gray-700 mb-2">

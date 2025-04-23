@@ -18,8 +18,7 @@ const EditarUsuario: React.FC<ModalProps> = ({
   const [nombre, setNombre] = useState<string>("");
   const [correo, setCorreo] = useState<string>("");
   const [rol, setRol] = useState<string>("");
-  const { rutUsuario, nombreUsuario, correoUsuario, rolUsuario } =
-    useModalStore();
+  const { nombreUsuario, correoUsuario, rolUsuario } = useModalStore();
 
   useEffect(() => {
     if (isOpen) {
