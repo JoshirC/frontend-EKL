@@ -3,8 +3,9 @@ import EditarUsuario from "@/components/usuarios/editarUsuario";
 import NuevoUsuario from "@/components/usuarios/nuevoUsuario";
 import CambiarContraseña from "@/components/usuarios/cambiarContraseña";
 import { useModalStore } from "@/store/modalStore";
-import React from "react";
-import { gql, useQuery } from "@apollo/client";
+import React, { useState } from "react";
+import { gql, useQuery, useMutation } from "@apollo/client";
+import Alert from "@/components/Alert";
 
 type Usuario = {
   id: number;
@@ -17,6 +18,31 @@ type Usuario = {
 const GET_USUARIOS_NO_ELIMINADOS = gql`
   query GetUsuariosNoEliminados {
     usersNoEliminados {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
+
+const UPDATE_USER = gql`
+  mutation UpdateUser($updateUserInput: UpdateUserInput!) {
+    updateUser(updateUserInput: $updateUserInput) {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
+
+const EDITAR_ESTADO_ELIMINADO_USER = gql`
+  mutation EditStatusUser($id: Float!) {
+    editStatusUser(id: $id) {
+      id
       rut
       nombre
       correo
@@ -28,23 +54,105 @@ const GET_USUARIOS_NO_ELIMINADOS = gql`
 const UsuariosPage: React.FC = () => {
   const {
     rutUsuario,
+    nombreUsuario,
     setRutUsuario,
     setNombreUsuario,
     setCorreoUsuario,
     setRolUsuario,
   } = useModalStore();
 
-  const [modalEditarUsuario, setModalEditarUsuario] = React.useState(false);
-  const [modalNuevoUsuario, setModalNuevoUsuario] = React.useState(false);
-  const [modalCambiarContraseña, setModalCambiarContraseña] =
-    React.useState(false);
+  const [modalEditarUsuario, setModalEditarUsuario] = useState(false);
+  const [modalNuevoUsuario, setModalNuevoUsuario] = useState(false);
+  const [modalCambiarContraseña, setModalCambiarContraseña] = useState(false);
+  const [usuarioSeleccionado, setUsuarioSeleccionado] =
+    useState<Usuario | null>(null);
+
+  // Estados para las alertas
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
 
   const { data, loading, error, refetch } = useQuery(
     GET_USUARIOS_NO_ELIMINADOS
   );
 
-  const abrirModalEditarUsuario = () => setModalEditarUsuario(true);
-  const cerrarModalEditarUsuario = () => setModalEditarUsuario(false);
+  const [updateUser] = useMutation(UPDATE_USER, {
+    onCompleted: () => {
+      cerrarModalEditarUsuario();
+      refetch();
+      mostrarAlerta("exitoso", "Usuario actualizado correctamente");
+    },
+    onError: (error) => {
+      mostrarAlerta(
+        "error",
+        error?.message || "Ocurrió un error al actualizar el usuario"
+      );
+    },
+  });
+
+  const [editStatusUser] = useMutation(EDITAR_ESTADO_ELIMINADO_USER, {
+    onCompleted: () => {
+      refetch();
+      mostrarAlerta("exitoso", "Usuario eliminado correctamente");
+    },
+    onError: (error) => {
+      mostrarAlerta(
+        "error",
+        error?.message || "Ocurrió un error al eliminar el usuario"
+      );
+    },
+  });
+
+  const mostrarAlerta = (
+    type: "exitoso" | "error" | "advertencia",
+    message: string
+  ) => {
+    setAlertType(type);
+    setAlertMessage(message);
+    setShowAlert(true);
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 3000);
+  };
+
+  const abrirModalEditarUsuario = (usuario: Usuario) => {
+    setUsuarioSeleccionado(usuario);
+    setRutUsuario(usuario.rut);
+    setNombreUsuario(usuario.nombre);
+    setCorreoUsuario(usuario.correo);
+    setRolUsuario(usuario.rol);
+    setModalEditarUsuario(true);
+  };
+
+  const cerrarModalEditarUsuario = () => {
+    setUsuarioSeleccionado(null);
+    setModalEditarUsuario(false);
+  };
+
+  const handleEditarUsuario = async (
+    id: number,
+    nombre: string,
+    correo: string,
+    rol: string
+  ) => {
+    try {
+      await updateUser({
+        variables: {
+          updateUserInput: {
+            id,
+            nombre,
+            correo,
+            rol,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error al actualizar usuario:", error);
+    }
+  };
+
   const abrirModalNuevoUsuario = () => setModalNuevoUsuario(true);
   const cerrarModalNuevoUsuario = () => {
     setModalNuevoUsuario(false);
@@ -53,6 +161,18 @@ const UsuariosPage: React.FC = () => {
   const abrirModalCambiarContraseña = () => setModalCambiarContraseña(true);
   const cerrarModalCambiarContraseña = () => setModalCambiarContraseña(false);
 
+  const handleEliminarUsuario = async (id: number) => {
+    try {
+      await editStatusUser({
+        variables: {
+          id,
+        },
+      });
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error);
+    }
+  };
+
   const usuarios: Usuario[] = data?.usersNoEliminados || [];
 
   return (
@@ -60,17 +180,34 @@ const UsuariosPage: React.FC = () => {
       <EditarUsuario
         isOpen={modalEditarUsuario}
         onClose={cerrarModalEditarUsuario}
+        onSave={handleEditarUsuario}
+        usuarioId={usuarioSeleccionado?.id}
       />
       <NuevoUsuario
         isOpen={modalNuevoUsuario}
         onClose={cerrarModalNuevoUsuario}
+        onSuccess={() =>
+          mostrarAlerta("exitoso", "Usuario creado correctamente")
+        }
+        onError={() => mostrarAlerta("error", "Error al crear el usuario")}
       />
       <CambiarContraseña
         isOpen={modalCambiarContraseña}
         onClose={cerrarModalCambiarContraseña}
         rutUsuario={rutUsuario ?? ""}
+        nombreUsuario={nombreUsuario ?? ""}
+        onSuccess={() =>
+          mostrarAlerta("exitoso", "Contraseña cambiada correctamente")
+        }
+        onError={() => mostrarAlerta("error", "Error al cambiar la contraseña")}
       />
-
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">
@@ -139,13 +276,7 @@ const UsuariosPage: React.FC = () => {
                       <div className="flex flex-col sm:flex-row lg:space-x-2 lg:w-full gap-2">
                         <button
                           className="bg-amber-400 text-white font-semibold p-2 rounded hover:bg-amber-500 transition duration-300 text-sm sm:text-base w-full"
-                          onClick={() => {
-                            abrirModalEditarUsuario();
-                            setRutUsuario(usuario.rut);
-                            setNombreUsuario(usuario.nombre);
-                            setCorreoUsuario(usuario.correo);
-                            setRolUsuario(usuario.rol);
-                          }}
+                          onClick={() => abrirModalEditarUsuario(usuario)}
                         >
                           Editar
                         </button>
@@ -154,11 +285,15 @@ const UsuariosPage: React.FC = () => {
                           onClick={() => {
                             abrirModalCambiarContraseña();
                             setRutUsuario(usuario.rut);
+                            setNombreUsuario(usuario.nombre);
                           }}
                         >
                           Cambiar Contraseña
                         </button>
-                        <button className="bg-red-500 text-white font-semibold p-2 rounded hover:bg-red-600 transition duration-300 text-sm sm:text-base w-full">
+                        <button
+                          className="bg-red-500 text-white font-semibold p-2 rounded hover:bg-red-600 transition duration-300 text-sm sm:text-base w-full"
+                          onClick={() => handleEliminarUsuario(usuario.id)}
+                        >
                           Eliminar
                         </button>
                       </div>

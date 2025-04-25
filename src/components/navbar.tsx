@@ -15,7 +15,7 @@ const Navbar = () => {
   const [openReporte, setOpenReporte] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { rutUsuario, rolUsuario } = useJwtStore();
+  const { rutUsuario, rolUsuario, nombreUsuario } = useJwtStore();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -521,6 +521,7 @@ const Navbar = () => {
         isOpen={modalCambiarContraseña}
         onClose={cerrarModalCambiarContraseña}
         rutUsuario={rutUsuario ?? ""}
+        nombreUsuario={nombreUsuario ?? ""}
       />
     </header>
   );

@@ -1,20 +1,103 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { gql, useMutation } from "@apollo/client";
+import Alert from "@/components/Alert";
+
+const EDIT_PASSWORD_USER = gql`
+  mutation EditPasswordUser(
+    $rut: String!
+    $editPasswordUserInput: EditPasswordUserInput!
+  ) {
+    editPasswordUser(rut: $rut, editPasswordUserInput: $editPasswordUserInput) {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
 
 interface CambiarContraseñaProps {
+  nombreUsuario: string;
   rutUsuario: string;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
+  onError?: () => void;
 }
 
 const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
+  nombreUsuario,
   rutUsuario,
   isOpen,
   onClose,
+  onSuccess,
+  onError,
 }) => {
   const [nuevaContraseña, setNuevaContraseña] = useState("");
   const [confirmarContraseña, setConfirmarContraseña] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
+
+  const [editPasswordUser, { loading }] = useMutation(EDIT_PASSWORD_USER, {
+    onCompleted: () => {
+      onClose();
+      setNuevaContraseña("");
+      setConfirmarContraseña("");
+      setError(null);
+      onSuccess?.();
+    },
+    onError: (error) => {
+      setAlertType("error");
+      setAlertMessage(error.message);
+      setShowAlert(true);
+    },
+  });
+
+  const handleSubmit = async () => {
+    if (!rutUsuario) {
+      setAlertType("error");
+      setAlertMessage("No se ha seleccionado un usuario");
+      setShowAlert(true);
+      return;
+    }
+
+    if (nuevaContraseña !== confirmarContraseña) {
+      setAlertType("error");
+      setAlertMessage("Las contraseñas no coinciden");
+      setShowAlert(true);
+      return;
+    }
+
+    if (nuevaContraseña.length < 8) {
+      setAlertType("error");
+      setAlertMessage("La contraseña debe tener al menos 6 caracteres");
+      setShowAlert(true);
+      return;
+    }
+
+    try {
+      await editPasswordUser({
+        variables: {
+          rut: rutUsuario,
+          editPasswordUserInput: {
+            contrasena: nuevaContraseña,
+          },
+        },
+      });
+    } catch (error) {
+      setAlertType("error");
+      setAlertMessage("Error: " + error);
+      setShowAlert(true);
+    }
+  };
+
   return (
     <>
       {isOpen && (
@@ -24,31 +107,38 @@ const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
               Cambiar Contraseña
             </h1>
             <h2 className="text-sm mb-4 text-center">
-              Genera una nueva contraseña para el usuario {rutUsuario}.
+              Genera una nueva contraseña para {nombreUsuario} de RUT{" "}
+              {rutUsuario}
             </h2>
+            {showAlert && (
+              <Alert
+                type={alertType}
+                message={alertMessage}
+                onClose={() => setShowAlert(false)}
+                modal={true}
+              />
+            )}
             <input
               type="password"
               placeholder="Nueva contraseña"
               className="block w-full mt-4 p-2 border border-gray-300 rounded"
+              value={nuevaContraseña}
               onChange={(e) => setNuevaContraseña(e.target.value)}
             />
             <input
               type="password"
               placeholder="Confirmar contraseña"
               className="block w-full mt-4 p-2 border border-gray-300 rounded"
+              value={confirmarContraseña}
               onChange={(e) => setConfirmarContraseña(e.target.value)}
             />
             <div className="flex flex-col space-y-4">
               <button
-                className="bg-orange-400 hover:bg-orange-500 font-semibold text-white px-4 py-2 rounded mt-4 w-full"
-                onClick={() => {
-                  if (nuevaContraseña === confirmarContraseña) {
-                    console.log("Contraseña cambiada");
-                    //fecth a cambiar contraseña
-                  }
-                }}
+                className="bg-orange-400 hover:bg-orange-500 font-semibold text-white px-4 py-2 rounded mt-4 w-full disabled:opacity-50"
+                onClick={handleSubmit}
+                disabled={loading}
               >
-                Cambiar contraseña
+                {loading ? "Cambiando contraseña..." : "Cambiar contraseña"}
               </button>
               <button
                 className="bg-gray-400 hover:bg-gray-500 font-semibold text-white px-4 py-2 rounded w-full"

@@ -284,7 +284,7 @@ export default function AcopioSalidaIdPage({
                       </div>
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {estado === "Confirmacion" && detalle.Enviado === true ? (
+                      {detalle.Enviado === true ? (
                         <button
                           className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200"
                           onClick={() => {
@@ -292,7 +292,7 @@ export default function AcopioSalidaIdPage({
                             fetchDetalleOrden();
                           }}
                         >
-                          Modificar
+                          Editar Cantidad
                         </button>
                       ) : detalle.Enviado ? (
                         <div></div>
@@ -330,10 +330,16 @@ export default function AcopioSalidaIdPage({
             </tbody>
           </table>
         </div>
-        {estado === "Confirmacion" && (
+        {estado === "Confirmacion" ? (
           <div className="flex justify-start items-center">
             <button className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 mt-4">
               Confirmar Orden
+            </button>
+          </div>
+        ) : (
+          <div className="flex justify-start items-center">
+            <button className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 mt-4">
+              Terminar Acopio
             </button>
           </div>
         )}
