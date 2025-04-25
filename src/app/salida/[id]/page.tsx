@@ -330,10 +330,16 @@ export default function AcopioSalidaIdPage({
             </tbody>
           </table>
         </div>
-        {estado === "Confirmacion" && (
+        {estado === "Confirmacion" ? (
           <div className="flex justify-start items-center">
             <button className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 mt-4">
               Confirmar Orden
+            </button>
+          </div>
+        ) : (
+          <div className="flex justify-start items-center">
+            <button className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 mt-4">
+              Terminar Acopio
             </button>
           </div>
         )}

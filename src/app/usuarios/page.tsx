@@ -54,6 +54,7 @@ const EDITAR_ESTADO_ELIMINADO_USER = gql`
 const UsuariosPage: React.FC = () => {
   const {
     rutUsuario,
+    nombreUsuario,
     setRutUsuario,
     setNombreUsuario,
     setCorreoUsuario,
@@ -194,6 +195,7 @@ const UsuariosPage: React.FC = () => {
         isOpen={modalCambiarContraseña}
         onClose={cerrarModalCambiarContraseña}
         rutUsuario={rutUsuario ?? ""}
+        nombreUsuario={nombreUsuario ?? ""}
         onSuccess={() =>
           mostrarAlerta("exitoso", "Contraseña cambiada correctamente")
         }
@@ -283,6 +285,7 @@ const UsuariosPage: React.FC = () => {
                           onClick={() => {
                             abrirModalCambiarContraseña();
                             setRutUsuario(usuario.rut);
+                            setNombreUsuario(usuario.nombre);
                           }}
                         >
                           Cambiar Contraseña

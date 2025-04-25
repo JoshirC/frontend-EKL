@@ -20,6 +20,7 @@ const EDIT_PASSWORD_USER = gql`
 `;
 
 interface CambiarContraseñaProps {
+  nombreUsuario: string;
   rutUsuario: string;
   isOpen: boolean;
   onClose: () => void;
@@ -28,6 +29,7 @@ interface CambiarContraseñaProps {
 }
 
 const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
+  nombreUsuario,
   rutUsuario,
   isOpen,
   onClose,
@@ -105,8 +107,8 @@ const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
               Cambiar Contraseña
             </h1>
             <h2 className="text-sm mb-4 text-center">
-              Genera una nueva contraseña, repite la contraseña para
-              confirmarla.
+              Genera una nueva contraseña para {nombreUsuario} de RUT{" "}
+              {rutUsuario}
             </h2>
             {showAlert && (
               <Alert

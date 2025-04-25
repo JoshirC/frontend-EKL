@@ -16,6 +16,7 @@ const LOGIN_MUTATION = gql`
       user {
         rut
         rol
+        nombre
       }
     }
   }
@@ -24,43 +25,46 @@ const LOGIN_MUTATION = gql`
 export default function Login() {
   const [rut, setRut] = useState("");
   const [contrasena, setContrasena] = useState("");
-  const [error, setError] = useState("");
   const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
   const router = useRouter();
-  const { setToken, setRutUsuario, setRolUsuario } = useJwtStore();
+  const { setToken, setRutUsuario, setRolUsuario, setNombreUsuario } =
+    useJwtStore();
 
   const [login, { loading }] = useMutation<LoginResponse>(LOGIN_MUTATION, {
     onCompleted: (data) => {
       Cookies.set("token", data.login.access_token, { expires: 7 }); // Expira en 7 días
-      Cookies.set("rol", data.login.user.rol, { expires: 7 }); // Guardar rol en cookies
+      //Cookies.set("rol", data.login.user.rol, { expires: 7 }); // Guardar rol en cookies
       setToken(data.login.access_token);
       setRutUsuario(data.login.user.rut);
       setRolUsuario(data.login.user.rol);
+      console.log(data.login.user);
+      setNombreUsuario(data.login.user.nombre);
       router.push("/");
     },
     onError: (error) => {
       setShowAlert(true);
-      if (error.networkError) {
-        setError("Error de conexión. Por favor, intente nuevamente.");
-      } else if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-        // Usar el mensaje de error del servidor si está disponible
-        setError(error.graphQLErrors[0].message || "Credenciales inválidas");
+      if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+        setAlertType("error");
+        setAlertMessage(
+          error.graphQLErrors[0].message || "Credenciales inválidas"
+        );
       } else {
-        setError("Error al iniciar sesión. Por favor, intente nuevamente.");
+        setAlertType("error");
+        setAlertMessage(
+          "Error al iniciar sesión. Por favor, intente nuevamente."
+        );
       }
     },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setShowAlert(false);
-    setTimeout(() => {
-      setShowAlert(true);
-    }, 1000);
 
     try {
-      console.log("Intentando login con:", { rut, contrasena });
       const result = await login({
         variables: {
           loginUserInput: {
@@ -69,9 +73,11 @@ export default function Login() {
           } as LoginUserInput,
         },
       });
-      console.log("Resultado del login:", result);
     } catch (error) {
-      console.error("Error en el login:", error);
+      setAlertType("error");
+      setAlertMessage(
+        "Error al iniciar sesión. Por favor, intente nuevamente."
+      );
     }
   };
 
@@ -96,14 +102,17 @@ export default function Login() {
             <h1 className="text-2xl sm:text-3xl text-center font-bold text-gray-700">
               Iniciar Sesión
             </h1>
-            {showAlert && (
-              <Alert
-                type="error"
-                message={error}
-                onClose={() => setShowAlert(false)}
-              />
-            )}
-            <form onSubmit={handleSubmit} className="mt-4 sm:mt-6">
+            <div className="mt-4 sm:mt-6">
+              {showAlert && (
+                <Alert
+                  type={alertType}
+                  message={alertMessage}
+                  onClose={() => setShowAlert(false)}
+                  modal={true}
+                />
+              )}
+            </div>
+            <form onSubmit={handleSubmit}>
               <label className="block text-base sm:text-lg font-semi-bold text-gray-700 mb-2">
                 Rut
               </label>
