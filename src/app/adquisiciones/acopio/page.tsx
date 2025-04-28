@@ -1,20 +1,38 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery, gql } from "@apollo/client";
 import NuevaOrdenAcopio from "@/components/adquisiciones/nuevaOrdenAcopio";
 import { useAdquisicionStore } from "@/store/adquisicionStore";
-
+import Alert from "@/components/Alert";
 type OrdenAcopio = {
-  idAcopio: number;
-  CentroCosto: string;
-  Fecha: string;
-  Estado: string;
+  id: number;
+  centroCosto: string;
+  fecha: string;
+  estado: string;
 };
+
+const GET_ORDENES_ACOPIO = gql`
+  query {
+    ordenAcopiosByEstado(estado: "Revision") {
+      id
+      centroCosto
+      fecha
+      estado
+    }
+  }
+`;
 
 const AcopioPage: React.FC = () => {
   const [modalNuevaOrdenAcopio, setModalNuevaOrdenAcopio] = useState(false);
-  const [ordenes, setOrdenes] = useState<OrdenAcopio[]>([]);
-
   const { estadoOrdenAcopio, setEstadoOrdenAcopio } = useAdquisicionStore();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
+
+  const { loading, error, data, refetch } = useQuery(GET_ORDENES_ACOPIO);
+
   const abrirModalNuevaOrdenAcopio = () => {
     setModalNuevaOrdenAcopio(true);
   };
@@ -23,23 +41,22 @@ const AcopioPage: React.FC = () => {
     setModalNuevaOrdenAcopio(false);
   };
 
-  useEffect(() => {
-    const fetchOrdenes = async () => {
-      try {
-        const response = await fetch("/api/ordenAcopio.json");
-        const data = await response.json();
-        // El backend debe traerme ya filtrado este dato.
-        const ordenesPendientes = data.filter(
-          (orden: OrdenAcopio) => orden.Estado === "Pendiente"
-        );
-        setOrdenes(ordenesPendientes);
-      } catch (error) {
-        console.error("Error al cargar el JSON:", error);
-      }
-    };
+  if (loading) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Cargando ordenes de acopio...</p>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    setAlertType("error");
+    setAlertMessage(error.message);
+    setShowAlert(true);
+  }
 
-    fetchOrdenes();
-  }, []);
+  const ordenes: OrdenAcopio[] = data.ordenAcopiosByEstado;
 
   return (
     <div className="p-4 sm:p-10">
@@ -47,6 +64,13 @@ const AcopioPage: React.FC = () => {
         isOpen={modalNuevaOrdenAcopio}
         onClose={cerrarModalNuevaOrdenAcopio}
       />
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
 
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
@@ -81,25 +105,25 @@ const AcopioPage: React.FC = () => {
             </thead>
             <tbody>
               {ordenes.map((orden) => (
-                <tr key={orden.idAcopio}>
+                <tr key={orden.id}>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.idAcopio}
+                    {orden.id}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.CentroCosto}
+                    {orden.centroCosto}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.Fecha}
+                    {orden.fecha}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.Estado}
+                    {orden.estado}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     <button
                       className="bg-orange-400 text-white font-semibold px-3 sm:px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
                       onClick={() => {
-                        window.location.href = `/adquisiciones/${orden.idAcopio}`;
-                        setEstadoOrdenAcopio(orden.Estado);
+                        window.location.href = `/adquisiciones/${orden.id}`;
+                        setEstadoOrdenAcopio(orden.estado);
                       }}
                     >
                       Detalles

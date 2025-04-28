@@ -17,95 +17,111 @@
 "use client";
 
 import React, { useEffect, useState, use } from "react";
+import { useQuery, gql } from "@apollo/client";
 import { useSalidaStore } from "@/store/salidaStore";
 import CambiarProducto from "@/components/salida_acopio/cambiarProducto";
 import DropdownAcciones from "@/components/salida_acopio/DropdownAcciones";
 
-/**
- * Tipo que define la estructura de un detalle de orden de acopio
- */
 type DetalleOrdenAcopio = {
-  idDetalleOrdenAcopio: number;
-  idAcopio: number;
-  FamiliaProducto: string;
-  CodigoProducto: string;
-  DescripcionProducto: string;
-  UnidadMedida: string;
-  Cantidad: number;
-  CantidadEnviada: number;
-  Enviado: boolean;
-  Trazabilidad: boolean;
+  id: number;
+  familia_producto: string;
+  nombre_producto: string;
+  codigo_producto: string;
+  cantidad: number;
+  unidad: string;
+  cantidadEnviada: number;
+  enviado: boolean;
+  trazabilidad: boolean;
 };
 
-/**
- * Componente principal de la página de detalle de salida/acopio
- *
- * @param params - Objeto que contiene el ID del acopio
- * @returns JSX.Element
- */
+const GET_ORDEN_ACOPIO = gql`
+  query ordenAcopio($id: Float!) {
+    ordenAcopio(id: $id) {
+      id
+      centroCosto
+      fecha
+      estado
+      detalles {
+        id
+        familia_producto
+        nombre_producto
+        codigo_producto
+        cantidad
+        unidad
+      }
+    }
+  }
+`;
+
 export default function AcopioSalidaIdPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // Desempaquetar el ID del acopio de los parámetros
   const { id: id_acopio } = use(params);
+  const id_acopio_num = parseFloat(id_acopio);
 
-  // Estado para almacenar los detalles de la orden de acopio
-  const [detalleOrdenAcopio, setDetalleOrdenAcopio] = useState<
-    DetalleOrdenAcopio[]
-  >([]);
-
-  // Obtener datos del store de salida
   const { centroCosto, fecha, estado } = useSalidaStore();
 
-  // Estado para manejar los valores temporales de cantidad enviada
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
   >({});
-
-  // Estado para el producto seleccionado en el modal
   const [productoSeleccionadoId, setProductoSeleccionadoId] = useState<
     string | null
   >(null);
-
-  // Estado para controlar qué dropdown está abierto
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
-
-  // Estado para controlar la visibilidad del modal de cambiar producto
   const [modalCambiarProductoAbierto, setModalCambiarProductoAbierto] =
     useState(false);
 
-  /**
-   * Maneja el clic en el dropdown de acciones
-   * @param id - ID del detalle de orden de acopio
-   */
-  const handleDropdownClick = (id: number) => {
-    setDropdownOpen(dropdownOpen === id ? null : id);
-  };
+  const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
+    variables: { id: id_acopio_num },
+  });
 
-  /**
-   * Abre el modal para cambiar un producto
-   * @param codigoProducto - Código del producto a cambiar
-   */
-  const abrirModalCambiarProducto = (codigoProducto: string) => {
-    setProductoSeleccionadoId(codigoProducto);
-    setModalCambiarProductoAbierto(true);
-  };
+  useEffect(() => {
+    if (data) {
+      const detalles = data.ordenAcopio.detalles.map((detalle: any) => ({
+        ...detalle,
+        cantidadEnviada: 0,
+        enviado: false,
+        trazabilidad: false,
+      }));
 
-  /**
-   * Cierra el modal de cambiar producto
-   */
-  const cerrarModalCambiarProducto = () => {
-    setModalCambiarProductoAbierto(false);
-    setProductoSeleccionadoId(null);
-  };
+      setCantidadesTemporales(
+        detalles.reduce(
+          (acc: Record<number, number>, item: DetalleOrdenAcopio) => {
+            acc[item.id] = 0;
+            return acc;
+          },
+          {}
+        )
+      );
+    }
+  }, [data]);
 
-  /**
-   * Maneja el cambio de cantidad en el input
-   * @param id - ID del detalle de orden de acopio
-   * @param valor - Nuevo valor de cantidad
-   */
+  if (loading) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Cargando detalles del acopio...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p className="text-red-500">
+            Error al cargar los datos: {error.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const detalles: DetalleOrdenAcopio[] = data.ordenAcopio.detalles;
+
   const handleCambioCantidad = (id: number, valor: number) => {
     setCantidadesTemporales((prev) => ({
       ...prev,
@@ -113,86 +129,39 @@ export default function AcopioSalidaIdPage({
     }));
   };
 
-  /**
-   * Guarda la cantidad modificada para un producto
-   * @param id - ID del detalle de orden de acopio
-   */
   const handleGuardarCantidad = (id: number) => {
     if (cantidadesTemporales[id] <= 0) {
       alert("La cantidad debe ser mayor a 0");
       return;
     }
 
-    setDetalleOrdenAcopio((prev) =>
-      prev.map((item) =>
-        item.idDetalleOrdenAcopio === id
-          ? {
-              ...item,
-              CantidadEnviada: cantidadesTemporales[id],
-              Enviado: true,
-            }
-          : item
-      )
-    );
-  };
-
-  /**
-   * Obtiene los detalles de la orden de acopio del servidor
-   */
-  const fetchDetalleOrden = async () => {
-    try {
-      const response = await fetch(`/api/detalleOrdenAcopio.json`);
-      const data = await response.json();
-      const detalleOrdenAcopioId = data.filter(
-        (detalle: DetalleOrdenAcopio) => detalle.idAcopio === Number(id_acopio)
-      );
-      setDetalleOrdenAcopio(detalleOrdenAcopioId);
-
-      // Inicializar cantidades temporales
-      const iniciales: Record<number, number> = detalleOrdenAcopioId.reduce(
-        (acc: Record<number, number>, item: DetalleOrdenAcopio) => {
-          acc[item.idDetalleOrdenAcopio] = item.CantidadEnviada;
-          return acc;
-        },
-        {}
-      );
-      setCantidadesTemporales(iniciales);
-    } catch (error) {
-      console.error("Error al cargar el JSON:", error);
+    const detalleIndex = detalles.findIndex((detalle) => detalle.id === id);
+    if (detalleIndex !== -1) {
+      detalles[detalleIndex].cantidadEnviada = cantidadesTemporales[id];
+      detalles[detalleIndex].enviado = true;
     }
   };
-
-  // Cargar los detalles de la orden al montar el componente
-  useEffect(() => {
-    fetchDetalleOrden();
-  }, [id_acopio]);
 
   return (
     <div className="p-4 sm:p-10">
       <CambiarProducto
         isOpen={modalCambiarProductoAbierto}
-        onClose={cerrarModalCambiarProducto}
+        onClose={() => setModalCambiarProductoAbierto(false)}
         codigoProducto={productoSeleccionadoId || ""}
       />
       <div className="bg-white p-4 sm:p-6 rounded shadow">
-        {estado === "Confirmacion" ? (
-          <div className="text-xl sm:text-2xl font-semibold">
-            Confirmación de Acopio N°{id_acopio}
-          </div>
-        ) : (
-          <div className="text-xl sm:text-2xl font-semibold">
-            Detalle de Acopio N°{id_acopio}
-          </div>
-        )}
+        <div className="text-xl sm:text-2xl font-semibold">
+          Detalle de Acopio N°{id_acopio}
+        </div>
         <div className="flex flex-col sm:flex-row justify-around items-center my-4 gap-4 sm:gap-6 font-bold">
           <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
-            Centro de Costo - {centroCosto}
+            Centro de Costo - {data.ordenAcopio.centroCosto}
           </div>
           <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
-            Fecha - {fecha}
+            Fecha - {data.ordenAcopio.fecha}
           </div>
           <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
-            Estado - {estado}
+            Estado - {data.ordenAcopio.estado}
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -212,7 +181,7 @@ export default function AcopioSalidaIdPage({
                   Unidad
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Cantidad Solicitada
+                  Cantidad
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Cantidad Enviada
@@ -220,129 +189,58 @@ export default function AcopioSalidaIdPage({
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Acciones
                 </th>
-                {detalleOrdenAcopio.some((detalle) => detalle.Trazabilidad) && (
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Trazabilidad
-                  </th>
-                )}
               </tr>
             </thead>
             <tbody>
-              {detalleOrdenAcopio.map((detalle) => (
-                <React.Fragment key={detalle.idDetalleOrdenAcopio}>
-                  <tr>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.FamiliaProducto}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.CodigoProducto}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.DescripcionProducto}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.UnidadMedida}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.Cantidad}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      <div className="flex justify-between items-center space-x-2">
-                        {detalle.Enviado ? (
-                          <span className="p-2">{detalle.CantidadEnviada}</span>
-                        ) : (
-                          <input
-                            type="number"
-                            placeholder={String(
-                              cantidadesTemporales[
-                                detalle.idDetalleOrdenAcopio
-                              ] || 0
-                            )}
-                            onChange={(e) =>
-                              handleCambioCantidad(
-                                detalle.idDetalleOrdenAcopio,
-                                Number(e.target.value)
-                              )
-                            }
-                            className="w-24 sm:w-full border border-gray-300 rounded p-2"
-                            min="1"
-                            max={detalle.Cantidad}
-                          />
-                        )}
-                        {!detalle.Enviado && (
-                          <button
-                            onClick={() =>
-                              handleGuardarCantidad(
-                                detalle.idDetalleOrdenAcopio
-                              )
-                            }
-                            className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
-                          >
-                            Guardar
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.Enviado === true ? (
-                        <button
-                          className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200"
-                          onClick={() => {
-                            detalle.Enviado = !detalle.Enviado;
-                            fetchDetalleOrden();
-                          }}
-                        >
-                          Editar Cantidad
-                        </button>
-                      ) : detalle.Enviado ? (
-                        <div></div>
-                      ) : (
-                        <div>
-                          <button
-                            onClick={() => {
-                              handleDropdownClick(detalle.idDetalleOrdenAcopio);
-                            }}
-                            className="bg-orange-400 hover:bg-orange-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
-                          >
-                            Cambiar Producto
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                    {detalle.Trazabilidad && (
-                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                        <button className="bg-amber-400 hover:bg-amber-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200">
-                          Seleccionar Lote
-                        </button>
-                      </td>
+              {detalles.map((detalle) => (
+                <tr key={detalle.id}>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.familia_producto}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.codigo_producto}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.nombre_producto}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.unidad}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.cantidad}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.enviado ? (
+                      <span>{detalle.cantidadEnviada}</span>
+                    ) : (
+                      <input
+                        type="number"
+                        value={cantidadesTemporales[detalle.id] || ""}
+                        onChange={(e) =>
+                          handleCambioCantidad(
+                            detalle.id,
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-20 border border-gray-300 rounded p-1"
+                      />
                     )}
-                  </tr>
-                  {dropdownOpen === detalle.idDetalleOrdenAcopio && (
-                    <DropdownAcciones
-                      codigoProducto={detalle.CodigoProducto}
-                      descripcion={detalle.DescripcionProducto}
-                      isOpen={dropdownOpen === detalle.idDetalleOrdenAcopio}
-                      onClose={() => setDropdownOpen(null)}
-                    />
-                  )}
-                </React.Fragment>
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {!detalle.enviado && (
+                      <button
+                        onClick={() => handleGuardarCantidad(detalle.id)}
+                        className="bg-blue-500 text-white px-3 py-1 rounded"
+                      >
+                        Guardar
+                      </button>
+                    )}
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {estado === "Confirmacion" ? (
-          <div className="flex justify-start items-center">
-            <button className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 mt-4">
-              Confirmar Orden
-            </button>
-          </div>
-        ) : (
-          <div className="flex justify-start items-center">
-            <button className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 mt-4">
-              Terminar Acopio
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
