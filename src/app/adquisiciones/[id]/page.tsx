@@ -1,68 +1,79 @@
 "use client";
 
-import React, { useEffect, useState, use } from "react";
+import React, { useState } from "react";
+import { useQuery, gql, useMutation } from "@apollo/client";
 import { useAdquisicionStore } from "@/store/adquisicionStore";
-
+import Alert from "@/components/Alert";
 type DetalleOrdenAcopio = {
-  idDetalleOrdenAcopio: number;
-  idAcopio: number;
-  FamiliaProducto: string;
-  CodigoProducto: string;
-  DescripcionProducto: string;
-  UnidadMedida: string;
-  Cantidad: number;
+  id: number;
+  familia_producto: string;
+  nombre_producto: string;
+  codigo_producto: string;
+  cantidad: number;
+  unidad: string;
 };
 
+const GET_ORDEN_ACOPIO = gql`
+  query ordenAcopio($id: Float!) {
+    ordenAcopio(id: $id) {
+      id
+      centroCosto
+      fecha
+      estado
+      detalles {
+        id
+        familia_producto
+        nombre_producto
+        codigo_producto
+        cantidad
+        unidad
+      }
+    }
+  }
+`;
+const UPDATE_ESTADO_ORDEN_ACOPIO = gql`
+  mutation ($id: Float!, $estado: String!) {
+    updateEstadoOrdenAcopio(id: $id, estado: $estado) {
+      id
+    }
+  }
+`;
 export default function AcopioIdPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // Correcto: usando use() para desempaquetar la Promise
-  const { id: id_acopio } = use(params);
+  const { id: id_acopio } = React.use(params);
+  const id_acopio_num = parseInt(id_acopio);
   const { estadoOrdenAcopio } = useAdquisicionStore();
-  //const estadoOrdenAcopio = "Listo"; // Cambiar según el estado de la orden de acopio con el backend o guardar el estado en una constante global.
-  const [detalleOrdenAcopio, setDetalleOrdenAcopio] = useState<
-    DetalleOrdenAcopio[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
 
-  useEffect(() => {
-    const fetchDetalleOrden = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch(`/api/detalleOrdenAcopio.json`);
-        if (!response.ok) {
-          throw new Error("Error al cargar los datos");
-        }
-
-        const data = await response.json();
-        // El backend debe traerme ya filtrado este dato.
-        const detalleOrdenAcopioId = data.filter(
-          (detalle: DetalleOrdenAcopio) =>
-            detalle.idAcopio === Number(id_acopio)
-        );
-
-        setDetalleOrdenAcopio(detalleOrdenAcopioId);
-      } catch (error) {
-        console.error("Error al cargar el JSON:", error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Ocurrió un error desconocido"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id_acopio) {
-      fetchDetalleOrden();
-    }
-  }, [id_acopio]); // Asegúrate de incluir id_acopio como dependencia
+  const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
+    variables: { id: id_acopio_num },
+  });
+  const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
+    onCompleted: () => {
+      // Redirigir a la página de adquisiciones/acopio después de la mutación
+      window.location.href = "/adquisiciones/acopio/";
+    },
+    onError: (mutationError) => {
+      setAlertType("error");
+      setAlertMessage(mutationError.message);
+      setShowAlert(true);
+    },
+  });
+  const handleConfirmarAcopio = () => {
+    updateEstadoOrdenAcopio({
+      variables: {
+        id: id_acopio_num,
+        estado: "Pendiente",
+      },
+    });
+  };
 
   if (loading) {
     return (
@@ -75,25 +86,33 @@ export default function AcopioIdPage({
   }
 
   if (error) {
-    return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <div className="text-red-500">Error: {error}</div>
-        </div>
-      </div>
-    );
+    setAlertType("error");
+    setAlertMessage(error.message);
+    setShowAlert(true);
   }
+
+  const { detalles } = data.ordenAcopio;
 
   return (
     <div className="p-4 sm:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">
             Detalles de Acopio N°{id_acopio}
           </div>
-          {estadoOrdenAcopio && ["Pendiente"].includes(estadoOrdenAcopio) && (
+          {estadoOrdenAcopio && ["Revision"].includes(estadoOrdenAcopio) && (
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto">
+              <button
+                className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto"
+                onClick={handleConfirmarAcopio}
+              >
                 Confirmar Acopio
               </button>
               <button className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto">
@@ -102,7 +121,7 @@ export default function AcopioIdPage({
             </div>
           )}
         </div>
-        {detalleOrdenAcopio.length === 0 ? (
+        {detalles.length === 0 ? (
           <p className="mt-4">No se encontraron detalles para este acopio</p>
         ) : (
           <div className="overflow-x-auto">
@@ -113,13 +132,13 @@ export default function AcopioIdPage({
                     Familia Producto
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Codigo Producto
+                    Nombre Producto
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Descripcion Producto
+                    Código Producto
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Unidad Medida
+                    Unidad
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
                     Cantidad
@@ -127,22 +146,22 @@ export default function AcopioIdPage({
                 </tr>
               </thead>
               <tbody>
-                {detalleOrdenAcopio.map((detalle) => (
-                  <tr key={detalle.idDetalleOrdenAcopio}>
+                {detalles.map((detalle: DetalleOrdenAcopio) => (
+                  <tr key={detalle.id}>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.FamiliaProducto}
+                      {detalle.familia_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.CodigoProducto}
+                      {detalle.nombre_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.DescripcionProducto}
+                      {detalle.codigo_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.UnidadMedida}
+                      {detalle.unidad}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.Cantidad}
+                      {detalle.cantidad}
                     </td>
                   </tr>
                 ))}
