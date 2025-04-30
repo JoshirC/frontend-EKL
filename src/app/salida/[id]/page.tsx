@@ -1,39 +1,27 @@
-/**
- * Página de Detalle de Salida/Acopio
- *
- * Esta página muestra los detalles de una orden de acopio específica, permitiendo:
- * - Ver la información general del acopio (centro de costo, fecha, estado)
- * - Ver y modificar las cantidades de productos
- * - Cambiar productos si es necesario
- * - Gestionar la trazabilidad de los productos
- *
- * Componentes principales:
- * - Encabezado con información general del acopio
- * - Tabla de productos con sus detalles
- * - Modal para cambiar productos
- * - Dropdown de acciones por producto
- */
-
 "use client";
 
 import React, { useEffect, useState, use } from "react";
-import { useQuery, gql } from "@apollo/client";
-import { useSalidaStore } from "@/store/salidaStore";
+import { useQuery, gql, useMutation } from "@apollo/client";
 import CambiarProducto from "@/components/salida_acopio/cambiarProducto";
 import DropdownAcciones from "@/components/salida_acopio/DropdownAcciones";
+type Envio = {
+  id: number;
+  id_detalle_orden_acopio: number;
+  cantidad_enviada: number;
+  codigo_producto_enviado: string;
+};
 
 type DetalleOrdenAcopio = {
   id: number;
+  id_orden_acopio: number;
   familia_producto: string;
   nombre_producto: string;
   codigo_producto: string;
   cantidad: number;
   unidad: string;
-  cantidadEnviada: number;
   enviado: boolean;
-  trazabilidad: boolean;
+  envios: Envio[];
 };
-
 const GET_ORDEN_ACOPIO = gql`
   query ordenAcopio($id: Float!) {
     ordenAcopio(id: $id) {
@@ -48,7 +36,39 @@ const GET_ORDEN_ACOPIO = gql`
         codigo_producto
         cantidad
         unidad
+        enviado
+        envios {
+          id
+          cantidad_enviada
+          codigo_producto_enviado
+        }
       }
+    }
+  }
+`;
+const UPDATE_ESTADO_DETALLE_ACOPIO = gql`
+  mutation updateEstadoEnviado($id: Float!) {
+    updateEstadoEnviado(id: $id) {
+      enviado
+    }
+  }
+`;
+const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
+  mutation createEnvioDetalleOrdenAcopio(
+    $id_detalle_orden_acopio: Float!
+    $cantidad_enviada: Float!
+    $codigo_producto_enviado: String!
+  ) {
+    createEnvioDetalleOrdenAcopio(
+      createEnvioDetalleOrdenAcopioInput: {
+        id_detalle_orden_acopio: $id_detalle_orden_acopio
+        cantidad_enviada: $cantidad_enviada
+        codigo_producto_enviado: $codigo_producto_enviado
+      }
+    ) {
+      id
+      cantidad_enviada
+      codigo_producto_enviado
     }
   }
 `;
@@ -61,42 +81,40 @@ export default function AcopioSalidaIdPage({
   const { id: id_acopio } = use(params);
   const id_acopio_num = parseFloat(id_acopio);
 
-  const { centroCosto, fecha, estado } = useSalidaStore();
-
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
   >({});
-  const [productoSeleccionadoId, setProductoSeleccionadoId] = useState<
-    string | null
-  >(null);
-  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
-  const [modalCambiarProductoAbierto, setModalCambiarProductoAbierto] =
-    useState(false);
 
-  const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+
+  const { loading, error, data, refetch } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
   });
-
-  useEffect(() => {
-    if (data) {
-      const detalles = data.ordenAcopio.detalles.map((detalle: any) => ({
-        ...detalle,
-        cantidadEnviada: 0,
-        enviado: false,
-        trazabilidad: false,
-      }));
-
-      setCantidadesTemporales(
-        detalles.reduce(
-          (acc: Record<number, number>, item: DetalleOrdenAcopio) => {
-            acc[item.id] = 0;
-            return acc;
-          },
-          {}
-        )
-      );
+  const [createEnvioDetalleOrdenAcopio] = useMutation(
+    CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
+    {
+      onCompleted: () => {
+        refetch();
+      },
+      onError: (mutationError) => {
+        console.error(
+          "Error al crear el envío del detalle de orden de acopio:",
+          mutationError.message
+        );
+      },
     }
-  }, [data]);
+  );
+  const [updateEstadoEnviado] = useMutation(UPDATE_ESTADO_DETALLE_ACOPIO, {
+    onCompleted: () => {
+      refetch();
+    },
+    onError: (mutationError) => {
+      console.error(
+        "Error al actualizar el estado de enviado:",
+        mutationError.message
+      );
+    },
+  });
 
   if (loading) {
     return (
@@ -128,31 +146,52 @@ export default function AcopioSalidaIdPage({
       [id]: valor,
     }));
   };
-
-  const handleGuardarCantidad = (id: number) => {
-    if (cantidadesTemporales[id] <= 0) {
-      alert("La cantidad debe ser mayor a 0");
+  const handleCrearEnvioDetalle = async (
+    id_detalle_orden_acopio: number,
+    cantidad_enviada: number,
+    codigo_producto_enviado: string
+  ) => {
+    if (cantidad_enviada <= 0) {
+      alert("La cantidad enviada debe ser mayor a 0");
       return;
     }
 
-    const detalleIndex = detalles.findIndex((detalle) => detalle.id === id);
-    if (detalleIndex !== -1) {
-      detalles[detalleIndex].cantidadEnviada = cantidadesTemporales[id];
-      detalles[detalleIndex].enviado = true;
+    try {
+      await createEnvioDetalleOrdenAcopio({
+        variables: {
+          id_detalle_orden_acopio: id_detalle_orden_acopio,
+          cantidad_enviada: cantidad_enviada,
+          codigo_producto_enviado: codigo_producto_enviado,
+        },
+      });
+      await updateEstadoEnviado({ variables: { id: id_detalle_orden_acopio } });
+
+      setCantidadesTemporales((prev) => ({
+        ...prev,
+        [id_detalle_orden_acopio]: 0,
+      }));
+    } catch (err) {
+      console.error("Error al guardar el envío y cambiar estado:", err);
+      alert("Ocurrió un error al guardar. Intente nuevamente.");
     }
+  };
+
+  const handleCambiarEstadoEnviado = (id: number) => {
+    updateEstadoEnviado({ variables: { id } });
   };
 
   return (
     <div className="p-4 sm:p-10">
-      <CambiarProducto
-        isOpen={modalCambiarProductoAbierto}
-        onClose={() => setModalCambiarProductoAbierto(false)}
-        codigoProducto={productoSeleccionadoId || ""}
-      />
       <div className="bg-white p-4 sm:p-6 rounded shadow">
-        <div className="text-xl sm:text-2xl font-semibold">
-          Detalle de Acopio N°{id_acopio}
-        </div>
+        {data.ordenAcopio.estado === "Confirmacion" ? (
+          <div className="text-xl sm:text-2xl font-semibold">
+            Confirmación de Acopio N°{id_acopio}
+          </div>
+        ) : (
+          <div className="text-xl sm:text-2xl font-semibold">
+            Detalle de Acopio N°{id_acopio}
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row justify-around items-center my-4 gap-4 sm:gap-6 font-bold">
           <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
             Centro de Costo - {data.ordenAcopio.centroCosto}
@@ -181,7 +220,7 @@ export default function AcopioSalidaIdPage({
                   Unidad
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Cantidad
+                  Cantidad Solicitada
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Cantidad Enviada
@@ -189,6 +228,7 @@ export default function AcopioSalidaIdPage({
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Acciones
                 </th>
+                {/* Agregar aca la ventana de trazabilidad */}
               </tr>
             </thead>
             <tbody>
@@ -209,9 +249,22 @@ export default function AcopioSalidaIdPage({
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {detalle.cantidad}
                   </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                  <td className="border border-gray-300 sm:px-4 py-2 space-x-3">
                     {detalle.enviado ? (
-                      <span>{detalle.cantidadEnviada}</span>
+                      detalle.envios.length > 1 ? (
+                        <button
+                          onClick={() => {
+                            alert("Hay múltiples envíos para este detalle.");
+                          }}
+                          className="bg-green-400 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                        >
+                          Ver Envíos
+                        </button>
+                      ) : (
+                        <span>
+                          {detalle.envios[0]?.cantidad_enviada || "N/A"}
+                        </span>
+                      )
                     ) : (
                       <input
                         type="number"
@@ -225,15 +278,45 @@ export default function AcopioSalidaIdPage({
                         className="w-20 border border-gray-300 rounded p-1"
                       />
                     )}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {!detalle.enviado && (
                       <button
-                        onClick={() => handleGuardarCantidad(detalle.id)}
-                        className="bg-blue-500 text-white px-3 py-1 rounded"
+                        onClick={() => {
+                          handleCrearEnvioDetalle(
+                            detalle.id,
+                            cantidadesTemporales[detalle.id] || 0,
+                            detalle.codigo_producto
+                          );
+                          //handleCambiarEstadoEnviado(detalle.id);
+                        }}
+                        className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
                       >
                         Guardar
                       </button>
+                    )}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {detalle.enviado === true ? (
+                      <button
+                        className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200"
+                        onClick={() => {
+                          handleCambiarEstadoEnviado(detalle.id);
+                        }}
+                      >
+                        Editar Cantidad
+                      </button>
+                    ) : detalle.enviado ? (
+                      <div></div>
+                    ) : (
+                      <div>
+                        <button
+                          onClick={() => {
+                            //handleDropdownClick(detalle.idDetalleOrdenAcopio);
+                          }}
+                          className="bg-orange-400 hover:bg-orange-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
+                        >
+                          Cambiar Producto
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
