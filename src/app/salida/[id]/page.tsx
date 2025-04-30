@@ -4,6 +4,7 @@ import React, { useEffect, useState, use } from "react";
 import { useQuery, gql, useMutation } from "@apollo/client";
 import CambiarProducto from "@/components/salida_acopio/cambiarProducto";
 import DropdownAcciones from "@/components/salida_acopio/DropdownAcciones";
+
 type Envio = {
   id: number;
   id_detalle_orden_acopio: number;
@@ -22,6 +23,7 @@ type DetalleOrdenAcopio = {
   enviado: boolean;
   envios: Envio[];
 };
+
 const GET_ORDEN_ACOPIO = gql`
   query ordenAcopio($id: Float!) {
     ordenAcopio(id: $id) {
@@ -46,6 +48,7 @@ const GET_ORDEN_ACOPIO = gql`
     }
   }
 `;
+
 const UPDATE_ESTADO_DETALLE_ACOPIO = gql`
   mutation updateEstadoEnviado($id: Float!) {
     updateEstadoEnviado(id: $id) {
@@ -53,6 +56,7 @@ const UPDATE_ESTADO_DETALLE_ACOPIO = gql`
     }
   }
 `;
+
 const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
   mutation createEnvioDetalleOrdenAcopio(
     $id_detalle_orden_acopio: Float!
@@ -84,12 +88,16 @@ export default function AcopioSalidaIdPage({
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
   >({});
-
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+
+  // Estados para la paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
 
   const { loading, error, data, refetch } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
   });
+
   const [createEnvioDetalleOrdenAcopio] = useMutation(
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
     {
@@ -104,6 +112,7 @@ export default function AcopioSalidaIdPage({
       },
     }
   );
+
   const [updateEstadoEnviado] = useMutation(UPDATE_ESTADO_DETALLE_ACOPIO, {
     onCompleted: () => {
       refetch();
@@ -140,18 +149,25 @@ export default function AcopioSalidaIdPage({
 
   const detalles: DetalleOrdenAcopio[] = data.ordenAcopio.detalles;
 
+  // Lógica de paginación
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = detalles.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(detalles.length / itemsPerPage);
+
   const handleCambioCantidad = (id: number, valor: number) => {
     setCantidadesTemporales((prev) => ({
       ...prev,
       [id]: valor,
     }));
   };
+
   const handleCrearEnvioDetalle = async (
     id_detalle_orden_acopio: number,
     cantidad_enviada: number,
     codigo_producto_enviado: string
   ) => {
-    if (cantidad_enviada <= 0) {
+    if (cantidad_enviada < 0) {
       alert("La cantidad enviada debe ser mayor a 0");
       return;
     }
@@ -228,11 +244,10 @@ export default function AcopioSalidaIdPage({
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Acciones
                 </th>
-                {/* Agregar aca la ventana de trazabilidad */}
               </tr>
             </thead>
             <tbody>
-              {detalles.map((detalle) => (
+              {currentItems.map((detalle) => (
                 <tr key={detalle.id}>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {detalle.familia_producto}
@@ -286,7 +301,6 @@ export default function AcopioSalidaIdPage({
                             cantidadesTemporales[detalle.id] || 0,
                             detalle.codigo_producto
                           );
-                          //handleCambiarEstadoEnviado(detalle.id);
                         }}
                         className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
                       >
@@ -323,6 +337,75 @@ export default function AcopioSalidaIdPage({
               ))}
             </tbody>
           </table>
+
+          {/* Controles de paginación */}
+          <div className="flex justify-between items-center mt-4">
+            <div>
+              <span className="text-sm text-gray-700">
+                Mostrando {(currentPage - 1) * itemsPerPage + 1} a{" "}
+                {Math.min(currentPage * itemsPerPage, detalles.length)} de{" "}
+                {detalles.length} registros
+              </span>
+            </div>
+
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded font-semibold ${
+                  currentPage === 1
+                    ? "bg-gray-200 cursor-not-allowed"
+                    : "bg-orange-500 hover:bg-orange-600 text-white"
+                }`}
+              >
+                Anterior
+              </button>
+
+              {Array.from({ length: Math.min(5, totalPages) }).map(
+                (_, index) => {
+                  // Mostrar máximo 5 páginas
+                  let pageNumber;
+                  if (totalPages <= 5) {
+                    pageNumber = index + 1;
+                  } else if (currentPage <= 3) {
+                    pageNumber = index + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNumber = totalPages - 4 + index;
+                  } else {
+                    pageNumber = currentPage - 2 + index;
+                  }
+
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentPage(pageNumber)}
+                      className={`px-4 py-2 rounded font-semibold ${
+                        currentPage === pageNumber
+                          ? "bg-gray-500 text-white"
+                          : "bg-gray-300 hover:bg-gray-500 text-white"
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                }
+              )}
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded font-semibold ${
+                  currentPage === totalPages
+                    ? "bg-gray-200 cursor-not-allowed"
+                    : "bg-orange-500 hover:bg-orange-600 text-white"
+                }`}
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
