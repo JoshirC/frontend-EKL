@@ -48,6 +48,15 @@ const GET_ORDEN_ACOPIO = gql`
     }
   }
 `;
+const UPDATE_CANTIDAD_ENVIO_DETALLE = gql`
+  mutation updateCantidadEnvioDetalleOrdenAcopio($id: Int!, $cantidad: Int!) {
+    updateCantidadEnvioDetalleOrdenAcopio(id: $id, cantidad: $cantidad) {
+      id
+      codigo_producto_enviado
+      cantidad_enviada
+    }
+  }
+`;
 
 const UPDATE_ESTADO_DETALLE_ACOPIO = gql`
   mutation updateEstadoEnviado($id: Float!) {
@@ -94,6 +103,11 @@ export default function AcopioSalidaIdPage({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
+  // Nuevos estados para la edición
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
+  const [editLoading, setEditLoading] = useState<number | null>(null);
+
   const { loading, error, data, refetch } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
   });
@@ -124,6 +138,25 @@ export default function AcopioSalidaIdPage({
       );
     },
   });
+  const [updateCantidadEnvioDetalle] = useMutation(
+    UPDATE_CANTIDAD_ENVIO_DETALLE,
+    {
+      onCompleted: () => {
+        refetch(); // Refrescar los datos después de la mutación
+        setEditingId(null); // Salir del modo de edición
+        setEditValue(""); // Limpiar el valor de edición
+      },
+      onError: (mutationError) => {
+        console.error(
+          "Error al actualizar la cantidad:",
+          mutationError.message
+        );
+        alert(
+          "Ocurrió un error al actualizar la cantidad. Intente nuevamente."
+        );
+      },
+    }
+  );
 
   if (loading) {
     return (
@@ -196,6 +229,47 @@ export default function AcopioSalidaIdPage({
     updateEstadoEnviado({ variables: { id } });
   };
 
+  // Función para manejar el clic en Editar
+  const handleEditClick = (detalle: DetalleOrdenAcopio) => {
+    setEditingId(detalle.id);
+    setEditValue(detalle.envios[0]?.cantidad_enviada?.toString() || "");
+  };
+  // Función para guardar los cambios editados
+  const handleSaveEdit = async (detalleId: number, envioId: number) => {
+    if (!editValue || isNaN(Number(editValue))) {
+      alert("Por favor ingrese una cantidad válida");
+      return;
+    }
+
+    const cantidad = Number(editValue);
+    if (cantidad <= 0) {
+      alert("La cantidad debe ser mayor a 0");
+      return;
+    }
+
+    setEditLoading(detalleId);
+
+    try {
+      await updateCantidadEnvioDetalle({
+        variables: {
+          id: envioId,
+          cantidad: cantidad,
+        },
+      });
+    } catch (error) {
+      console.error("Error al actualizar la cantidad:", error);
+      alert("Ocurrió un error al actualizar la cantidad");
+    } finally {
+      setEditLoading(null);
+    }
+  };
+
+  // Función para cancelar la edición
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditValue("");
+  };
+
   return (
     <div className="p-4 sm:p-10">
       <div className="bg-white p-4 sm:p-6 rounded shadow">
@@ -264,64 +338,40 @@ export default function AcopioSalidaIdPage({
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {detalle.cantidad}
                   </td>
-                  <td className="border border-gray-300 sm:px-4 py-2 space-x-3">
-                    {detalle.enviado ? (
-                      detalle.envios.length > 1 ? (
-                        <button
-                          onClick={() => {
-                            alert("Hay múltiples envíos para este detalle.");
-                          }}
-                          className="bg-green-400 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                        >
-                          Ver Envíos
-                        </button>
-                      ) : (
-                        <span>
-                          {detalle.envios[0]?.cantidad_enviada || "N/A"}
-                        </span>
-                      )
-                    ) : (
-                      <input
-                        type="number"
-                        value={cantidadesTemporales[detalle.id] || ""}
-                        onChange={(e) =>
-                          handleCambioCantidad(
-                            detalle.id,
-                            Number(e.target.value)
-                          )
-                        }
-                        className="w-20 border border-gray-300 rounded p-1"
-                      />
-                    )}
-                    {!detalle.enviado && (
-                      <button
-                        onClick={() => {
-                          handleCrearEnvioDetalle(
-                            detalle.id,
-                            cantidadesTemporales[detalle.id] || 0,
-                            detalle.codigo_producto
-                          );
-                        }}
-                        className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
-                      >
-                        Guardar
-                      </button>
-                    )}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.enviado === true ? (
-                      <button
-                        className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-4 rounded transition duration-200"
-                        onClick={() => {
-                          handleCambiarEstadoEnviado(detalle.id);
-                        }}
-                      >
-                        Editar Cantidad
-                      </button>
-                    ) : detalle.enviado ? (
-                      <div></div>
-                    ) : (
-                      <div>
+                  {/* VERIFICACIÓN SI EXISTE DETALLES EN ENVIADO */}
+                  {detalle.envios.length == 0 ? (
+                    //Aqui no existe un envio relacionado al detalle
+                    <>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {/* Columna cantidad enviada */}
+                        <div className="flex items-center justify-between space-x-2">
+                          <input
+                            type="number"
+                            value={cantidadesTemporales[detalle.id] || ""}
+                            onChange={(e) =>
+                              handleCambioCantidad(
+                                detalle.id,
+                                Number(e.target.value)
+                              )
+                            }
+                            className="w-20 border border-gray-300 rounded p-1"
+                          />
+                          <button
+                            onClick={() => {
+                              handleCrearEnvioDetalle(
+                                detalle.id,
+                                cantidadesTemporales[detalle.id] || 0,
+                                detalle.codigo_producto
+                              );
+                            }}
+                            className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
+                          >
+                            Guardar
+                          </button>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {/* Columna acciones */}
                         <button
                           onClick={() => {
                             //handleDropdownClick(detalle.idDetalleOrdenAcopio);
@@ -330,9 +380,72 @@ export default function AcopioSalidaIdPage({
                         >
                           Cambiar Producto
                         </button>
-                      </div>
-                    )}
-                  </td>
+                      </td>
+                    </>
+                  ) : //Aqui existe un envio o mas relacionado al detalle
+
+                  detalle.envios.length > 1 ? (
+                    // Aca existen varios envios relacionados al detalle
+                    <>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        <button
+                          onClick={() => {
+                            alert("Hay múltiples envíos para este detalle.");
+                          }}
+                          className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                        >
+                          Ver Envíos
+                        </button>
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2"></td>
+                    </>
+                  ) : (
+                    // Aca existe un solo envio relacionado al detalle
+                    <>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {/* Verifico si se esta editando el ID detalle */}
+                        {editingId === detalle.id ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              className="w-20 border border-gray-300 rounded p-1"
+                            />
+                            <button
+                              onClick={() =>
+                                handleSaveEdit(detalle.id, detalle.envios[0].id)
+                              }
+                              disabled={editLoading === detalle.id}
+                              className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                            >
+                              {editLoading === detalle.id ? "..." : "Guardar"}
+                            </button>
+                          </div>
+                        ) : (
+                          detalle.envios[0]?.cantidad_enviada || "N/A"
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {/* Si se esta editando, cambio la accion a cancelar */}
+                        {editingId === detalle.id ? (
+                          <button
+                            onClick={handleCancelEdit}
+                            className="bg-red-500 hover:bg-red-600  text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                          >
+                            Cancelar
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleEditClick(detalle)}
+                            className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                          >
+                            Editar
+                          </button>
+                        )}
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>
