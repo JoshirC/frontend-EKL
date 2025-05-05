@@ -32,11 +32,15 @@ export default function CentroCostoNamePage({
   params: Promise<{ centro_costo: string }>;
 }) {
   const { centro_costo } = use(params);
+  const sanitizedCentroCosto = decodeURIComponent(centro_costo).replace(
+    /[^a-zA-Z0-9 ]/g,
+    ""
+  );
   const { setCentroCosto, setFecha, setEstado } = useSalidaStore();
 
   const { loading, error, data } = useQuery(GET_ORDENES_ACOPIO, {
     variables: {
-      centroCosto: centro_costo,
+      centroCosto: sanitizedCentroCosto,
       estado1: "Pendiente",
       estado2: "Proceso",
     },
@@ -76,7 +80,7 @@ export default function CentroCostoNamePage({
     <div className="p-4 sm:p-10">
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="text-xl sm:text-2xl font-semibold mb-4">
-          Lista de Acopio {centro_costo}
+          Lista de Acopio {sanitizedCentroCosto}
         </div>
         <div className="overflow-x-auto">
           <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">

@@ -1,10 +1,17 @@
 "use client";
 
-import React, { useEffect, useState, use } from "react";
+import React, { useState, use } from "react";
 import { useQuery, gql, useMutation } from "@apollo/client";
 import CambiarProducto from "@/components/salida_acopio/cambiarProducto";
 import DropdownAcciones from "@/components/salida_acopio/DropdownAcciones";
-
+import DropdownEnviosDetalleOrdenAcopio from "@/components/salida_acopio/dropdownEnviosDetalleOrdenAcopio";
+import {
+  CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
+  UPDATE_ESTADO_DETALLE_ACOPIO,
+  UPDATE_ESTADO_ORDEN_ACOPIO,
+  UPDATE_CANTIDAD_ENVIO_DETALLE,
+} from "@/graphql/mutations";
+import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 type Envio = {
   id: number;
   id_detalle_orden_acopio: number;
@@ -24,68 +31,6 @@ type DetalleOrdenAcopio = {
   envios: Envio[];
 };
 
-const GET_ORDEN_ACOPIO = gql`
-  query ordenAcopio($id: Float!) {
-    ordenAcopio(id: $id) {
-      id
-      centroCosto
-      fecha
-      estado
-      detalles {
-        id
-        familia_producto
-        nombre_producto
-        codigo_producto
-        cantidad
-        unidad
-        enviado
-        envios {
-          id
-          cantidad_enviada
-          codigo_producto_enviado
-        }
-      }
-    }
-  }
-`;
-const UPDATE_CANTIDAD_ENVIO_DETALLE = gql`
-  mutation updateCantidadEnvioDetalleOrdenAcopio($id: Int!, $cantidad: Int!) {
-    updateCantidadEnvioDetalleOrdenAcopio(id: $id, cantidad: $cantidad) {
-      id
-      codigo_producto_enviado
-      cantidad_enviada
-    }
-  }
-`;
-
-const UPDATE_ESTADO_DETALLE_ACOPIO = gql`
-  mutation updateEstadoEnviado($id: Float!) {
-    updateEstadoEnviado(id: $id) {
-      enviado
-    }
-  }
-`;
-
-const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
-  mutation createEnvioDetalleOrdenAcopio(
-    $id_detalle_orden_acopio: Float!
-    $cantidad_enviada: Float!
-    $codigo_producto_enviado: String!
-  ) {
-    createEnvioDetalleOrdenAcopio(
-      createEnvioDetalleOrdenAcopioInput: {
-        id_detalle_orden_acopio: $id_detalle_orden_acopio
-        cantidad_enviada: $cantidad_enviada
-        codigo_producto_enviado: $codigo_producto_enviado
-      }
-    ) {
-      id
-      cantidad_enviada
-      codigo_producto_enviado
-    }
-  }
-`;
-
 export default function AcopioSalidaIdPage({
   params,
 }: {
@@ -98,6 +43,12 @@ export default function AcopioSalidaIdPage({
     Record<number, number>
   >({});
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+  const [dropdownEnviosOpen, setDropdownEnviosOpen] = useState<number | null>(
+    null
+  );
+  // Estado para el dropdown de cambiar producto
+  const [dropdownCambiarProductoOpen, setDropdownCambiarProductoOpen] =
+    useState<number | null>(null);
 
   // Estados para la paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,6 +108,18 @@ export default function AcopioSalidaIdPage({
       },
     }
   );
+  const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
+    onCompleted: () => {
+      window.location.href = "/salida/acopio_productos";
+    },
+    onError: (mutationError) => {
+      console.error(
+        "Error al actualizar el estado de la orden de acopio:",
+        mutationError.message
+      );
+      alert("Ocurrió un error al actualizar el estado. Intente nuevamente.");
+    },
+  });
 
   if (loading) {
     return (
@@ -270,18 +233,64 @@ export default function AcopioSalidaIdPage({
     setEditValue("");
   };
 
+  // Función para manejar el clic en el botón de Ver Envíos
+  const handleDropdownEnviosClick = (id: number) => {
+    setDropdownEnviosOpen(dropdownOpen === id ? null : id);
+  };
+  // Función para manejar el clic en el botón de Cambiar Producto
+  const handleDropdownCambiarProductoClick = (id: number) => {
+    setDropdownCambiarProductoOpen(
+      dropdownCambiarProductoOpen === id ? null : id
+    );
+  };
+  const handleAcopioEnProceso = () => {
+    updateEstadoOrdenAcopio({
+      variables: {
+        id: id_acopio_num,
+        estado: "Proceso",
+      },
+    });
+  };
+  const handleAcopioTerminado = () => {
+    updateEstadoOrdenAcopio({
+      variables: {
+        id: id_acopio_num,
+        estado: "Confirmacion",
+      },
+    });
+  };
+
   return (
     <div className="p-4 sm:p-10">
       <div className="bg-white p-4 sm:p-6 rounded shadow">
-        {data.ordenAcopio.estado === "Confirmacion" ? (
-          <div className="text-xl sm:text-2xl font-semibold">
-            Confirmación de Acopio N°{id_acopio}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+          <div>
+            {data.ordenAcopio.estado === "Confirmacion" ? (
+              <div className="text-xl sm:text-2xl font-semibold">
+                Confirmación de Acopio N°{id_acopio}
+              </div>
+            ) : (
+              <div className="text-xl sm:text-2xl font-semibold">
+                Detalle de Acopio N°{id_acopio}
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="text-xl sm:text-2xl font-semibold">
-            Detalle de Acopio N°{id_acopio}
+          <div className="flex space-x-2">
+            <button
+              className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-500 transition duration-200"
+              onClick={handleAcopioTerminado}
+            >
+              Terminar Acopio
+            </button>
+            <button
+              className="bg-gray-300 text-white font-semibold px-4 py-2 rounded hover:bg-gray-400 transition duration-200"
+              onClick={handleAcopioEnProceso}
+            >
+              Continuar Luego...
+            </button>
           </div>
-        )}
+        </div>
+
         <div className="flex flex-col sm:flex-row justify-around items-center my-4 gap-4 sm:gap-6 font-bold">
           <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
             Centro de Costo - {data.ordenAcopio.centroCosto}
@@ -322,131 +331,166 @@ export default function AcopioSalidaIdPage({
             </thead>
             <tbody>
               {currentItems.map((detalle) => (
-                <tr key={detalle.id}>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.familia_producto}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.codigo_producto}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.nombre_producto}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.unidad}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.cantidad}
-                  </td>
-                  {/* VERIFICACIÓN SI EXISTE DETALLES EN ENVIADO */}
-                  {detalle.envios.length == 0 ? (
-                    //Aqui no existe un envio relacionado al detalle
-                    <>
-                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                        {/* Columna cantidad enviada */}
-                        <div className="flex items-center justify-between space-x-2">
-                          <input
-                            type="number"
-                            value={cantidadesTemporales[detalle.id] || ""}
-                            onChange={(e) =>
-                              handleCambioCantidad(
-                                detalle.id,
-                                Number(e.target.value)
-                              )
-                            }
-                            className="w-20 border border-gray-300 rounded p-1"
-                          />
-                          <button
-                            onClick={() => {
-                              handleCrearEnvioDetalle(
-                                detalle.id,
-                                cantidadesTemporales[detalle.id] || 0,
-                                detalle.codigo_producto
-                              );
-                            }}
-                            className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
-                          >
-                            Guardar
-                          </button>
-                        </div>
-                      </td>
-                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                        {/* Columna acciones */}
-                        <button
-                          onClick={() => {
-                            //handleDropdownClick(detalle.idDetalleOrdenAcopio);
-                          }}
-                          className="bg-orange-400 hover:bg-orange-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
-                        >
-                          Cambiar Producto
-                        </button>
-                      </td>
-                    </>
-                  ) : //Aqui existe un envio o mas relacionado al detalle
-
-                  detalle.envios.length > 1 ? (
-                    // Aca existen varios envios relacionados al detalle
-                    <>
-                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                        <button
-                          onClick={() => {
-                            alert("Hay múltiples envíos para este detalle.");
-                          }}
-                          className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                        >
-                          Ver Envíos
-                        </button>
-                      </td>
-                      <td className="border border-gray-300 px-2 sm:px-4 py-2"></td>
-                    </>
-                  ) : (
-                    // Aca existe un solo envio relacionado al detalle
-                    <>
-                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                        {/* Verifico si se esta editando el ID detalle */}
-                        {editingId === detalle.id ? (
-                          <div className="flex items-center gap-2">
+                <React.Fragment key={detalle.id}>
+                  <tr key={detalle.id}>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.familia_producto}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.codigo_producto}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.nombre_producto}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.unidad}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.cantidad}
+                    </td>
+                    {/* VERIFICACIÓN SI EXISTE DETALLES EN ENVIADO */}
+                    {detalle.envios.length == 0 ? (
+                      //Aqui no existe un envio relacionado al detalle
+                      <>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {/* Columna cantidad enviada */}
+                          <div className="flex items-center justify-between space-x-2">
                             <input
                               type="number"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              className="w-20 border border-gray-300 rounded p-1"
+                              value={cantidadesTemporales[detalle.id] || ""}
+                              onChange={(e) =>
+                                handleCambioCantidad(
+                                  detalle.id,
+                                  Number(e.target.value)
+                                )
+                              }
+                              className="w-full border border-gray-300 rounded p-1"
                             />
                             <button
-                              onClick={() =>
-                                handleSaveEdit(detalle.id, detalle.envios[0].id)
-                              }
-                              disabled={editLoading === detalle.id}
-                              className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                              onClick={() => {
+                                handleCrearEnvioDetalle(
+                                  detalle.id,
+                                  cantidadesTemporales[detalle.id] || 0,
+                                  detalle.codigo_producto
+                                );
+                              }}
+                              className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
                             >
-                              {editLoading === detalle.id ? "..." : "Guardar"}
+                              Guardar
                             </button>
                           </div>
-                        ) : (
-                          detalle.envios[0]?.cantidad_enviada || "N/A"
-                        )}
-                      </td>
-                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                        {/* Si se esta editando, cambio la accion a cancelar */}
-                        {editingId === detalle.id ? (
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {/* Columna acciones */}
                           <button
-                            onClick={handleCancelEdit}
-                            className="bg-red-500 hover:bg-red-600  text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                            onClick={() => {
+                              handleDropdownCambiarProductoClick(detalle.id);
+                            }}
+                            className="bg-orange-400 hover:bg-orange-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
                           >
-                            Cancelar
+                            Cambiar Producto
                           </button>
-                        ) : (
+                        </td>
+                      </>
+                    ) : //Aqui existe un envio o mas relacionado al detalle
+
+                    detalle.envios.length > 1 ? (
+                      // Aca existen varios envios relacionados al detalle
+                      <>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
-                            onClick={() => handleEditClick(detalle)}
-                            className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                            onClick={() => {
+                              handleDropdownEnviosClick(detalle.id);
+                            }}
+                            className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
                           >
-                            Editar
+                            Ver Envíos
                           </button>
-                        )}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2"></td>
+                      </>
+                    ) : (
+                      // Aca existe un solo envio relacionado al detalle
+                      <>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {/* Verifico si se esta editando el ID detalle */}
+                          {editingId === detalle.id ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                className="w-20 border border-gray-300 rounded p-1"
+                              />
+                              <button
+                                onClick={() =>
+                                  handleSaveEdit(
+                                    detalle.id,
+                                    detalle.envios[0].id
+                                  )
+                                }
+                                disabled={editLoading === detalle.id}
+                                className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                              >
+                                {editLoading === detalle.id ? "..." : "Guardar"}
+                              </button>
+                            </div>
+                          ) : (
+                            detalle.envios[0]?.cantidad_enviada || "N/A"
+                          )}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {/* Si se esta editando, cambio la accion a cancelar */}
+                          {editingId === detalle.id ? (
+                            <button
+                              onClick={handleCancelEdit}
+                              className="bg-red-500 hover:bg-red-600  text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                            >
+                              Cancelar
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleEditClick(detalle)}
+                              className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                            >
+                              Editar
+                            </button>
+                          )}
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                  {/* Fila expandida condicional de envios*/}
+                  {dropdownEnviosOpen === detalle.id && (
+                    <tr>
+                      <td colSpan={7} className="border-0 p-2 sm:p-4">
+                        <DropdownEnviosDetalleOrdenAcopio
+                          detalleOrdenAcopio={detalle}
+                          envios={detalle.envios}
+                          isOpen={true}
+                          onClose={() => setDropdownEnviosOpen(null)}
+                        />
                       </td>
-                    </>
+                    </tr>
                   )}
-                </tr>
+                  {/* Fila expandida condicional de cambiar producto*/}
+                  {dropdownCambiarProductoOpen === detalle.id && (
+                    <tr>
+                      <td colSpan={7} className="border-0 p-2 sm:p-4">
+                        <DropdownAcciones
+                          id_detalle_orden_acopio={detalle.id}
+                          codigoProducto={detalle.codigo_producto}
+                          descripcion={detalle.nombre_producto}
+                          cantidad={detalle.cantidad}
+                          isOpen={true}
+                          onClose={() => setDropdownCambiarProductoOpen(null)}
+                          onProductoEnviado={refetch}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  {/* Fila expandida condicional de acciones*/}
+                </React.Fragment>
               ))}
             </tbody>
           </table>

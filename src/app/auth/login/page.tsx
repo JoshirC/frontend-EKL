@@ -8,19 +8,7 @@ import { LoginUserInput, LoginResponse } from "@/types/graphql";
 import Cookies from "js-cookie";
 import { useJwtStore } from "@/store/jwtStore";
 import Alert from "@/components/Alert";
-
-const LOGIN_MUTATION = gql`
-  mutation Login($loginUserInput: LoginUserInput!) {
-    login(loginUserInput: $loginUserInput) {
-      access_token
-      user {
-        rut
-        rol
-        nombre
-      }
-    }
-  }
-`;
+import { LOGIN_MUTATION } from "@/graphql/mutations";
 
 export default function Login() {
   const [rut, setRut] = useState("");
