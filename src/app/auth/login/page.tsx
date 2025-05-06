@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useMutation } from "@apollo/client";
-import { gql } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { LoginUserInput, LoginResponse } from "@/types/graphql";
 import Cookies from "js-cookie";

@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client';
 
+
 // Mutaciones para AUTH
 
 export const LOGIN_MUTATION = gql`
@@ -11,6 +12,54 @@ export const LOGIN_MUTATION = gql`
         rol
         nombre
       }
+    }
+  }
+`;
+
+//Mutaciones para Usuarios
+export const CREATE_USER = gql`
+  mutation CreateUser($userInput: CreateUserInput!) {
+    createUser(userInput: $userInput) {
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
+export const UPDATE_USER = gql`
+mutation UpdateUser($updateUserInput: UpdateUserInput!) {
+  updateUser(updateUserInput: $updateUserInput) {
+    id
+    rut
+    nombre
+    correo
+    rol
+  }
+}
+`;
+export const EDITAR_ESTADO_ELIMINADO_USER = gql`
+  mutation EditStatusUser($id: Float!) {
+    editStatusUser(id: $id) {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
+export const EDIT_PASSWORD_USER = gql`
+  mutation EditPasswordUser(
+    $rut: String!
+    $editPasswordUserInput: EditPasswordUserInput!
+  ) {
+    editPasswordUser(rut: $rut, editPasswordUserInput: $editPasswordUserInput) {
+      id
+      rut
+      nombre
+      correo
+      rol
     }
   }
 `;

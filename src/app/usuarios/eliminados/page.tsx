@@ -2,6 +2,8 @@
 import { gql, useQuery, useMutation } from "@apollo/client";
 import React, { useState } from "react";
 import Alert from "@/components/Alert";
+import { GET_USUARIOS_ELIMINADOS } from "@/graphql/query";
+import { EDITAR_ESTADO_ELIMINADO_USER } from "@/graphql/mutations";
 
 type Usuario = {
   id: number;
@@ -10,26 +12,6 @@ type Usuario = {
   correo: string;
   rol: string;
 };
-
-const GET_USUARIOS_ELIMINADOS = gql`
-  query GetUsuariosEliminados {
-    usersEliminados {
-      id
-      rut
-      nombre
-      correo
-      rol
-    }
-  }
-`;
-
-const EDITAR_ESTADO_ELIMINADO_USER = gql`
-  mutation EditStatusUser($id: Float!) {
-    editStatusUser(id: $id) {
-      id
-    }
-  }
-`;
 
 const EliminadosPage: React.FC = () => {
   const { data, loading, error, refetch } = useQuery(GET_USUARIOS_ELIMINADOS);

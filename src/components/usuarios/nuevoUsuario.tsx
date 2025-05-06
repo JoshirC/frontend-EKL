@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { CREATE_USER } from "@/graphql/mutations";
 import Alert from "@/components/Alert";

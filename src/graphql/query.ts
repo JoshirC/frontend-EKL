@@ -1,7 +1,62 @@
 import { gql } from '@apollo/client';
+//Querys para Usuarios
+export const GET_USUARIOS_NO_ELIMINADOS = gql`
+query GetUsuariosNoEliminados {
+  usersNoEliminados {
+    id
+    rut
+    nombre
+    correo
+    rol
+  }
+}
+`;
+export const GET_USUARIOS_ELIMINADOS = gql`
+  query GetUsuariosEliminados {
+    usersEliminados {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
 
 //Querys para Orden de Acopio
-
+export const GET_ORDENES_ACOPIO = gql`
+  query {
+    ordenAcopiosByEstado(estado: "Revision") {
+      id
+      centroCosto
+      fecha
+      estado
+    }
+  }
+`;
+export const GET_ORDENES_ACOPIO_DOS_ESTADOS = gql`
+  query ($centroCosto: String!, $estado1: String!, $estado2: String!) {
+    ordenAcopioByCentroCostoYEstados(
+      centroCosto: $centroCosto
+      estado1: $estado1
+      estado2: $estado2
+    ) {
+      id
+      centroCosto
+      fecha
+      estado
+    }
+  }
+`;
+export const GET_CENTROS_COSTOS = gql`
+  query {
+    ordenAcopioDosEstados(estado1: "Pendiente", estado2: "Proceso") {
+      centroCosto
+      Pendiente
+      Proceso
+    }
+  }
+`;
 // Query para Detalle de Orden de Acopio
 export const GET_ORDEN_ACOPIO = gql`
   query ordenAcopio($id: Float!) {

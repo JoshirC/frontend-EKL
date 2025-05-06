@@ -6,6 +6,8 @@ import { useModalStore } from "@/store/modalStore";
 import React, { useState } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
+import { GET_USUARIOS_NO_ELIMINADOS } from "@/graphql/query";
+import { UPDATE_USER, EDITAR_ESTADO_ELIMINADO_USER } from "@/graphql/mutations";
 
 type Usuario = {
   id: number;
@@ -14,42 +16,6 @@ type Usuario = {
   correo: string;
   rol: string;
 };
-
-const GET_USUARIOS_NO_ELIMINADOS = gql`
-  query GetUsuariosNoEliminados {
-    usersNoEliminados {
-      id
-      rut
-      nombre
-      correo
-      rol
-    }
-  }
-`;
-
-const UPDATE_USER = gql`
-  mutation UpdateUser($updateUserInput: UpdateUserInput!) {
-    updateUser(updateUserInput: $updateUserInput) {
-      id
-      rut
-      nombre
-      correo
-      rol
-    }
-  }
-`;
-
-const EDITAR_ESTADO_ELIMINADO_USER = gql`
-  mutation EditStatusUser($id: Float!) {
-    editStatusUser(id: $id) {
-      id
-      rut
-      nombre
-      correo
-      rol
-    }
-  }
-`;
 
 const UsuariosPage: React.FC = () => {
   const {

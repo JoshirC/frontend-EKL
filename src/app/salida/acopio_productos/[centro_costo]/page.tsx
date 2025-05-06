@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, use } from "react";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { useSalidaStore } from "@/store/salidaStore";
+import { GET_ORDENES_ACOPIO_DOS_ESTADOS } from "@/graphql/query";
 
 type OrdenAcopio = {
   id: number;
@@ -10,21 +11,6 @@ type OrdenAcopio = {
   fecha: string;
   estado: string;
 };
-
-const GET_ORDENES_ACOPIO = gql`
-  query ($centroCosto: String!, $estado1: String!, $estado2: String!) {
-    ordenAcopioByCentroCostoYEstados(
-      centroCosto: $centroCosto
-      estado1: $estado1
-      estado2: $estado2
-    ) {
-      id
-      centroCosto
-      fecha
-      estado
-    }
-  }
-`;
 
 export default function CentroCostoNamePage({
   params,
@@ -38,7 +24,7 @@ export default function CentroCostoNamePage({
   );
   const { setCentroCosto, setFecha, setEstado } = useSalidaStore();
 
-  const { loading, error, data } = useQuery(GET_ORDENES_ACOPIO, {
+  const { loading, error, data } = useQuery(GET_ORDENES_ACOPIO_DOS_ESTADOS, {
     variables: {
       centroCosto: sanitizedCentroCosto,
       estado1: "Pendiente",

@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { useQuery, gql, useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { useAdquisicionStore } from "@/store/adquisicionStore";
 import Alert from "@/components/Alert";
+import { GET_ORDEN_ACOPIO } from "@/graphql/query";
+import { UPDATE_ESTADO_ORDEN_ACOPIO } from "@/graphql/mutations";
 type DetalleOrdenAcopio = {
   id: number;
   familia_producto: string;
@@ -13,31 +15,6 @@ type DetalleOrdenAcopio = {
   unidad: string;
 };
 
-const GET_ORDEN_ACOPIO = gql`
-  query ordenAcopio($id: Float!) {
-    ordenAcopio(id: $id) {
-      id
-      centroCosto
-      fecha
-      estado
-      detalles {
-        id
-        familia_producto
-        nombre_producto
-        codigo_producto
-        cantidad
-        unidad
-      }
-    }
-  }
-`;
-const UPDATE_ESTADO_ORDEN_ACOPIO = gql`
-  mutation ($id: Float!, $estado: String!) {
-    updateEstadoOrdenAcopio(id: $id, estado: $estado) {
-      id
-    }
-  }
-`;
 export default function AcopioIdPage({
   params,
 }: {

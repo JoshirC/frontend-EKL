@@ -4,23 +4,13 @@ import { useQuery, gql } from "@apollo/client";
 import NuevaOrdenAcopio from "@/components/adquisiciones/nuevaOrdenAcopio";
 import { useAdquisicionStore } from "@/store/adquisicionStore";
 import Alert from "@/components/Alert";
+import { GET_ORDENES_ACOPIO } from "@/graphql/query";
 type OrdenAcopio = {
   id: number;
   centroCosto: string;
   fecha: string;
   estado: string;
 };
-
-const GET_ORDENES_ACOPIO = gql`
-  query {
-    ordenAcopiosByEstado(estado: "Revision") {
-      id
-      centroCosto
-      fecha
-      estado
-    }
-  }
-`;
 
 const AcopioPage: React.FC = () => {
   const [modalNuevaOrdenAcopio, setModalNuevaOrdenAcopio] = useState(false);

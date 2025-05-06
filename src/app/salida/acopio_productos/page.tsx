@@ -1,22 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
+import { GET_CENTROS_COSTOS } from "@/graphql/query";
 
 type CentroCosto = {
   centroCosto: string;
   Pendiente: number;
   Proceso: number;
 };
-
-const GET_CENTROS_COSTOS = gql`
-  query {
-    ordenAcopioDosEstados(estado1: "Pendiente", estado2: "Proceso") {
-      centroCosto
-      Pendiente
-      Proceso
-    }
-  }
-`;
 
 const AcopioProductosPage: React.FC = () => {
   const { loading, error, data } = useQuery(GET_CENTROS_COSTOS);
