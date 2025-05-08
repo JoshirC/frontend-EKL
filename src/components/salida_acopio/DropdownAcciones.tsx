@@ -4,7 +4,7 @@ import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
   UPDATE_ESTADO_DETALLE_ACOPIO,
 } from "@/graphql/mutations";
-
+import { useJwtStore } from "@/store/jwtStore";
 interface DropdownAccionesProps {
   id_detalle_orden_acopio: number;
   codigoProducto: string;
@@ -42,6 +42,7 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
   const [productosEnviados, setProductosEnviados] = useState<ProductoEnviado[]>(
     []
   );
+  const { rutUsuario } = useJwtStore();
   const [loading, setLoading] = useState(false);
 
   const [createEnvioDetalleOrdenAcopio] = useMutation(
@@ -114,6 +115,7 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
           id_detalle_orden_acopio,
           cantidad_enviada: cantidadEnviada,
           codigo_producto_enviado: codigoProductoEnviado,
+          usuario_rut: rutUsuario,
         },
       });
 

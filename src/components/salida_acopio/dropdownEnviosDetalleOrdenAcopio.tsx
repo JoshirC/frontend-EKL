@@ -96,7 +96,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
     <div className="bg-white border border-gray-200 rounded shadow-lg p-6 w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-3">
         <h2 className="text-base font-semibold sm:text-lg">
-          Listado de Envíos
+          Detalle de Envíos
         </h2>
         <div className="flex gap-2 sm:gap-4">
           <button
@@ -166,10 +166,13 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
                 </button>
               </div>
             ) : (
-              <div>
+              <div className="flex justify-between items-center space-x-4">
                 <h2 className="text-sm sm:text-base w-full text-center">
                   Cantidad enviada: {String(envio.cantidad_enviada)}
                 </h2>
+                <button className="bg-red-400 text-white font-semibold p-2 sm:px-4 sm:py-2 rounded hover:bg-red-500 transition duration-200 w-full sm:w-auto">
+                  Eliminar
+                </button>
               </div>
             )}
           </div>

@@ -25,8 +25,8 @@ export const GET_USUARIOS_ELIMINADOS = gql`
 
 //Querys para Orden de Acopio
 export const GET_ORDENES_ACOPIO = gql`
-  query {
-    ordenAcopiosByEstado(estado: "Revision") {
+  query ($estado: String!) {
+    ordenAcopiosByEstado(estado: $estado) {
       id
       centroCosto
       fecha
@@ -83,3 +83,27 @@ export const GET_ORDEN_ACOPIO = gql`
   }
 `;
 // Query para Envio de Detalle de Orden de Acopio
+//Query para Guia de Salida
+export const GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO = gql`
+  query guiasDeSalidaPorOrdenAcopio($ordenAcopioId: Float!) {
+    guiasDeSalidaPorOrdenAcopio(ordenAcopioId: $ordenAcopioId) {
+      id
+      fechaCreacion
+      codigo
+    }
+  }
+`;
+export const GET_GUIA_DE_SALIDA = gql`
+  query guiaDeSalida($id: Float!) {
+    guiaDeSalida(id: $id) {
+      id
+      fechaCreacion
+      codigo
+      envios {
+        id
+        codigo_producto_enviado
+        cantidad_enviada
+      }
+    }
+  }
+`;

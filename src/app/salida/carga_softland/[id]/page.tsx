@@ -1,14 +1,18 @@
 "use client";
-import { maxHeaderSize } from "http";
 import React, { useState, useEffect, use } from "react";
 import Barcode from "react-barcode";
+import { GET_GUIA_DE_SALIDA } from "@/graphql/query";
+import { useQuery } from "@apollo/client";
 
-type DetalleSalida = {
-  idOrdenAcopio: number;
-  idSalida: number;
-  codProducto: string;
-  nombreProducto: string;
-  cantidadEnviada: number;
+type Envio = {
+  id: number;
+  codigo_producto_enviado: string;
+  cantidad_enviada: number;
+};
+type GuiaSalida = {
+  id: number;
+  codigo: string;
+  envios: Envio[];
 };
 
 export default function CargaSoftlandDetallePage({
@@ -17,25 +21,33 @@ export default function CargaSoftlandDetallePage({
   params: Promise<{ id: string }>;
 }) {
   const { id: id_salida } = use(params);
-  const [detalleSalida, setDetalleSalida] = useState<DetalleSalida[]>([]);
+  const id_acopio_num = parseFloat(id_salida);
+  console.log("ID de Salida:", id_salida);
+  const { loading, error, data } = useQuery(GET_GUIA_DE_SALIDA, {
+    variables: { id: id_acopio_num },
+  });
+  if (loading) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Cargando detalles del acopio...</p>
+        </div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    const fetchDetalleSalida = async () => {
-      try {
-        const response = await fetch("/api/detalleSalidaAcopio.json");
-        const data = await response.json();
-        const detallesFiltrados = data.filter(
-          (detalle: DetalleSalida) => detalle.idSalida === Number(id_salida)
-        );
-        setDetalleSalida(detallesFiltrados);
-      } catch (error) {
-        console.error("Error al cargar los detalles:", error);
-      }
-    };
-
-    fetchDetalleSalida();
-  }, [detalleSalida]);
-
+  if (error) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p className="text-red-500">
+            Error al cargar los datos: {error.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  const guiaSalida: GuiaSalida = data?.guiaDeSalida || null;
   return (
     <div className="p-4 sm:p-10">
       <div className="bg-white p-4 sm:p-6 rounded shadow">
@@ -69,23 +81,27 @@ export default function CargaSoftlandDetallePage({
               </tr>
             </thead>
             <tbody>
-              {detalleSalida.map((detalle, index) => (
-                <tr key={index}>
+              {guiaSalida.envios.map((envio) => (
+                <tr key={envio.id}>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.codProducto}
-                  </td>
-                  <td className="border border-gray-200 px-2 sm:px-4 py-2 flex justify-center">
-                    <Barcode value={detalle.codProducto} height={75} />
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.nombreProducto}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.cantidadEnviada}
+                    {envio.codigo_producto_enviado}
                   </td>
                   <td className="border border-gray-200 px-2 sm:px-4 py-2 flex justify-center">
                     <Barcode
-                      value={detalle.cantidadEnviada.toString()}
+                      value={envio.codigo_producto_enviado}
+                      height={75}
+                    />
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {/* Replace with actual product description if available */}
+                    Descripción no disponible
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {envio.cantidad_enviada}
+                  </td>
+                  <td className="border border-gray-200 px-2 sm:px-4 py-2 flex justify-center">
+                    <Barcode
+                      value={envio.cantidad_enviada.toString()}
                       height={75}
                     />
                   </td>

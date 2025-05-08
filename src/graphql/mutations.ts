@@ -76,23 +76,24 @@ export const UPDATE_CANTIDAD_ENVIO_DETALLE = gql`
   }
 `;
 export const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
-mutation createEnvioDetalleOrdenAcopio(
-  $id_detalle_orden_acopio: Float!
-  $cantidad_enviada: Float!
-  $codigo_producto_enviado: String!
-) {
-  createEnvioDetalleOrdenAcopio(
-    createEnvioDetalleOrdenAcopioInput: {
-      id_detalle_orden_acopio: $id_detalle_orden_acopio
-      cantidad_enviada: $cantidad_enviada
-      codigo_producto_enviado: $codigo_producto_enviado
-    }
+  mutation createEnvioDetalleOrdenAcopio(
+    $id_detalle_orden_acopio: Int!
+    $cantidad_enviada: Int!
+    $codigo_producto_enviado: String!
+    $usuario_rut: String!
   ) {
-    id
-    cantidad_enviada
-    codigo_producto_enviado
+    createEnvioDetalleOrdenAcopio(
+      createEnvioDetalleOrdenAcopioInput: {
+        id_detalle_orden_acopio: $id_detalle_orden_acopio
+        cantidad_enviada: $cantidad_enviada
+        codigo_producto_enviado: $codigo_producto_enviado
+        usuario_rut: $usuario_rut
+      }
+    ) {
+      codigo_producto_enviado
+      cantidad_enviada
+    }
   }
-}
 `;
 
 // Mutaciones para Detalle de Orden de Acopio

@@ -12,6 +12,7 @@ import {
   UPDATE_CANTIDAD_ENVIO_DETALLE,
 } from "@/graphql/mutations";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
+import { useJwtStore } from "@/store/jwtStore";
 type Envio = {
   id: number;
   id_detalle_orden_acopio: number;
@@ -38,7 +39,7 @@ export default function AcopioSalidaIdPage({
 }) {
   const { id: id_acopio } = use(params);
   const id_acopio_num = parseFloat(id_acopio);
-
+  const { rutUsuario } = useJwtStore();
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
   >({});
@@ -110,7 +111,7 @@ export default function AcopioSalidaIdPage({
   );
   const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
     onCompleted: () => {
-      window.location.href = "/salida/acopio_productos";
+      window.history.back();
     },
     onError: (mutationError) => {
       console.error(
@@ -163,20 +164,34 @@ export default function AcopioSalidaIdPage({
     cantidad_enviada: number,
     codigo_producto_enviado: string
   ) => {
-    if (cantidad_enviada < 0) {
+    if (cantidad_enviada <= 0) {
       alert("La cantidad enviada debe ser mayor a 0");
+      return;
+    }
+
+    if (!rutUsuario) {
+      alert("El RUT del usuario no está definido. Intente nuevamente.");
       return;
     }
 
     try {
       await createEnvioDetalleOrdenAcopio({
         variables: {
-          id_detalle_orden_acopio: id_detalle_orden_acopio,
-          cantidad_enviada: cantidad_enviada,
-          codigo_producto_enviado: codigo_producto_enviado,
+          id_detalle_orden_acopio: Number(id_detalle_orden_acopio),
+          cantidad_enviada: Number(cantidad_enviada),
+          codigo_producto_enviado: String(codigo_producto_enviado),
+          usuario_rut: String(rutUsuario),
         },
       });
-      await updateEstadoEnviado({ variables: { id: id_detalle_orden_acopio } });
+
+      try {
+        await updateEstadoEnviado({
+          variables: { id: id_detalle_orden_acopio },
+        });
+      } catch (err) {
+        console.error("Error al actualizar el estado de enviado:", err);
+        alert("Ocurrió un error al actualizar el estado de enviado.");
+      }
 
       setCantidadesTemporales((prev) => ({
         ...prev,
@@ -243,19 +258,11 @@ export default function AcopioSalidaIdPage({
       dropdownCambiarProductoOpen === id ? null : id
     );
   };
-  const handleAcopioEnProceso = () => {
+  const handleCambioEstadoAcopio = (estado: string) => {
     updateEstadoOrdenAcopio({
       variables: {
         id: id_acopio_num,
-        estado: "Proceso",
-      },
-    });
-  };
-  const handleAcopioTerminado = () => {
-    updateEstadoOrdenAcopio({
-      variables: {
-        id: id_acopio_num,
-        estado: "Confirmacion",
+        estado: estado,
       },
     });
   };
@@ -263,34 +270,39 @@ export default function AcopioSalidaIdPage({
   return (
     <div className="p-4 sm:p-10">
       <div className="bg-white p-4 sm:p-6 rounded shadow">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-          <div>
-            {data.ordenAcopio.estado === "Confirmacion" ? (
-              <div className="text-xl sm:text-2xl font-semibold">
-                Confirmación de Acopio N°{id_acopio}
-              </div>
-            ) : (
-              <div className="text-xl sm:text-2xl font-semibold">
-                Detalle de Acopio N°{id_acopio}
-              </div>
-            )}
-          </div>
-          <div className="flex space-x-2">
+        {data.ordenAcopio.estado === "Confirmacion" ? (
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+            <div className="text-xl sm:text-2xl font-semibold">
+              Confirmación de Acopio N°{id_acopio}
+            </div>
             <button
               className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-500 transition duration-200"
-              onClick={handleAcopioTerminado}
+              onClick={handleCambioEstadoAcopio.bind(null, "Subir")}
             >
-              Terminar Acopio
-            </button>
-            <button
-              className="bg-gray-300 text-white font-semibold px-4 py-2 rounded hover:bg-gray-400 transition duration-200"
-              onClick={handleAcopioEnProceso}
-            >
-              Continuar Luego...
+              Confirmar Acopio
             </button>
           </div>
-        </div>
-
+        ) : (
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+            <div className="text-xl sm:text-2xl font-semibold">
+              Detalle de Acopio N°{id_acopio}
+            </div>
+            <div className="flex space-x-2">
+              <button
+                className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-500 transition duration-200"
+                onClick={handleCambioEstadoAcopio.bind(null, "Confirmacion")}
+              >
+                Terminar Acopio
+              </button>
+              <button
+                className="bg-gray-300 text-white font-semibold px-4 py-2 rounded hover:bg-gray-400 transition duration-200"
+                onClick={handleCambioEstadoAcopio.bind(null, "Proceso")}
+              >
+                Continuar Luego...
+              </button>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row justify-around items-center my-4 gap-4 sm:gap-6 font-bold">
           <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
             Centro de Costo - {data.ordenAcopio.centroCosto}
@@ -412,51 +424,83 @@ export default function AcopioSalidaIdPage({
                     ) : (
                       // Aca existe un solo envio relacionado al detalle
                       <>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          {/* Verifico si se esta editando el ID detalle */}
-                          {editingId === detalle.id ? (
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                className="w-20 border border-gray-300 rounded p-1"
-                              />
+                        {/* Verifico si el producto enviado es diferente al producto del detalle */}
+                        {detalle.codigo_producto !==
+                        detalle.envios[0].codigo_producto_enviado ? (
+                          <>
+                            <td className="border border-gray-300 px-2 sm:px-4 py-2 text-gray-400 font-semibold">
+                              {detalle.envios[0]?.cantidad_enviada || "N/A"}
+                            </td>
+                            <td className="border border-gray-300 px-2 sm:px-4 py-2">
                               <button
-                                onClick={() =>
-                                  handleSaveEdit(
-                                    detalle.id,
-                                    detalle.envios[0].id
-                                  )
-                                }
-                                disabled={editLoading === detalle.id}
                                 className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                onClick={() => {
+                                  handleDropdownEnviosClick(detalle.id);
+                                }}
                               >
-                                {editLoading === detalle.id ? "..." : "Guardar"}
+                                Ver Producto
                               </button>
-                            </div>
-                          ) : (
-                            detalle.envios[0]?.cantidad_enviada || "N/A"
-                          )}
-                        </td>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          {/* Si se esta editando, cambio la accion a cancelar */}
-                          {editingId === detalle.id ? (
-                            <button
-                              onClick={handleCancelEdit}
-                              className="bg-red-500 hover:bg-red-600  text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                            >
-                              Cancelar
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleEditClick(detalle)}
-                              className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                            >
-                              Editar
-                            </button>
-                          )}
-                        </td>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            {/* El producto concuerda en el envio */}
+                            <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                              {/* Verifico si se esta editando el ID detalle */}
+                              {editingId === detalle.id ? (
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={(e) =>
+                                      setEditValue(e.target.value)
+                                    }
+                                    className="w-20 border border-gray-300 rounded p-1"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      handleSaveEdit(
+                                        detalle.id,
+                                        detalle.envios[0].id
+                                      )
+                                    }
+                                    disabled={editLoading === detalle.id}
+                                    className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                  >
+                                    {editLoading === detalle.id
+                                      ? "..."
+                                      : "Guardar"}
+                                  </button>
+                                </div>
+                              ) : (
+                                detalle.envios[0]?.cantidad_enviada || "N/A"
+                              )}
+                            </td>
+                            <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                              {/* Si se esta editando, cambio la accion a cancelar */}
+                              {editingId === detalle.id ? (
+                                <button
+                                  onClick={handleCancelEdit}
+                                  className="bg-red-500 hover:bg-red-600  text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                >
+                                  Cancelar
+                                </button>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleEditClick(detalle)}
+                                    className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                  >
+                                    Editar
+                                  </button>
+                                  <button className="bg-red-400 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full">
+                                    Eliminar
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </>
+                        )}
                       </>
                     )}
                   </tr>
