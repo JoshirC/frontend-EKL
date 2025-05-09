@@ -2,8 +2,8 @@
 import React, { useState, useEffect, use } from "react";
 import Barcode from "react-barcode";
 import { GET_GUIA_DE_SALIDA } from "@/graphql/query";
-import { useQuery } from "@apollo/client";
-
+import { ELIMINAR_GUIA_SALIDA } from "@/graphql/mutations";
+import { useQuery, useMutation } from "@apollo/client";
 type Envio = {
   id: number;
   codigo_producto_enviado: string;
@@ -21,11 +21,25 @@ export default function CargaSoftlandDetallePage({
   params: Promise<{ id: string }>;
 }) {
   const { id: id_salida } = use(params);
-  const id_acopio_num = parseFloat(id_salida);
+  const id_salida_num = parseFloat(id_salida);
   console.log("ID de Salida:", id_salida);
   const { loading, error, data } = useQuery(GET_GUIA_DE_SALIDA, {
-    variables: { id: id_acopio_num },
+    variables: { id: id_salida_num },
   });
+  const [EliminarGuiaSalida] = useMutation(ELIMINAR_GUIA_SALIDA, {
+    variables: { id: id_salida_num },
+    onCompleted: () => {
+      window.location.href = "/salida/carga_softland";
+    },
+  });
+  const handleEliminarGuiaSalida = async () => {
+    try {
+      await EliminarGuiaSalida();
+    } catch (error) {
+      console.error("Error al eliminar la guía de salida:", error);
+      alert("Error al eliminar la guía de salida");
+    }
+  };
   if (loading) {
     return (
       <div className="p-10">
@@ -47,6 +61,7 @@ export default function CargaSoftlandDetallePage({
       </div>
     );
   }
+
   const guiaSalida: GuiaSalida = data?.guiaDeSalida || null;
   return (
     <div className="p-4 sm:p-10">
@@ -55,8 +70,11 @@ export default function CargaSoftlandDetallePage({
           <div className="text-xl sm:text-2xl font-semibold">
             Detalle de Guia de Salida N°{id_salida}
           </div>
-          <button className="bg-orange-400 hover:bg-orange-500 font-semibold text-white p-3 sm:px-4 sm:py-2 rounded w-full sm:w-auto">
-            Completar
+          <button
+            className="bg-orange-400 hover:bg-orange-500 font-semibold text-white p-3 sm:px-4 sm:py-2 rounded w-full sm:w-auto"
+            onClick={handleEliminarGuiaSalida}
+          >
+            Finalizar
           </button>
         </div>
         <div className="overflow-x-auto">
@@ -70,7 +88,7 @@ export default function CargaSoftlandDetallePage({
                   Código de Barras Producto
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Descrpción Producto
+                  Descripción Producto
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Cantidad

@@ -115,3 +115,10 @@ export const UPDATE_ESTADO_ORDEN_ACOPIO = gql`
     }
   }
 `;
+
+// Mutaciones para Guia de Salida
+export const ELIMINAR_GUIA_SALIDA = gql`
+  mutation eliminarGuiaSalida($id: Float!) {
+    eliminarGuiaSalida(id: $id)
+  }
+`;

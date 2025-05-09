@@ -81,7 +81,7 @@ const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({
               onClose();
             }}
           >
-            ▶
+            Ver Detalles
           </button>
         </div>
       ))}

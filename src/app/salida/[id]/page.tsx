@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, use, useMemo, useEffect } from "react";
 import { useQuery, gql, useMutation } from "@apollo/client";
 import CambiarProducto from "@/components/salida_acopio/cambiarProducto";
 import DropdownAcciones from "@/components/salida_acopio/DropdownAcciones";
@@ -13,6 +13,7 @@ import {
 } from "@/graphql/mutations";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
+
 type Envio = {
   id: number;
   id_detalle_orden_acopio: number;
@@ -40,87 +41,193 @@ export default function AcopioSalidaIdPage({
   const { id: id_acopio } = use(params);
   const id_acopio_num = parseFloat(id_acopio);
   const { rutUsuario } = useJwtStore();
+
+  // Estados para formularios y UI
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
   >({});
-  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const [dropdownEnviosOpen, setDropdownEnviosOpen] = useState<number | null>(
     null
   );
-  // Estado para el dropdown de cambiar producto
   const [dropdownCambiarProductoOpen, setDropdownCambiarProductoOpen] =
     useState<number | null>(null);
-
-  // Estados para la paginación
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 30;
-
-  // Nuevos estados para la edición
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [editLoading, setEditLoading] = useState<number | null>(null);
 
+  // Estados para paginación estable
+  const [currentFamily, setCurrentFamily] = useState<string | null>(null);
+  const [familyGroups, setFamilyGroups] = useState<string[]>([]);
+
+  // Query para obtener datos
   const { loading, error, data, refetch } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
   });
 
+  // Procesamiento estable de los datos
+  const { groupedByFamily, currentItems } = useMemo(() => {
+    const detalles: DetalleOrdenAcopio[] = data?.ordenAcopio?.detalles || [];
+
+    const grouped = detalles.reduce((acc, detalle) => {
+      const familia = detalle.familia_producto;
+      if (!acc[familia]) acc[familia] = [];
+      acc[familia].push(detalle);
+      return acc;
+    }, {} as Record<string, DetalleOrdenAcopio[]>);
+
+    const families = Object.keys(grouped).sort();
+    setFamilyGroups(families); // Actualiza la lista de familias
+
+    return {
+      groupedByFamily: grouped,
+      currentItems: currentFamily ? grouped[currentFamily] || [] : [],
+    };
+  }, [data, currentFamily]);
+
+  // Efecto para mantener la familia actual después de refetch
+  useEffect(() => {
+    if (familyGroups.length > 0) {
+      if (!currentFamily) {
+        // Primera carga
+        setCurrentFamily(familyGroups[0]);
+      } else if (!familyGroups.includes(currentFamily)) {
+        // Si la familia actual ya no existe después del refetch
+        setCurrentFamily(familyGroups[0]);
+      }
+    }
+  }, [familyGroups, currentFamily]);
+
+  // Refetch modificado para mantener posición
+  const stableRefetch = async () => {
+    const currentFamilyBefore = currentFamily;
+    await refetch();
+    if (currentFamilyBefore && familyGroups.includes(currentFamilyBefore)) {
+      setCurrentFamily(currentFamilyBefore);
+    }
+  };
+
+  // Mutaciones
   const [createEnvioDetalleOrdenAcopio] = useMutation(
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
     {
-      onCompleted: () => {
-        refetch();
-      },
-      onError: (mutationError) => {
-        console.error(
-          "Error al crear el envío del detalle de orden de acopio:",
-          mutationError.message
-        );
-      },
+      onCompleted: stableRefetch,
+      onError: (error) => console.error("Error al crear envío:", error.message),
     }
   );
 
   const [updateEstadoEnviado] = useMutation(UPDATE_ESTADO_DETALLE_ACOPIO, {
-    onCompleted: () => {
-      refetch();
-    },
-    onError: (mutationError) => {
-      console.error(
-        "Error al actualizar el estado de enviado:",
-        mutationError.message
-      );
-    },
+    onCompleted: stableRefetch,
+    onError: (error) =>
+      console.error("Error al actualizar estado:", error.message),
   });
+
   const [updateCantidadEnvioDetalle] = useMutation(
     UPDATE_CANTIDAD_ENVIO_DETALLE,
     {
       onCompleted: () => {
-        refetch(); // Refrescar los datos después de la mutación
-        setEditingId(null); // Salir del modo de edición
-        setEditValue(""); // Limpiar el valor de edición
+        stableRefetch();
+        setEditingId(null);
+        setEditValue("");
       },
-      onError: (mutationError) => {
-        console.error(
-          "Error al actualizar la cantidad:",
-          mutationError.message
-        );
-        alert(
-          "Ocurrió un error al actualizar la cantidad. Intente nuevamente."
-        );
+      onError: (error) => {
+        console.error("Error al actualizar cantidad:", error.message);
+        alert("Error al actualizar cantidad. Intente nuevamente.");
       },
     }
   );
+
   const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
-    onCompleted: () => {
-      window.history.back();
-    },
-    onError: (mutationError) => {
-      console.error(
-        "Error al actualizar el estado de la orden de acopio:",
-        mutationError.message
-      );
-      alert("Ocurrió un error al actualizar el estado. Intente nuevamente.");
+    onCompleted: () => window.history.back(),
+    onError: (error) => {
+      console.error("Error al actualizar estado orden:", error.message);
+      alert("Error al actualizar estado. Intente nuevamente.");
     },
   });
+
+  // Handlers
+  const handleCambioCantidad = (id: number, valor: number) => {
+    setCantidadesTemporales((prev) => ({ ...prev, [id]: valor }));
+  };
+
+  const handleCrearEnvioDetalle = async (
+    id_detalle: number,
+    cantidad: number,
+    codigo: string
+  ) => {
+    if (cantidad <= 0) {
+      alert("La cantidad debe ser mayor a 0");
+      return;
+    }
+
+    if (!rutUsuario) {
+      alert("El RUT del usuario no está definido");
+      return;
+    }
+
+    try {
+      await createEnvioDetalleOrdenAcopio({
+        variables: {
+          id_detalle_orden_acopio: Number(id_detalle),
+          cantidad_enviada: Number(cantidad),
+          codigo_producto_enviado: String(codigo),
+          usuario_rut: String(rutUsuario),
+        },
+      });
+    } catch (err) {
+      console.error("Error al guardar envío:", err);
+      alert("Ocurrió un error al guardar. Intente nuevamente.");
+    }
+  };
+
+  const handleEditClick = (detalle: DetalleOrdenAcopio) => {
+    setEditingId(detalle.id);
+    setEditValue(detalle.envios[0]?.cantidad_enviada?.toString() || "");
+  };
+
+  const handleSaveEdit = async (detalleId: number, envioId: number) => {
+    if (!editValue || isNaN(Number(editValue))) {
+      alert("Ingrese una cantidad válida");
+      return;
+    }
+
+    const cantidad = Number(editValue);
+    if (cantidad <= 0) {
+      alert("La cantidad debe ser mayor a 0");
+      return;
+    }
+
+    setEditLoading(detalleId);
+
+    try {
+      await updateCantidadEnvioDetalle({
+        variables: { id: envioId, cantidad: cantidad },
+      });
+    } catch (error) {
+      console.error("Error al actualizar cantidad:", error);
+      alert("Ocurrió un error al actualizar la cantidad");
+    } finally {
+      setEditLoading(null);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditValue("");
+  };
+
+  const handleDropdownEnviosClick = (id: number) => {
+    setDropdownEnviosOpen(dropdownEnviosOpen === id ? null : id);
+  };
+
+  const handleDropdownCambiarProductoClick = (id: number) => {
+    setDropdownCambiarProductoOpen(
+      dropdownCambiarProductoOpen === id ? null : id
+    );
+  };
+
+  const handleCambioEstadoAcopio = (estado: string) => {
+    updateEstadoOrdenAcopio({ variables: { id: id_acopio_num, estado } });
+  };
 
   if (loading) {
     return (
@@ -144,129 +251,6 @@ export default function AcopioSalidaIdPage({
     );
   }
 
-  const detalles: DetalleOrdenAcopio[] = data.ordenAcopio.detalles;
-
-  // Lógica de paginación
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = detalles.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(detalles.length / itemsPerPage);
-
-  const handleCambioCantidad = (id: number, valor: number) => {
-    setCantidadesTemporales((prev) => ({
-      ...prev,
-      [id]: valor,
-    }));
-  };
-
-  const handleCrearEnvioDetalle = async (
-    id_detalle_orden_acopio: number,
-    cantidad_enviada: number,
-    codigo_producto_enviado: string
-  ) => {
-    if (cantidad_enviada <= 0) {
-      alert("La cantidad enviada debe ser mayor a 0");
-      return;
-    }
-
-    if (!rutUsuario) {
-      alert("El RUT del usuario no está definido. Intente nuevamente.");
-      return;
-    }
-
-    try {
-      await createEnvioDetalleOrdenAcopio({
-        variables: {
-          id_detalle_orden_acopio: Number(id_detalle_orden_acopio),
-          cantidad_enviada: Number(cantidad_enviada),
-          codigo_producto_enviado: String(codigo_producto_enviado),
-          usuario_rut: String(rutUsuario),
-        },
-      });
-
-      try {
-        await updateEstadoEnviado({
-          variables: { id: id_detalle_orden_acopio },
-        });
-      } catch (err) {
-        console.error("Error al actualizar el estado de enviado:", err);
-        alert("Ocurrió un error al actualizar el estado de enviado.");
-      }
-
-      setCantidadesTemporales((prev) => ({
-        ...prev,
-        [id_detalle_orden_acopio]: 0,
-      }));
-    } catch (err) {
-      console.error("Error al guardar el envío y cambiar estado:", err);
-      alert("Ocurrió un error al guardar. Intente nuevamente.");
-    }
-  };
-
-  const handleCambiarEstadoEnviado = (id: number) => {
-    updateEstadoEnviado({ variables: { id } });
-  };
-
-  // Función para manejar el clic en Editar
-  const handleEditClick = (detalle: DetalleOrdenAcopio) => {
-    setEditingId(detalle.id);
-    setEditValue(detalle.envios[0]?.cantidad_enviada?.toString() || "");
-  };
-  // Función para guardar los cambios editados
-  const handleSaveEdit = async (detalleId: number, envioId: number) => {
-    if (!editValue || isNaN(Number(editValue))) {
-      alert("Por favor ingrese una cantidad válida");
-      return;
-    }
-
-    const cantidad = Number(editValue);
-    if (cantidad <= 0) {
-      alert("La cantidad debe ser mayor a 0");
-      return;
-    }
-
-    setEditLoading(detalleId);
-
-    try {
-      await updateCantidadEnvioDetalle({
-        variables: {
-          id: envioId,
-          cantidad: cantidad,
-        },
-      });
-    } catch (error) {
-      console.error("Error al actualizar la cantidad:", error);
-      alert("Ocurrió un error al actualizar la cantidad");
-    } finally {
-      setEditLoading(null);
-    }
-  };
-
-  // Función para cancelar la edición
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditValue("");
-  };
-
-  // Función para manejar el clic en el botón de Ver Envíos
-  const handleDropdownEnviosClick = (id: number) => {
-    setDropdownEnviosOpen(dropdownOpen === id ? null : id);
-  };
-  // Función para manejar el clic en el botón de Cambiar Producto
-  const handleDropdownCambiarProductoClick = (id: number) => {
-    setDropdownCambiarProductoOpen(
-      dropdownCambiarProductoOpen === id ? null : id
-    );
-  };
-  const handleCambioEstadoAcopio = (estado: string) => {
-    updateEstadoOrdenAcopio({
-      variables: {
-        id: id_acopio_num,
-        estado: estado,
-      },
-    });
-  };
-
   return (
     <div className="p-4 sm:p-10">
       <div className="bg-white p-4 sm:p-6 rounded shadow">
@@ -277,7 +261,7 @@ export default function AcopioSalidaIdPage({
             </div>
             <button
               className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-500 transition duration-200"
-              onClick={handleCambioEstadoAcopio.bind(null, "Subir")}
+              onClick={() => handleCambioEstadoAcopio("Subir")}
             >
               Confirmar Acopio
             </button>
@@ -290,19 +274,20 @@ export default function AcopioSalidaIdPage({
             <div className="flex space-x-2">
               <button
                 className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-500 transition duration-200"
-                onClick={handleCambioEstadoAcopio.bind(null, "Confirmacion")}
+                onClick={() => handleCambioEstadoAcopio("Confirmacion")}
               >
                 Terminar Acopio
               </button>
               <button
                 className="bg-gray-300 text-white font-semibold px-4 py-2 rounded hover:bg-gray-400 transition duration-200"
-                onClick={handleCambioEstadoAcopio.bind(null, "Proceso")}
+                onClick={() => handleCambioEstadoAcopio("Proceso")}
               >
                 Continuar Luego...
               </button>
             </div>
           </div>
         )}
+
         <div className="flex flex-col sm:flex-row justify-around items-center my-4 gap-4 sm:gap-6 font-bold">
           <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
             Centro de Costo - {data.ordenAcopio.centroCosto}
@@ -314,6 +299,7 @@ export default function AcopioSalidaIdPage({
             Estado - {data.ordenAcopio.estado}
           </div>
         </div>
+
         <div className="overflow-x-auto">
           <table className="table-auto w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
             <thead className="bg-gray-200">
@@ -344,7 +330,7 @@ export default function AcopioSalidaIdPage({
             <tbody>
               {currentItems.map((detalle) => (
                 <React.Fragment key={detalle.id}>
-                  <tr key={detalle.id}>
+                  <tr>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.familia_producto}
                     </td>
@@ -360,12 +346,10 @@ export default function AcopioSalidaIdPage({
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.cantidad}
                     </td>
-                    {/* VERIFICACIÓN SI EXISTE DETALLES EN ENVIADO */}
-                    {detalle.envios.length == 0 ? (
-                      //Aqui no existe un envio relacionado al detalle
+
+                    {detalle.envios.length === 0 ? (
                       <>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          {/* Columna cantidad enviada */}
                           <div className="flex items-center justify-between space-x-2">
                             <input
                               type="number"
@@ -379,13 +363,13 @@ export default function AcopioSalidaIdPage({
                               className="w-full border border-gray-300 rounded p-1"
                             />
                             <button
-                              onClick={() => {
+                              onClick={() =>
                                 handleCrearEnvioDetalle(
                                   detalle.id,
                                   cantidadesTemporales[detalle.id] || 0,
                                   detalle.codigo_producto
-                                );
-                              }}
+                                )
+                              }
                               className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
                             >
                               Guardar
@@ -393,27 +377,23 @@ export default function AcopioSalidaIdPage({
                           </div>
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          {/* Columna acciones */}
                           <button
-                            onClick={() => {
-                              handleDropdownCambiarProductoClick(detalle.id);
-                            }}
+                            onClick={() =>
+                              handleDropdownCambiarProductoClick(detalle.id)
+                            }
                             className="bg-orange-400 hover:bg-orange-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
                           >
                             Cambiar Producto
                           </button>
                         </td>
                       </>
-                    ) : //Aqui existe un envio o mas relacionado al detalle
-
-                    detalle.envios.length > 1 ? (
-                      // Aca existen varios envios relacionados al detalle
+                    ) : detalle.envios.length > 1 ? (
                       <>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
-                            onClick={() => {
-                              handleDropdownEnviosClick(detalle.id);
-                            }}
+                            onClick={() =>
+                              handleDropdownEnviosClick(detalle.id)
+                            }
                             className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
                           >
                             Ver Envíos
@@ -421,90 +401,77 @@ export default function AcopioSalidaIdPage({
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2"></td>
                       </>
-                    ) : (
-                      // Aca existe un solo envio relacionado al detalle
+                    ) : detalle.codigo_producto !==
+                      detalle.envios[0].codigo_producto_enviado ? (
                       <>
-                        {/* Verifico si el producto enviado es diferente al producto del detalle */}
-                        {detalle.codigo_producto !==
-                        detalle.envios[0].codigo_producto_enviado ? (
-                          <>
-                            <td className="border border-gray-300 px-2 sm:px-4 py-2 text-gray-400 font-semibold">
-                              {detalle.envios[0]?.cantidad_enviada || "N/A"}
-                            </td>
-                            <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2 text-orange-400 font-semibold">
+                          {detalle.envios[0]?.cantidad_enviada || "N/A"}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          <button
+                            className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                            onClick={() =>
+                              handleDropdownEnviosClick(detalle.id)
+                            }
+                          >
+                            Ver Envio
+                          </button>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {editingId === detalle.id ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                className="w-20 border border-gray-300 rounded p-1"
+                              />
                               <button
+                                onClick={() =>
+                                  handleSaveEdit(
+                                    detalle.id,
+                                    detalle.envios[0].id
+                                  )
+                                }
+                                disabled={editLoading === detalle.id}
                                 className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                                onClick={() => {
-                                  handleDropdownEnviosClick(detalle.id);
-                                }}
                               >
-                                Ver Producto
+                                {editLoading === detalle.id ? "..." : "Guardar"}
                               </button>
-                            </td>
-                          </>
-                        ) : (
-                          <>
-                            {/* El producto concuerda en el envio */}
-                            <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                              {/* Verifico si se esta editando el ID detalle */}
-                              {editingId === detalle.id ? (
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="number"
-                                    value={editValue}
-                                    onChange={(e) =>
-                                      setEditValue(e.target.value)
-                                    }
-                                    className="w-20 border border-gray-300 rounded p-1"
-                                  />
-                                  <button
-                                    onClick={() =>
-                                      handleSaveEdit(
-                                        detalle.id,
-                                        detalle.envios[0].id
-                                      )
-                                    }
-                                    disabled={editLoading === detalle.id}
-                                    className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                                  >
-                                    {editLoading === detalle.id
-                                      ? "..."
-                                      : "Guardar"}
-                                  </button>
-                                </div>
-                              ) : (
-                                detalle.envios[0]?.cantidad_enviada || "N/A"
-                              )}
-                            </td>
-                            <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                              {/* Si se esta editando, cambio la accion a cancelar */}
-                              {editingId === detalle.id ? (
-                                <button
-                                  onClick={handleCancelEdit}
-                                  className="bg-red-500 hover:bg-red-600  text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                                >
-                                  Cancelar
-                                </button>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={() => handleEditClick(detalle)}
-                                    className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                                  >
-                                    Editar
-                                  </button>
-                                  <button className="bg-red-400 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full">
-                                    Eliminar
-                                  </button>
-                                </div>
-                              )}
-                            </td>
-                          </>
-                        )}
+                            </div>
+                          ) : (
+                            detalle.envios[0]?.cantidad_enviada || "N/A"
+                          )}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {editingId === detalle.id ? (
+                            <button
+                              onClick={handleCancelEdit}
+                              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                            >
+                              Cancelar
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleEditClick(detalle)}
+                                className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                              >
+                                Editar
+                              </button>
+                              <button className="bg-red-400 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full">
+                                Eliminar
+                              </button>
+                            </div>
+                          )}
+                        </td>
                       </>
                     )}
                   </tr>
-                  {/* Fila expandida condicional de envios*/}
+
                   {dropdownEnviosOpen === detalle.id && (
                     <tr>
                       <td colSpan={7} className="border-0 p-2 sm:p-4">
@@ -517,7 +484,7 @@ export default function AcopioSalidaIdPage({
                       </td>
                     </tr>
                   )}
-                  {/* Fila expandida condicional de cambiar producto*/}
+
                   {dropdownCambiarProductoOpen === detalle.id && (
                     <tr>
                       <td colSpan={7} className="border-0 p-2 sm:p-4">
@@ -528,33 +495,33 @@ export default function AcopioSalidaIdPage({
                           cantidad={detalle.cantidad}
                           isOpen={true}
                           onClose={() => setDropdownCambiarProductoOpen(null)}
-                          onProductoEnviado={refetch}
+                          onProductoEnviado={stableRefetch}
                         />
                       </td>
                     </tr>
                   )}
-                  {/* Fila expandida condicional de acciones*/}
                 </React.Fragment>
               ))}
             </tbody>
           </table>
 
-          {/* Controles de paginación */}
-          <div className="flex justify-between items-center mt-4">
-            <div>
-              <span className="text-sm text-gray-700">
-                Mostrando {(currentPage - 1) * itemsPerPage + 1} a{" "}
-                {Math.min(currentPage * itemsPerPage, detalles.length)} de{" "}
-                {detalles.length} registros
-              </span>
-            </div>
-
-            <div className="flex space-x-2">
+          {/* Paginación por familia */}
+          <div className="flex flex-col sm:flex-row justify-end items-center mt-6 pb-4 gap-4">
+            <div className="flex items-center gap-2 sm:w-auto w-full">
               <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className={`px-4 py-2 rounded font-semibold ${
-                  currentPage === 1
+                onClick={() => {
+                  const currentIndex = familyGroups.indexOf(
+                    currentFamily || ""
+                  );
+                  if (currentIndex > 0) {
+                    setCurrentFamily(familyGroups[currentIndex - 1]);
+                  }
+                }}
+                disabled={
+                  !currentFamily || familyGroups.indexOf(currentFamily) === 0
+                }
+                className={`p-3 rounded font-semibold text-sm sm:text-base ${
+                  !currentFamily || familyGroups.indexOf(currentFamily) === 0
                     ? "bg-gray-200 cursor-not-allowed"
                     : "bg-orange-500 hover:bg-orange-600 text-white"
                 }`}
@@ -562,43 +529,59 @@ export default function AcopioSalidaIdPage({
                 Anterior
               </button>
 
-              {Array.from({ length: Math.min(5, totalPages) }).map(
-                (_, index) => {
-                  // Mostrar máximo 5 páginas
-                  let pageNumber;
-                  if (totalPages <= 5) {
-                    pageNumber = index + 1;
-                  } else if (currentPage <= 3) {
-                    pageNumber = index + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNumber = totalPages - 4 + index;
-                  } else {
-                    pageNumber = currentPage - 2 + index;
-                  }
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentPage(pageNumber)}
-                      className={`px-4 py-2 rounded font-semibold ${
-                        currentPage === pageNumber
-                          ? "bg-gray-500 text-white"
-                          : "bg-gray-300 hover:bg-gray-500 text-white"
-                      }`}
-                    >
-                      {pageNumber}
-                    </button>
-                  );
-                }
-              )}
+              <div className="flex-1 overflow-x-hidden">
+                <div className="flex space-x-2 justify-center">
+                  {familyGroups
+                    .slice(
+                      Math.max(
+                        0,
+                        Math.min(
+                          familyGroups.indexOf(currentFamily || "") - 2,
+                          familyGroups.length - 5
+                        )
+                      ),
+                      Math.min(
+                        familyGroups.indexOf(currentFamily || "") + 3,
+                        familyGroups.length
+                      )
+                    )
+                    .map((family) => (
+                      <button
+                        key={family}
+                        onClick={() => setCurrentFamily(family)}
+                        className={`p-3 rounded text-sm sm:text-base font-semibold min-w-max whitespace-nowrap ${
+                          currentFamily === family
+                            ? "bg-gray-400 text-white"
+                            : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                        }`}
+                        title={family}
+                      >
+                        <span className="max-w-[100px] sm:max-w-[150px] truncate">
+                          {family}
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              </div>
 
               <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                onClick={() => {
+                  const currentIndex = familyGroups.indexOf(
+                    currentFamily || ""
+                  );
+                  if (currentIndex < familyGroups.length - 1) {
+                    setCurrentFamily(familyGroups[currentIndex + 1]);
+                  }
+                }}
+                disabled={
+                  !currentFamily ||
+                  familyGroups.indexOf(currentFamily) ===
+                    familyGroups.length - 1
                 }
-                disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded font-semibold ${
-                  currentPage === totalPages
+                className={`p-3 rounded font-semibold text-sm sm:text-base ${
+                  !currentFamily ||
+                  familyGroups.indexOf(currentFamily) ===
+                    familyGroups.length - 1
                     ? "bg-gray-200 cursor-not-allowed"
                     : "bg-orange-500 hover:bg-orange-600 text-white"
                 }`}

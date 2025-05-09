@@ -129,9 +129,6 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
           p.codigo === codigoProductoEnviado ? { ...p, enviado: true } : p
         )
       );
-      if (onProductoEnviado) {
-        onProductoEnviado();
-      }
     } catch (error) {
       console.error("Error al enviar producto:", error);
       alert("Ocurrió un error al enviar el producto");
@@ -163,7 +160,10 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
           </button>
           <button
             className="bg-gray-500 text-white font-semibold px-4 py-2 rounded hover:bg-gray-600 transition duration-200"
-            onClick={onClose}
+            onClick={() => {
+              onClose();
+              onProductoEnviado && onProductoEnviado();
+            }} // Llamar a la función de callback}
           >
             Cerrar
           </button>
