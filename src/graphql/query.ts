@@ -83,9 +83,35 @@ export const GET_ORDEN_ACOPIO = gql`
   }
 `;
 // Query para Envio de Detalle de Orden de Acopio
+export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
+  query envioDetalleOrdenAcopioByIdOrden($id_orden_acopio: Float!) {
+    envioDetalleOrdenAcopioByIdOrden(id_orden_acopio: $id_orden_acopio) {
+      id
+      detalleOrdenAcopio {
+        id
+        nombre_producto
+        codigo_producto
+        cantidad
+        unidad
+      }
+      guiaSalida {
+        id
+        codigo
+        fechaCreacion
+      }
+      usuario {
+        id
+        nombre
+        rut
+      }
+      codigo_producto_enviado
+      cantidad_enviada
+    }
+  }
+`;
 //Query para Guia de Salida
 export const GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO = gql`
-  query guiasDeSalidaPorOrdenAcopio($ordenAcopioId: Float!) {
+  query guiasDeSalidaPorOrdenAcopio($ordenAcopioId: Int!) {
     guiasDeSalidaPorOrdenAcopio(ordenAcopioId: $ordenAcopioId) {
       id
       fechaCreacion

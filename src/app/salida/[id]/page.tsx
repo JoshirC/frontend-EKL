@@ -154,7 +154,7 @@ export default function AcopioSalidaIdPage({
     cantidad: number,
     codigo: string
   ) => {
-    if (cantidad <= 0) {
+    if (cantidad < 0) {
       alert("La cantidad debe ser mayor a 0");
       return;
     }
@@ -357,16 +357,19 @@ export default function AcopioSalidaIdPage({
                               onChange={(e) =>
                                 handleCambioCantidad(
                                   detalle.id,
-                                  Number(e.target.value)
+                                  Number(e.target.value) || 0
                                 )
                               }
+                              min={0}
                               className="w-full border border-gray-300 rounded p-1"
                             />
                             <button
                               onClick={() =>
                                 handleCrearEnvioDetalle(
                                   detalle.id,
-                                  cantidadesTemporales[detalle.id] || 0,
+                                  cantidadesTemporales[detalle.id] !== undefined
+                                    ? cantidadesTemporales[detalle.id]
+                                    : 0,
                                   detalle.codigo_producto
                                 )
                               }

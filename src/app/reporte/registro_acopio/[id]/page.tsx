@@ -1,50 +1,90 @@
 "use client";
 
-import React, { use, useEffect, useState } from "react";
-type DetalleSalidaAcopio = {
-  idDetalleSalidaAcopio: number;
-  idOrdenAcopio: number;
-  idSalida: number;
-  codProducto: string;
-  nombreProducto: string;
-  cantidadEnviada: number;
-  codigoProductoReemplazo: string;
-  nombreProductoReemplazo: string;
-  cantidadEnviadaReemplazo: number;
+import React, { use } from "react";
+import { GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN } from "@/graphql/query";
+import { useQuery } from "@apollo/client";
+
+type Usuario = {
+  id: number;
+  rut: string;
+  nombre: string;
 };
+
+type DetalleOrdenAcopio = {
+  id: number;
+  id_orden_acopio: number;
+  familia_producto: string;
+  nombre_producto: string;
+  codigo_producto: string;
+  cantidad: number;
+  unidad: string;
+  enviado: boolean;
+};
+
+type Envio = {
+  id: number;
+  detalleOrdenAcopio: DetalleOrdenAcopio;
+  usuario: Usuario;
+  codigo_producto_enviado: string;
+  cantidad_enviada: number;
+  guiaSalida: null | any;
+};
+
 export default function RegistroAcopioIdPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id: id_acopio } = use(params);
-  const [detalleSalidaAcopio, setDetalleSalidaAcopio] = useState<
-    DetalleSalidaAcopio[]
-  >([]);
-  useEffect(() => {
-    const fetchDetalleSalidaAcopio = async () => {
-      try {
-        const response = await fetch(`/api/detalleSalidaAcopio.json`);
-        const data = await response.json();
-        const detalleSalidaAcopioFiltrado = data.filter(
-          (detalle: DetalleSalidaAcopio) =>
-            detalle.idOrdenAcopio === parseInt(id_acopio)
-        );
-        setDetalleSalidaAcopio(detalleSalidaAcopioFiltrado);
-      } catch (error) {
-        console.error("Error al cargar el JSON:", error);
-      }
-    };
-    fetchDetalleSalidaAcopio();
-  }, []);
+  const id_acopio_num = parseFloat(id_acopio);
+
+  const { loading, error, data } = useQuery(
+    GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN,
+    {
+      variables: { id_orden_acopio: id_acopio_num },
+    }
+  );
+
+  if (loading) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Cargando detalles del acopio...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p className="text-red-500">
+            Error al cargar los datos: {error.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const detalleEnvio: Envio[] = data.envioDetalleOrdenAcopioByIdOrden;
+
   return (
     <div className="p-4 sm:p-10">
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="text-xl sm:text-2xl font-semibold">
           Detalles de Salida de la Orden de Acopio N°{id_acopio}
         </div>
+        <div className="flex flex-col sm:flex-row justify-start mt-4 space-x-3">
+          <div className="bg-orange-100 font-semibold px-4 py-2 rounded">
+            Diferencia en Solidictado vs Enviado
+          </div>
+          <div className="bg-gray-100 font-semibold px-4 py-2 rounded">
+            Diferencia en Cantidad Solicitada vs Cantidad Enviada
+          </div>
+        </div>
         <div className="overflow-x-auto">
-          <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-4 text-sm sm:text-base">
+          <table className="table-auto w-full border-collapse border border-gray-200 mt-4 text-sm sm:text-base">
             <thead className="bg-gray-200">
               <tr>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -63,58 +103,58 @@ export default function RegistroAcopioIdPage({
                   Nombre Producto Enviado
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Encargado de Envio
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Cantidad Enviada
                 </th>
               </tr>
             </thead>
             <tbody>
-              {detalleSalidaAcopio.map((detalle) => (
-                <tr
-                  key={detalle.idDetalleSalidaAcopio}
-                  className={`${
-                    detalle.codProducto !== detalle.codigoProductoReemplazo
-                      ? "bg-orange-100"
-                      : ""
-                  }`}
-                >
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.codigoProductoReemplazo}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.nombreProductoReemplazo}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.cantidadEnviadaReemplazo}
-                  </td>
-                  <td
-                    className={`border border-gray-300 px-2 sm:px-4 py-2 ${
-                      detalle.codProducto !== detalle.codigoProductoReemplazo
-                        ? "bg-orange-100"
-                        : "bg-gray-100"
-                    }`}
-                  >
-                    {detalle.codProducto}
-                  </td>
-                  <td
-                    className={`border border-gray-300 px-2 sm:px-4 py-2 ${
-                      detalle.codProducto !== detalle.codigoProductoReemplazo
-                        ? "bg-orange-100"
-                        : "bg-gray-100"
-                    }`}
-                  >
-                    {detalle.nombreProducto}
-                  </td>
-                  <td
-                    className={`border border-gray-300 px-2 sm:px-4 py-2 ${
-                      detalle.codProducto !== detalle.codigoProductoReemplazo
-                        ? "bg-orange-100"
-                        : "bg-gray-100"
-                    }`}
-                  >
-                    {detalle.cantidadEnviada}
-                  </td>
-                </tr>
-              ))}
+              {detalleEnvio.map((detalle) => {
+                const codigoDiferente =
+                  detalle.detalleOrdenAcopio.codigo_producto !==
+                  detalle.codigo_producto_enviado;
+
+                const cantidadDiferente =
+                  detalle.detalleOrdenAcopio.cantidad !==
+                  detalle.cantidad_enviada;
+
+                // Prioridad: código diferente (naranja) sobre cantidad diferente (gris)
+                const rowClass = codigoDiferente
+                  ? "bg-orange-100"
+                  : cantidadDiferente
+                  ? "bg-gray-100"
+                  : "";
+
+                return (
+                  <tr key={detalle.id} className={rowClass}>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.detalleOrdenAcopio.codigo_producto}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.detalleOrdenAcopio.nombre_producto}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.detalleOrdenAcopio.cantidad}{" "}
+                      {detalle.detalleOrdenAcopio.unidad}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.codigo_producto_enviado}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      Not Found
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.usuario.nombre}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.cantidad_enviada}{" "}
+                      {detalle.detalleOrdenAcopio.unidad}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
