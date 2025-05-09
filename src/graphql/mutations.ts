@@ -95,6 +95,11 @@ export const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
     }
   }
 `;
+export const REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
+  mutation removeEnvioDetalleOrdenAcopio($id: Int!) {
+    removeEnvioDetalleOrdenAcopio(id: $id)
+  }
+`;
 
 // Mutaciones para Detalle de Orden de Acopio
 
@@ -115,7 +120,11 @@ export const UPDATE_ESTADO_ORDEN_ACOPIO = gql`
     }
   }
 `;
-
+export const ELIMINAR_ORDEN_ACOPIO = gql`
+  mutation removeOrdenAcopio($id: Float!) {
+    removeOrdenAcopio(id: $id)
+  }
+`;
 // Mutaciones para Guia de Salida
 export const ELIMINAR_GUIA_SALIDA = gql`
   mutation eliminarGuiaSalida($id: Float!) {

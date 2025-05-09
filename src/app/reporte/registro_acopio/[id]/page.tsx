@@ -77,14 +77,14 @@ export default function RegistroAcopioIdPage({
         </div>
         <div className="flex flex-col sm:flex-row justify-start mt-4 space-x-3">
           <div className="bg-orange-100 font-semibold px-4 py-2 rounded">
-            Diferencia en Solidictado vs Enviado
+            Diferencia entre Producto Solicitado vs Producto Enviado
           </div>
           <div className="bg-gray-100 font-semibold px-4 py-2 rounded">
             Diferencia en Cantidad Solicitada vs Cantidad Enviada
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="table-auto w-full border-collapse border border-gray-200 mt-4 text-sm sm:text-base">
+          <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-4 text-sm sm:text-base">
             <thead className="bg-gray-200">
               <tr>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -137,7 +137,6 @@ export default function RegistroAcopioIdPage({
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.detalleOrdenAcopio.cantidad}{" "}
-                      {detalle.detalleOrdenAcopio.unidad}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.codigo_producto_enviado}
@@ -150,7 +149,6 @@ export default function RegistroAcopioIdPage({
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.cantidad_enviada}{" "}
-                      {detalle.detalleOrdenAcopio.unidad}
                     </td>
                   </tr>
                 );

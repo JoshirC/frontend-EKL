@@ -5,7 +5,10 @@ import { useQuery, useMutation } from "@apollo/client";
 import { useAdquisicionStore } from "@/store/adquisicionStore";
 import Alert from "@/components/Alert";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
-import { UPDATE_ESTADO_ORDEN_ACOPIO } from "@/graphql/mutations";
+import {
+  UPDATE_ESTADO_ORDEN_ACOPIO,
+  ELIMINAR_ORDEN_ACOPIO,
+} from "@/graphql/mutations";
 type DetalleOrdenAcopio = {
   id: number;
   familia_producto: string;
@@ -32,6 +35,17 @@ export default function AcopioIdPage({
   const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
   });
+  const [eliminarOrdenAcopio] = useMutation(ELIMINAR_ORDEN_ACOPIO, {
+    onCompleted: () => {
+      // Redirigir a la página de adquisiciones/acopio después de la mutación
+      window.location.href = "/adquisiciones/acopio/";
+    },
+    onError: (mutationError) => {
+      setAlertType("error");
+      setAlertMessage(mutationError.message);
+      setShowAlert(true);
+    },
+  });
   const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
     onCompleted: () => {
       // Redirigir a la página de adquisiciones/acopio después de la mutación
@@ -50,6 +64,21 @@ export default function AcopioIdPage({
         estado: "Pendiente",
       },
     });
+  };
+  const handleEliminarOrdenAcopio = () => {
+    if (confirm("¿Estás seguro de que deseas eliminar esta orden de acopio?")) {
+      try {
+        eliminarOrdenAcopio({
+          variables: {
+            id: id_acopio_num,
+          },
+        });
+      } catch (error) {
+        setAlertType("error");
+        setAlertMessage("Error al eliminar la orden de acopio");
+        setShowAlert(true);
+      }
+    }
   };
 
   if (loading) {
@@ -92,7 +121,10 @@ export default function AcopioIdPage({
               >
                 Confirmar Acopio
               </button>
-              <button className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto">
+              <button
+                className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto"
+                onClick={handleEliminarOrdenAcopio}
+              >
                 Cancelar Acopio
               </button>
             </div>

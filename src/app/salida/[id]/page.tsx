@@ -10,6 +10,7 @@ import {
   UPDATE_ESTADO_DETALLE_ACOPIO,
   UPDATE_ESTADO_ORDEN_ACOPIO,
   UPDATE_CANTIDAD_ENVIO_DETALLE,
+  REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO,
 } from "@/graphql/mutations";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
@@ -114,7 +115,14 @@ export default function AcopioSalidaIdPage({
       onError: (error) => console.error("Error al crear envío:", error.message),
     }
   );
-
+  const [removeEnvioDetalleOrdenAcopio] = useMutation(
+    REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO,
+    {
+      onCompleted: stableRefetch,
+      onError: (error) =>
+        console.error("Error al eliminar envío:", error.message),
+    }
+  );
   const [updateEstadoEnviado] = useMutation(UPDATE_ESTADO_DETALLE_ACOPIO, {
     onCompleted: stableRefetch,
     onError: (error) =>
@@ -227,6 +235,16 @@ export default function AcopioSalidaIdPage({
 
   const handleCambioEstadoAcopio = (estado: string) => {
     updateEstadoOrdenAcopio({ variables: { id: id_acopio_num, estado } });
+  };
+  const handleEliminarEnvio = async (id: number) => {
+    if (confirm("¿Está seguro de eliminar este envío?")) {
+      try {
+        await removeEnvioDetalleOrdenAcopio({ variables: { id } });
+      } catch (error) {
+        console.error("Error al eliminar envío:", error);
+        alert("Ocurrió un error al eliminar el envío");
+      }
+    }
   };
 
   if (loading) {
@@ -465,7 +483,12 @@ export default function AcopioSalidaIdPage({
                               >
                                 Editar
                               </button>
-                              <button className="bg-red-400 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full">
+                              <button
+                                className="bg-red-400 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                onClick={() =>
+                                  handleEliminarEnvio(detalle.envios[0].id)
+                                }
+                              >
                                 Eliminar
                               </button>
                             </div>
