@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, use, useMemo, useEffect } from "react";
-import { useQuery, gql, useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import CambiarProducto from "@/components/salida_acopio/cambiarProducto";
 import DropdownAcciones from "@/components/salida_acopio/DropdownAcciones";
 import DropdownEnviosDetalleOrdenAcopio from "@/components/salida_acopio/dropdownEnviosDetalleOrdenAcopio";
@@ -14,6 +14,7 @@ import {
 } from "@/graphql/mutations";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
+import Alert from "@/components/Alert";
 
 type Envio = {
   id: number;
@@ -43,6 +44,13 @@ export default function AcopioSalidaIdPage({
   const id_acopio_num = parseFloat(id_acopio);
   const { rutUsuario } = useJwtStore();
 
+  // Estados para manejar la carga de datos y errores
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [cerrarModal, setCerrarModal] = useState(false);
   // Estados para formularios y UI
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
@@ -112,21 +120,40 @@ export default function AcopioSalidaIdPage({
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
     {
       onCompleted: stableRefetch,
-      onError: (error) => console.error("Error al crear envío:", error.message),
+      onError: (error) => {
+        setAlertType("error");
+        setAlertMessage("Error al crear el envío: " + error.message);
+        setShowAlert(true);
+      },
     }
   );
   const [removeEnvioDetalleOrdenAcopio] = useMutation(
     REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO,
     {
-      onCompleted: stableRefetch,
-      onError: (error) =>
-        console.error("Error al eliminar envío:", error.message),
+      onCompleted: () => {
+        setAlertType("exitoso");
+        setAlertMessage("El envío se ha eliminado correctamente");
+        setShowAlert(true);
+        setCerrarModal(true);
+        stableRefetch();
+      },
+
+      onError: (error) => {
+        setAlertType("error");
+        setAlertMessage("Error al eliminar el envío: " + error.message);
+        setShowAlert(true);
+      },
     }
   );
   const [updateEstadoEnviado] = useMutation(UPDATE_ESTADO_DETALLE_ACOPIO, {
     onCompleted: stableRefetch,
-    onError: (error) =>
-      console.error("Error al actualizar estado:", error.message),
+    onError: (error) => {
+      setAlertType("error");
+      setAlertMessage(
+        "Error al actualizar el estado del envio: " + error.message
+      );
+      setShowAlert(true);
+    },
   });
 
   const [updateCantidadEnvioDetalle] = useMutation(
@@ -138,8 +165,11 @@ export default function AcopioSalidaIdPage({
         setEditValue("");
       },
       onError: (error) => {
-        console.error("Error al actualizar cantidad:", error.message);
-        alert("Error al actualizar cantidad. Intente nuevamente.");
+        setAlertType("error");
+        setAlertMessage(
+          "Error al actualizar la cantidad del envío: " + error.message
+        );
+        setShowAlert(true);
       },
     }
   );
@@ -147,8 +177,11 @@ export default function AcopioSalidaIdPage({
   const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
     onCompleted: () => window.history.back(),
     onError: (error) => {
-      console.error("Error al actualizar estado orden:", error.message);
-      alert("Error al actualizar estado. Intente nuevamente.");
+      setAlertType("error");
+      setAlertMessage(
+        "Error al actualizar el estado de la orden de acopio: " + error.message
+      );
+      setShowAlert(true);
     },
   });
 
@@ -163,12 +196,16 @@ export default function AcopioSalidaIdPage({
     codigo: string
   ) => {
     if (cantidad < 0) {
-      alert("La cantidad debe ser mayor a 0");
+      setAlertType("advertencia");
+      setAlertMessage("La cantidad no puede ser menor a 0");
+      setShowAlert(true);
       return;
     }
 
     if (!rutUsuario) {
-      alert("El RUT del usuario no está definido");
+      setAlertType("error");
+      setAlertMessage("Error: No se ha encontrado el RUT del usuario");
+      setShowAlert(true);
       return;
     }
 
@@ -182,8 +219,9 @@ export default function AcopioSalidaIdPage({
         },
       });
     } catch (err) {
-      console.error("Error al guardar envío:", err);
-      alert("Ocurrió un error al guardar. Intente nuevamente.");
+      setAlertType("error");
+      setAlertMessage("Error al crear el envío, descripción del error: " + err);
+      setShowAlert(true);
     }
   };
 
@@ -194,13 +232,17 @@ export default function AcopioSalidaIdPage({
 
   const handleSaveEdit = async (detalleId: number, envioId: number) => {
     if (!editValue || isNaN(Number(editValue))) {
-      alert("Ingrese una cantidad válida");
+      setAlertType("advertencia");
+      setAlertMessage("La cantidad no es válida");
+      setShowAlert(true);
       return;
     }
 
     const cantidad = Number(editValue);
     if (cantidad <= 0) {
-      alert("La cantidad debe ser mayor a 0");
+      setAlertType("advertencia");
+      setAlertMessage("La cantidad debe ser mayor o igual a 0");
+      setShowAlert(true);
       return;
     }
 
@@ -211,8 +253,12 @@ export default function AcopioSalidaIdPage({
         variables: { id: envioId, cantidad: cantidad },
       });
     } catch (error) {
-      console.error("Error al actualizar cantidad:", error);
-      alert("Ocurrió un error al actualizar la cantidad");
+      setAlertType("error");
+      setAlertMessage(
+        "Error al actualizar la cantidad del envío, descripción del error: " +
+          error
+      );
+      setShowAlert(true);
     } finally {
       setEditLoading(null);
     }
@@ -241,8 +287,11 @@ export default function AcopioSalidaIdPage({
       try {
         await removeEnvioDetalleOrdenAcopio({ variables: { id } });
       } catch (error) {
-        console.error("Error al eliminar envío:", error);
-        alert("Ocurrió un error al eliminar el envío");
+        setAlertType("error");
+        setAlertMessage(
+          "Error al eliminar el envío, decripción del error: " + error
+        );
+        setShowAlert(true);
       }
     }
   };
@@ -258,19 +307,21 @@ export default function AcopioSalidaIdPage({
   }
 
   if (error) {
-    return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="text-red-500">
-            Error al cargar los datos: {error.message}
-          </p>
-        </div>
-      </div>
-    );
+    setAlertType("error");
+    setAlertMessage(error.message);
+    setShowAlert(true);
   }
 
   return (
     <div className="p-4 sm:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+          cerrar={cerrarModal}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         {data.ordenAcopio.estado === "Confirmacion" ? (
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
@@ -506,6 +557,7 @@ export default function AcopioSalidaIdPage({
                           envios={detalle.envios}
                           isOpen={true}
                           onClose={() => setDropdownEnviosOpen(null)}
+                          onProcesoCompleto={stableRefetch}
                         />
                       </td>
                     </tr>

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import { GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN } from "@/graphql/query";
 import { useQuery } from "@apollo/client";
+import Alert from "@/components/Alert";
 
 type Usuario = {
   id: number;
@@ -37,7 +38,11 @@ export default function RegistroAcopioIdPage({
 }) {
   const { id: id_acopio } = use(params);
   const id_acopio_num = parseFloat(id_acopio);
-
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
   const { loading, error, data } = useQuery(
     GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN,
     {
@@ -56,21 +61,22 @@ export default function RegistroAcopioIdPage({
   }
 
   if (error) {
-    return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="text-red-500">
-            Error al cargar los datos: {error.message}
-          </p>
-        </div>
-      </div>
-    );
+    setAlertType("error");
+    setAlertMessage(error.message);
+    setShowAlert(true);
   }
 
   const detalleEnvio: Envio[] = data.envioDetalleOrdenAcopioByIdOrden;
 
   return (
     <div className="p-4 sm:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="text-xl sm:text-2xl font-semibold">
           Detalles de Salida de la Orden de Acopio N°{id_acopio}

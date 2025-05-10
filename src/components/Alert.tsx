@@ -5,6 +5,7 @@ interface AlertProps {
   message: string;
   onClose?: () => void;
   modal?: boolean;
+  cerrar?: boolean; // Nuevo parámetro opcional
 }
 
 const Alert: React.FC<AlertProps> = ({
@@ -12,6 +13,7 @@ const Alert: React.FC<AlertProps> = ({
   message,
   onClose,
   modal = false,
+  cerrar = false, // Valor por defecto
 }) => {
   useEffect(() => {
     // Solo aplicar overflow-hidden si es modal
@@ -26,6 +28,20 @@ const Alert: React.FC<AlertProps> = ({
       }
     };
   }, [modal]);
+
+  useEffect(() => {
+    // Configurar el temporizador para cerrar la alerta automáticamente si 'cerrar' es true
+    if (cerrar) {
+      const timer = setTimeout(() => {
+        if (onClose) {
+          onClose();
+        }
+      }, 3000); // 3s
+
+      // Limpiar el temporizador cuando el componente se desmonte
+      return () => clearTimeout(timer);
+    }
+  }, [cerrar, onClose]);
 
   const getAlertStyles = () => {
     switch (type) {

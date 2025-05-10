@@ -5,6 +5,7 @@ import {
   UPDATE_ESTADO_DETALLE_ACOPIO,
 } from "@/graphql/mutations";
 import { useJwtStore } from "@/store/jwtStore";
+import Alert from "../Alert";
 interface DropdownAccionesProps {
   id_detalle_orden_acopio: number;
   codigoProducto: string;
@@ -35,6 +36,14 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
   onClose,
   onProductoEnviado, // Recibimos la prop
 }) => {
+  // Estados par alerta
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [cerrarModal, setCerrarModal] = useState(false);
+  // Estados para productos
   const [productosAsociados, setProductosAsociados] = useState<Producto[]>([]);
   const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
   const [busqueda, setBusqueda] = useState("");
@@ -56,7 +65,12 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
       const response = await fetch(
         `http://localhost:8000/api/v1/productos-asociados/${codigoProducto}`
       );
-      if (!response.ok) throw new Error("Error al obtener productos asociados");
+      if (!response.ok) {
+        setAlertType("error");
+        setAlertMessage("Error al obtener productos asociados");
+        setShowAlert(true);
+        return;
+      }
 
       const data = await response.json();
       setProductosAsociados(data);
@@ -69,7 +83,11 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
         )
       );
     } catch (error) {
-      console.error("Error:", error);
+      setAlertType("error");
+      setAlertMessage(
+        "Error al obtener productos asociados, descripción: " + error
+      );
+      setShowAlert(true);
     }
   };
 
@@ -103,7 +121,9 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
     const cantidadEnviada = cantidades[codigoProductoEnviado] || 0;
 
     if (cantidadEnviada <= 0) {
-      alert("La cantidad debe ser mayor a 0");
+      setAlertType("advertencia");
+      setAlertMessage("La cantidad enviada debe ser mayor o igual a 0");
+      setShowAlert(true);
       return;
     }
 
@@ -130,8 +150,9 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
         )
       );
     } catch (error) {
-      console.error("Error al enviar producto:", error);
-      alert("Ocurrió un error al enviar el producto");
+      setAlertType("error");
+      setAlertMessage("Error al enviar el producto, descripción: " + error);
+      setShowAlert(true);
     } finally {
       setLoading(false);
     }
@@ -180,6 +201,14 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
           Cantidad a enviar - {cantidad}
         </div>
       </div>
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+          modal={true}
+        />
+      )}
       {/* Campo de búsqueda */}
       <input
         type="text"

@@ -1,7 +1,8 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO } from "@/graphql/query";
+import Alert from "../Alert";
 interface DropdownCargaSoftlandProps {
   idAcopio: number;
   isOpen: boolean;
@@ -20,7 +21,12 @@ const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({
   onClose,
 }) => {
   if (!isOpen) return null;
-
+  // Componente para mostrar la alerta
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
   const { loading, error, data } = useQuery(
     GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO,
     {
@@ -39,15 +45,9 @@ const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({
   }
 
   if (error) {
-    return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="text-red-500">
-            Error al cargar los datos: {error.message}
-          </p>
-        </div>
-      </div>
-    );
+    setAlertType("error");
+    setAlertMessage(error.message);
+    setShowAlert(true);
   }
   return (
     <div className="bg-white border border-gray-200 rounded shadow-lg py-3 sm:py-4 px-4 sm:px-8 m-1">
@@ -63,6 +63,14 @@ const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({
           Cerrar
         </button>
       </div>
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+          modal={true}
+        />
+      )}
 
       {salidaAcopio.map((salida) => (
         <div

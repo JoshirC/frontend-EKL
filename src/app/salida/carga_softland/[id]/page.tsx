@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, use } from "react";
 import Barcode from "react-barcode";
 import { GET_GUIA_DE_SALIDA } from "@/graphql/query";
 import { ELIMINAR_GUIA_SALIDA } from "@/graphql/mutations";
 import { useQuery, useMutation } from "@apollo/client";
+import Alert from "@/components/Alert";
 type Envio = {
   id: number;
   codigo_producto_enviado: string;
@@ -22,22 +23,39 @@ export default function CargaSoftlandDetallePage({
 }) {
   const { id: id_salida } = use(params);
   const id_salida_num = parseFloat(id_salida);
-  console.log("ID de Salida:", id_salida);
+
+  // Componente para mostrar la alerta
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [cerrarModal, setCerrarModal] = useState(false);
   const { loading, error, data } = useQuery(GET_GUIA_DE_SALIDA, {
     variables: { id: id_salida_num },
   });
   const [EliminarGuiaSalida] = useMutation(ELIMINAR_GUIA_SALIDA, {
     variables: { id: id_salida_num },
     onCompleted: () => {
-      window.location.href = "/salida/carga_softland";
+      setAlertType("exitoso");
+      setAlertMessage("La guía de salida se ha eliminado correctamente");
+      setShowAlert(true);
+      setCerrarModal(true);
+
+      setTimeout(() => {
+        window.location.href = "/salida/carga_softland";
+      }, 2000);
     },
   });
   const handleEliminarGuiaSalida = async () => {
     try {
       await EliminarGuiaSalida();
     } catch (error) {
-      console.error("Error al eliminar la guía de salida:", error);
-      alert("Error al eliminar la guía de salida");
+      setAlertType("error");
+      setAlertMessage(
+        "Error al eliminar la guía de salida, descripción: " + error
+      );
+      setShowAlert(true);
     }
   };
   if (loading) {
@@ -51,20 +69,22 @@ export default function CargaSoftlandDetallePage({
   }
 
   if (error) {
-    return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="text-red-500">
-            Error al cargar los datos: {error.message}
-          </p>
-        </div>
-      </div>
-    );
+    setAlertType("error");
+    setAlertMessage(error.message);
+    setShowAlert(true);
   }
 
   const guiaSalida: GuiaSalida = data?.guiaDeSalida || null;
   return (
     <div className="p-4 sm:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+          cerrar={cerrarModal}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">

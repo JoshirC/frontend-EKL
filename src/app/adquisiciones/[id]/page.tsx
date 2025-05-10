@@ -38,7 +38,12 @@ export default function AcopioIdPage({
   const [eliminarOrdenAcopio] = useMutation(ELIMINAR_ORDEN_ACOPIO, {
     onCompleted: () => {
       // Redirigir a la página de adquisiciones/acopio después de la mutación
-      window.location.href = "/adquisiciones/acopio/";
+      setAlertType("exitoso");
+      setAlertMessage("La orden de acopio se ha eliminado correctamente");
+      setShowAlert(true);
+      setTimeout(() => {
+        window.location.href = "/adquisiciones/acopio/";
+      }, 2000);
     },
     onError: (mutationError) => {
       setAlertType("error");
@@ -49,7 +54,12 @@ export default function AcopioIdPage({
   const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
     onCompleted: () => {
       // Redirigir a la página de adquisiciones/acopio después de la mutación
-      window.location.href = "/adquisiciones/acopio/";
+      setAlertType("exitoso");
+      setAlertMessage("La orden de acopio se ha confirmado correctamente");
+      setShowAlert(true);
+      setTimeout(() => {
+        window.location.href = "/adquisiciones/acopio/";
+      }, 2000);
     },
     onError: (mutationError) => {
       setAlertType("error");

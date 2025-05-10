@@ -17,7 +17,7 @@ const RegistroPage: React.FC = () => {
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
 
-  const { loading, error, data, refetch } = useQuery(GET_ORDENES_ACOPIO, {
+  const { loading, error, data } = useQuery(GET_ORDENES_ACOPIO, {
     variables: { estado: "Cerrado" },
   });
   if (loading) {

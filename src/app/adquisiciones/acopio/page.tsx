@@ -1,8 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import NuevaOrdenAcopio from "@/components/adquisiciones/nuevaOrdenAcopio";
-import { useAdquisicionStore } from "@/store/adquisicionStore";
 import Alert from "@/components/Alert";
 import { GET_ORDENES_ACOPIO } from "@/graphql/query";
 type OrdenAcopio = {
@@ -14,12 +13,12 @@ type OrdenAcopio = {
 
 const AcopioPage: React.FC = () => {
   const [modalNuevaOrdenAcopio, setModalNuevaOrdenAcopio] = useState(false);
-  const { estadoOrdenAcopio, setEstadoOrdenAcopio } = useAdquisicionStore();
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+  const [cerrarModal, setCerrarModal] = useState(false);
 
   const { loading, error, data, refetch } = useQuery(GET_ORDENES_ACOPIO, {
     variables: { estado: "Revision" },
@@ -31,6 +30,19 @@ const AcopioPage: React.FC = () => {
 
   const cerrarModalNuevaOrdenAcopio = () => {
     setModalNuevaOrdenAcopio(false);
+  };
+  const handleCargaCompleta = async () => {
+    try {
+      await refetch();
+      setAlertType("exitoso");
+      setAlertMessage("El Consolidado se ha subido correctamente");
+      setShowAlert(true);
+      setCerrarModal(true);
+    } catch (error) {
+      setAlertType("error");
+      setAlertMessage("Error al actualizar la lista de órdenes");
+      setShowAlert(true);
+    }
   };
 
   if (loading) {
@@ -55,12 +67,14 @@ const AcopioPage: React.FC = () => {
       <NuevaOrdenAcopio
         isOpen={modalNuevaOrdenAcopio}
         onClose={cerrarModalNuevaOrdenAcopio}
+        onCargaCompleta={handleCargaCompleta}
       />
       {showAlert && (
         <Alert
           type={alertType}
           message={alertMessage}
           onClose={() => setShowAlert(false)}
+          cerrar={cerrarModal}
         />
       )}
 
@@ -115,7 +129,6 @@ const AcopioPage: React.FC = () => {
                       className="bg-orange-400 text-white font-semibold px-3 sm:px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
                       onClick={() => {
                         window.location.href = `/adquisiciones/${orden.id}`;
-                        setEstadoOrdenAcopio(orden.estado);
                       }}
                     >
                       Detalles

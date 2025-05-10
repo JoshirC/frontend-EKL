@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, use } from "react";
+import React, { use, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { useSalidaStore } from "@/store/salidaStore";
 import { GET_ORDENES_ACOPIO_DOS_ESTADOS } from "@/graphql/query";
+import Alert from "@/components/Alert";
 
 type OrdenAcopio = {
   id: number;
@@ -22,6 +23,11 @@ export default function CentroCostoNamePage({
     /[^a-zA-Z0-9 ]/g,
     ""
   );
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
   const { setCentroCosto, setFecha, setEstado } = useSalidaStore();
 
   const { loading, error, data } = useQuery(GET_ORDENES_ACOPIO_DOS_ESTADOS, {
@@ -31,12 +37,6 @@ export default function CentroCostoNamePage({
       estado2: "Proceso",
     },
   });
-
-  useEffect(() => {
-    if (data) {
-      console.log("Datos cargados:", data.ordenAcopioByCentroCostoYEstados);
-    }
-  }, [data]);
 
   if (loading) {
     return (
@@ -49,21 +49,22 @@ export default function CentroCostoNamePage({
   }
 
   if (error) {
-    return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="text-red-500">
-            Error al cargar los datos: {error.message}
-          </p>
-        </div>
-      </div>
-    );
+    setAlertType("error");
+    setAlertMessage(error.message);
+    setShowAlert(true);
   }
 
   const ordenes: OrdenAcopio[] = data.ordenAcopioByCentroCostoYEstados;
 
   return (
     <div className="p-4 sm:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="text-xl sm:text-2xl font-semibold mb-4">
           Lista de Acopio {sanitizedCentroCosto}
