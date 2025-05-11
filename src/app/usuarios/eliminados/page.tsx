@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Alert from "@/components/Alert";
 import { GET_USUARIOS_ELIMINADOS } from "@/graphql/query";
 import { EDITAR_ESTADO_ELIMINADO_USER } from "@/graphql/mutations";
+import ListaVacia from "@/components/listaVacia";
 
 type Usuario = {
   id: number;
@@ -112,6 +113,13 @@ const EliminadosPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
+                {usuarios.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="text-center">
+                      <ListaVacia mensaje="No hay usuarios eliminados" />
+                    </td>
+                  </tr>
+                )}
                 {usuarios.map((usuario) => (
                   <tr key={usuario.id}>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">

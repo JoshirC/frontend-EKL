@@ -69,9 +69,16 @@ export default function CargaSoftlandDetallePage({
   }
 
   if (error) {
-    setAlertType("error");
-    setAlertMessage(error.message);
-    setShowAlert(true);
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p className="text-red-500">
+            Error al cargar detalles del acopio, descripción del error:{" "}
+            {error.message}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const guiaSalida: GuiaSalida = data?.guiaDeSalida || null;

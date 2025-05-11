@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_CENTROS_COSTOS } from "@/graphql/query";
 import Alert from "@/components/Alert";
+import ListaVacia from "@/components/listaVacia";
 
 type CentroCosto = {
   centroCosto: string;
@@ -57,6 +58,11 @@ const AcopioProductosPage: React.FC = () => {
           </div>
         </div>
         <div>
+          {centrosDeCostos.length === 0 && (
+            <div className="p-4 rounded bg-gray-100">
+              <ListaVacia mensaje="No hay ordenes de Acopio con estado Pendiente o Proceso." />
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {centrosDeCostos.map((centro) => (
               <div

@@ -4,6 +4,7 @@ import { useQuery } from "@apollo/client";
 import NuevaOrdenAcopio from "@/components/adquisiciones/nuevaOrdenAcopio";
 import Alert from "@/components/Alert";
 import { GET_ORDENES_ACOPIO } from "@/graphql/query";
+import ListaVacia from "@/components/listaVacia";
 type OrdenAcopio = {
   id: number;
   centroCosto: string;
@@ -110,6 +111,13 @@ const AcopioPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
+              {ordenes.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>
+                    <ListaVacia mensaje="No hay órdenes de acopio disponibles para confirmar." />
+                  </td>
+                </tr>
+              ) : null}
               {ordenes.map((orden) => (
                 <tr key={orden.id}>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">

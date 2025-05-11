@@ -307,9 +307,16 @@ export default function AcopioSalidaIdPage({
   }
 
   if (error) {
-    setAlertType("error");
-    setAlertMessage(error.message);
-    setShowAlert(true);
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p className="text-red-500">
+            Error al cargar los detalles del acopio, detalle del error:{" "}
+            {error.message}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -4,10 +4,11 @@ import NuevoUsuario from "@/components/usuarios/nuevoUsuario";
 import CambiarContraseña from "@/components/usuarios/cambiarContraseña";
 import { useModalStore } from "@/store/modalStore";
 import React, { useState } from "react";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
 import { GET_USUARIOS_NO_ELIMINADOS } from "@/graphql/query";
 import { UPDATE_USER, EDITAR_ESTADO_ELIMINADO_USER } from "@/graphql/mutations";
+import ListaVacia from "@/components/listaVacia";
 
 type Usuario = {
   id: number;
@@ -224,6 +225,13 @@ const UsuariosPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
+                {usuarios.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="text-center">
+                      <ListaVacia mensaje="No hay usuarios para mostrar. Revisa en el apartado de eliminados." />
+                    </td>
+                  </tr>
+                )}
                 {usuarios.map((usuario) => (
                   <tr key={usuario.id}>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">

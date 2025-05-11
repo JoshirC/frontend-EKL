@@ -4,7 +4,7 @@ import { useQuery } from "@apollo/client";
 import { GET_ORDENES_ACOPIO } from "@/graphql/query";
 import DropdownCargaSoftland from "@/components/salida_acopio/dropdownCargaSoftland";
 import Alert from "@/components/Alert";
-
+import ListaVacia from "@/components/listaVacia";
 type OrdenAcopio = {
   id: number;
   centroCosto: string;
@@ -36,9 +36,16 @@ const CargaSoftlandPage: React.FC = () => {
     );
   }
   if (error) {
-    setAlertType("error");
-    setAlertMessage(error.message);
-    setShowAlert(true);
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>
+            Error al cargar ordenes de acopio, descripcion del error:{" "}
+            {error.message}
+          </p>
+        </div>
+      </div>
+    );
   }
   const ordenesAcopio: OrdenAcopio[] = data.ordenAcopiosByEstado;
   return (
@@ -73,6 +80,13 @@ const CargaSoftlandPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
+              {ordenesAcopio.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center">
+                    <ListaVacia mensaje="No hay ordenes de Acopio listas para subir a Softland." />
+                  </td>
+                </tr>
+              )}
               {ordenesAcopio.map((orden) => (
                 <React.Fragment key={orden.id}>
                   <tr>

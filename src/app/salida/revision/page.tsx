@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_ORDENES_ACOPIO } from "@/graphql/query";
 import Alert from "@/components/Alert";
-
+import ListaVacia from "@/components/listaVacia";
 type OrdenAcopio = {
   id: number;
   centroCosto: string;
@@ -68,6 +68,13 @@ const RevisionPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
+              {ordenesAcopio.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center">
+                    <ListaVacia mensaje="No hay ordenes de Acopio listas para Revisión." />
+                  </td>
+                </tr>
+              )}
               {ordenesAcopio.map((orden) => (
                 <tr key={orden.id}>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">

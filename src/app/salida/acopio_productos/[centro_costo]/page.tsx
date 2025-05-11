@@ -5,6 +5,7 @@ import { useQuery } from "@apollo/client";
 import { useSalidaStore } from "@/store/salidaStore";
 import { GET_ORDENES_ACOPIO_DOS_ESTADOS } from "@/graphql/query";
 import Alert from "@/components/Alert";
+import ListaVacia from "@/components/listaVacia";
 
 type OrdenAcopio = {
   id: number;
@@ -86,6 +87,13 @@ export default function CentroCostoNamePage({
               </tr>
             </thead>
             <tbody>
+              {ordenes.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center">
+                    <ListaVacia mensaje="El centro de Costo no tiene listas de Acopio" />
+                  </td>
+                </tr>
+              )}
               {ordenes.map((orden) => (
                 <tr key={orden.id}>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
