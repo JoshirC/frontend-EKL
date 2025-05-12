@@ -270,26 +270,28 @@ const Navbar = () => {
             </div>
 
             {/* Reporte */}
-            <div className="relative flex justify-center">
-              <button
-                onClick={handleOpenReporte}
-                className="text-black font-semibold hover:text-white transition duration-300"
-              >
-                Reporte
-              </button>
-              {openReporte && (
-                <div className="mt-10 w-35 bg-orange-400 text-l text-black shadow-lg rounded-md sm:absolute">
-                  <Link href="/reporte/registro_acopio">
-                    <div
-                      className="block px-4 py-2 hover:bg-orange-200"
-                      onClick={handleSelectOption}
-                    >
-                      Registro Acopio
-                    </div>
-                  </Link>
-                </div>
-              )}
-            </div>
+            {!["Jefe Bodega", "Bodeguero"].includes(rolUsuario ?? "") && (
+              <div className="relative flex justify-center">
+                <button
+                  onClick={handleOpenReporte}
+                  className="text-black font-semibold hover:text-white transition duration-300"
+                >
+                  Reporte
+                </button>
+                {openReporte && (
+                  <div className="mt-10 w-35 bg-orange-400 text-l text-black shadow-lg rounded-md sm:absolute">
+                    <Link href="/reporte/registro_acopio">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200"
+                        onClick={handleSelectOption}
+                      >
+                        Registro Acopio
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Datos Usuario */}
             <div className="relative flex justify-center">
@@ -456,26 +458,28 @@ const Navbar = () => {
               </div>
 
               {/* Reporte */}
-              <div>
-                <button
-                  onClick={handleOpenReporte}
-                  className="block w-full text-left px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                >
-                  Reporte
-                </button>
-                {openReporte && (
-                  <div className="pl-4">
-                    <Link href="/reporte/registro_acopio">
-                      <div
-                        className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                        onClick={handleSelectOption}
-                      >
-                        ▶ Registro Acopio
-                      </div>
-                    </Link>
-                  </div>
-                )}
-              </div>
+              {!["Jefe Bodega", "Bodeguero"].includes(rolUsuario ?? "") && (
+                <div>
+                  <button
+                    onClick={handleOpenReporte}
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                  >
+                    Reporte
+                  </button>
+                  {openReporte && (
+                    <div className="pl-4">
+                      <Link href="/reporte/registro_acopio">
+                        <div
+                          className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          ▶ Registro Acopio
+                        </div>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Datos Usuario */}
               <div>

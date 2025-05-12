@@ -33,7 +33,7 @@ const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({
       variables: { ordenAcopioId: idAcopio },
     }
   );
-  const salidaAcopio: SalidaAcopio[] = data?.guiasDeSalidaPorOrdenAcopio || [];
+
   if (loading) {
     return (
       <div className="p-10">
@@ -45,10 +45,17 @@ const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({
   }
 
   if (error) {
-    setAlertType("error");
-    setAlertMessage(error.message);
-    setShowAlert(true);
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p className="text-red-500">
+            Error al cargar los datos: {error.message}
+          </p>
+        </div>
+      </div>
+    );
   }
+  const salidaAcopio: SalidaAcopio[] = data?.guiasDeSalidaPorOrdenAcopio || [];
   return (
     <div className="bg-white border border-gray-200 rounded shadow-lg py-3 sm:py-4 px-4 sm:px-8 m-1">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">

@@ -111,7 +111,7 @@ export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
 `;
 //Query para Guia de Salida
 export const GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO = gql`
-  query guiasDeSalidaPorOrdenAcopio($ordenAcopioId: Int!) {
+  query guiasDeSalidaPorOrdenAcopio($ordenAcopioId: Float!) {
     guiasDeSalidaPorOrdenAcopio(ordenAcopioId: $ordenAcopioId) {
       id
       fechaCreacion
