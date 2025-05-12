@@ -146,6 +146,9 @@ export default function CargaSoftlandDetallePage({
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Código de Barras Cantidad
                 </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Unidad de Medida
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -172,6 +175,9 @@ export default function CargaSoftlandDetallePage({
                       value={envio.cantidad_enviada.toString()}
                       height={75}
                     />
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    Unidad no disponible
                   </td>
                 </tr>
               ))}

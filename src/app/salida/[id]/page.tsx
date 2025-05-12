@@ -66,6 +66,8 @@ export default function AcopioSalidaIdPage({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [editLoading, setEditLoading] = useState<number | null>(null);
+  // Agrega un nuevo estado para manejar el estado de carga del botón "Guardar"
+  const [loadingSave, setLoadingSave] = useState<number | null>(null);
 
   // Estados para paginación estable
   const [currentFamily, setCurrentFamily] = useState<string | null>(null);
@@ -212,6 +214,8 @@ export default function AcopioSalidaIdPage({
       return;
     }
 
+    setLoadingSave(id_detalle); // Activa el estado de carga para este detalle
+
     try {
       await createEnvioDetalleOrdenAcopio({
         variables: {
@@ -225,6 +229,8 @@ export default function AcopioSalidaIdPage({
       setAlertType("error");
       setAlertMessage("Error al crear el envío, descripción del error: " + err);
       setShowAlert(true);
+    } finally {
+      setLoadingSave(null); // Desactiva el estado de carga
     }
   };
 
@@ -463,9 +469,16 @@ export default function AcopioSalidaIdPage({
                                   detalle.codigo_producto
                                 )
                               }
-                              className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200"
+                              disabled={loadingSave === detalle.id} // Deshabilita el botón si está en estado de carga
+                              className={`${
+                                loadingSave === detalle.id
+                                  ? "bg-gray-400 cursor-not-allowed"
+                                  : "bg-blue-400 hover:bg-blue-500"
+                              } text-white font-semibold py-2 px-4 rounded transition duration-200`}
                             >
-                              Guardar
+                              {loadingSave === detalle.id
+                                ? "Guardando..."
+                                : "Guardar"}
                             </button>
                           </div>
                         </td>
@@ -657,7 +670,6 @@ export default function AcopioSalidaIdPage({
                             ? "bg-gray-400 text-white"
                             : "bg-gray-100 hover:bg-gray-300 text-gray-800"
                         }`}
-                        title={family}
                       >
                         <span className="max-w-[100px] sm:max-w-[150px] truncate">
                           {family}
