@@ -9,6 +9,7 @@ import Alert from "@/components/Alert";
 import { GET_USUARIOS_NO_ELIMINADOS } from "@/graphql/query";
 import { UPDATE_USER, EDITAR_ESTADO_ELIMINADO_USER } from "@/graphql/mutations";
 import ListaVacia from "@/components/listaVacia";
+import Confirmacion from "@/components/confirmacion";
 
 type Usuario = {
   id: number;
@@ -40,6 +41,9 @@ const UsuariosPage: React.FC = () => {
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+
+  // Estados para el modal de confirmación
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
 
   const { data, loading, error, refetch } = useQuery(
     GET_USUARIOS_NO_ELIMINADOS
@@ -139,6 +143,12 @@ const UsuariosPage: React.FC = () => {
       console.error("Error al eliminar usuario:", error);
     }
   };
+  const handleConfirmarEliminar = (confirmed: boolean) => {
+    if (confirmed) {
+      handleEliminarUsuario(usuarioSeleccionado?.id || 0);
+    }
+    setShowConfirmacion(false);
+  };
 
   const usuarios: Usuario[] = data?.usersNoEliminados || [];
 
@@ -173,6 +183,15 @@ const UsuariosPage: React.FC = () => {
           type={alertType}
           message={alertMessage}
           onClose={() => setShowAlert(false)}
+        />
+      )}
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Eliminar Usuario"
+          mensaje={`¿Estás seguro de que deseas eliminar al usuario ${usuarioSeleccionado?.nombre}?`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmarEliminar}
         />
       )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
@@ -266,7 +285,10 @@ const UsuariosPage: React.FC = () => {
                         </button>
                         <button
                           className="bg-red-500 text-white font-semibold p-2 rounded hover:bg-red-600 transition duration-300 text-sm sm:text-base w-full"
-                          onClick={() => handleEliminarUsuario(usuario.id)}
+                          onClick={() => {
+                            setShowConfirmacion(true);
+                            setUsuarioSeleccionado(usuario);
+                          }}
                         >
                           Eliminar
                         </button>

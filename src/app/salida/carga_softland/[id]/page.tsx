@@ -5,6 +5,8 @@ import { GET_GUIA_DE_SALIDA } from "@/graphql/query";
 import { ELIMINAR_GUIA_SALIDA } from "@/graphql/mutations";
 import { useQuery, useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
+import Confirmacion from "@/components/confirmacion";
+
 type Envio = {
   id: number;
   codigo_producto_enviado: string;
@@ -31,6 +33,10 @@ export default function CargaSoftlandDetallePage({
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
   const [cerrarModal, setCerrarModal] = useState(false);
+
+  // Estado de la confirmacion
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+
   const { loading, error, data } = useQuery(GET_GUIA_DE_SALIDA, {
     variables: { id: id_salida_num },
   });
@@ -57,6 +63,12 @@ export default function CargaSoftlandDetallePage({
       );
       setShowAlert(true);
     }
+  };
+  const handleConfirmacion = (confirmado: boolean) => {
+    if (confirmado) {
+      handleEliminarGuiaSalida();
+    }
+    setShowConfirmacion(false);
   };
   if (loading) {
     return (
@@ -92,6 +104,15 @@ export default function CargaSoftlandDetallePage({
           cerrar={cerrarModal}
         />
       )}
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Termino de Guia de Salida"
+          mensaje={`¿Estás seguro de que terminaste de subir la Guia a Softland?\nRecuerda que la guia se eliminara de este sistema una vez subida.`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmacion}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">
@@ -99,7 +120,9 @@ export default function CargaSoftlandDetallePage({
           </div>
           <button
             className="bg-orange-400 hover:bg-orange-500 font-semibold text-white p-3 sm:px-4 sm:py-2 rounded w-full sm:w-auto"
-            onClick={handleEliminarGuiaSalida}
+            onClick={() => {
+              setShowConfirmacion(true);
+            }}
           >
             Finalizar
           </button>

@@ -15,7 +15,7 @@ import {
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
 import Alert from "@/components/Alert";
-
+import Confirmacion from "@/components/confirmacion";
 type Envio = {
   id: number;
   id_detalle_orden_acopio: number;
@@ -42,7 +42,7 @@ export default function AcopioSalidaIdPage({
 }) {
   const { id: id_acopio } = use(params);
   const id_acopio_num = parseFloat(id_acopio);
-  const { rutUsuario } = useJwtStore();
+  const { rutUsuario, rolUsuario } = useJwtStore();
 
   // Estados para manejar la carga de datos y errores
   const [showAlert, setShowAlert] = useState(false);
@@ -51,6 +51,9 @@ export default function AcopioSalidaIdPage({
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
   const [cerrarModal, setCerrarModal] = useState(false);
+  // Estado de la confirmación
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [idEnvioEliminar, setIdEnvioEliminar] = useState<number | null>(null);
   // Estados para formularios y UI
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
@@ -283,7 +286,7 @@ export default function AcopioSalidaIdPage({
     updateEstadoOrdenAcopio({ variables: { id: id_acopio_num, estado } });
   };
   const handleEliminarEnvio = async (id: number) => {
-    if (confirm("¿Está seguro de eliminar este envío?")) {
+    if (id) {
       try {
         await removeEnvioDetalleOrdenAcopio({ variables: { id } });
       } catch (error) {
@@ -294,6 +297,13 @@ export default function AcopioSalidaIdPage({
         setShowAlert(true);
       }
     }
+  };
+  const handleConfirmacion = (confirmado: boolean) => {
+    if (confirmado && idEnvioEliminar) {
+      handleEliminarEnvio(idEnvioEliminar);
+    }
+    setIdEnvioEliminar(null);
+    setShowConfirmacion(false);
   };
 
   if (loading) {
@@ -329,8 +339,18 @@ export default function AcopioSalidaIdPage({
           cerrar={cerrarModal}
         />
       )}
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Eliminar Envío"
+          mensaje={`¿Estás seguro de que deseas eliminar el envio?`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmacion}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
-        {data.ordenAcopio.estado === "Confirmacion" ? (
+        {data.ordenAcopio.estado === "Confirmacion" &&
+        rolUsuario != "Bodeguero" ? (
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
             <div className="text-xl sm:text-2xl font-semibold">
               Confirmación de Acopio N°{id_acopio}
@@ -529,9 +549,10 @@ export default function AcopioSalidaIdPage({
                               </button>
                               <button
                                 className="bg-red-400 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                                onClick={() =>
-                                  handleEliminarEnvio(detalle.envios[0].id)
-                                }
+                                onClick={() => {
+                                  setShowConfirmacion(true);
+                                  setIdEnvioEliminar(detalle.envios[0].id);
+                                }}
                               >
                                 Eliminar
                               </button>

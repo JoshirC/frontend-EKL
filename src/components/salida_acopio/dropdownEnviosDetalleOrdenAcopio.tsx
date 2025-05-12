@@ -6,7 +6,7 @@ import {
 } from "@/graphql/mutations";
 import { useMutation } from "@apollo/client";
 import Alert from "../Alert";
-
+import Confirmacion from "../confirmacion";
 interface Envio {
   id: number;
   cantidad_enviada: number;
@@ -36,6 +36,11 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+
+  // Estado para manejar la confirmación de eliminación
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [idEnvioEliminar, setIdEnvioEliminar] = useState<number | null>(null);
+
   const [cerrarModal, setCerrarModal] = useState(false);
   const [activarEditar, setActivarEditar] = useState(false);
 
@@ -131,23 +136,37 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
     }
   };
   const handleEliminarEnvio = async (id: number) => {
-    if (confirm("¿Está seguro de eliminar este envío?")) {
-      setEnviosEliminados((prev) => [...prev, id]);
+    setEnviosEliminados((prev) => [...prev, id]);
 
-      try {
-        await removeEnvioDetalleOrdenAcopio({ variables: { id } });
-      } catch (error) {
-        setAlertType("error");
-        setAlertMessage("Error al eliminar el envío, descripción: " + error);
-        setShowAlert(true);
-        setEnviosEliminados((prev) => prev.filter((envioId) => envioId !== id));
-      }
+    try {
+      await removeEnvioDetalleOrdenAcopio({ variables: { id } });
+    } catch (error) {
+      setAlertType("error");
+      setAlertMessage("Error al eliminar el envío, descripción: " + error);
+      setShowAlert(true);
+      setEnviosEliminados((prev) => prev.filter((envioId) => envioId !== id));
     }
+  };
+  const handleConfirmacion = (confirmado: boolean) => {
+    if (confirmado && idEnvioEliminar) {
+      handleEliminarEnvio(idEnvioEliminar);
+    }
+    setIdEnvioEliminar(null);
+    setShowConfirmacion(false);
   };
   const esEnvioEliminado = (id: number) => enviosEliminados.includes(id);
 
   return (
     <div className="bg-white border border-gray-200 rounded shadow-lg p-6 w-full">
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Eliminar Envío"
+          mensaje={`¿Estás seguro de que deseas eliminar el envio?`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmacion}
+        />
+      )}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-3">
         <h2 className="text-base font-semibold sm:text-lg">
           Detalle de Envíos
@@ -246,7 +265,11 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
                   </h2>
                   <button
                     className="bg-red-400 text-white font-semibold p-2 sm:px-4 sm:py-2 rounded hover:bg-red-500 transition duration-200 w-full sm:w-auto"
-                    onClick={() => handleEliminarEnvio(envio.id)}
+                    onClick={() => {
+                      setShowConfirmacion(true);
+                      setIdEnvioEliminar(envio.id);
+                    }}
+                    disabled={editLoading === envio.id}
                   >
                     Eliminar
                   </button>

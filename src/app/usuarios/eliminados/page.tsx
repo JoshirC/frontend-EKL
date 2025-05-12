@@ -5,7 +5,7 @@ import Alert from "@/components/Alert";
 import { GET_USUARIOS_ELIMINADOS } from "@/graphql/query";
 import { EDITAR_ESTADO_ELIMINADO_USER } from "@/graphql/mutations";
 import ListaVacia from "@/components/listaVacia";
-
+import Confirmacion from "@/components/confirmacion";
 type Usuario = {
   id: number;
   rut: string;
@@ -16,11 +16,19 @@ type Usuario = {
 
 const EliminadosPage: React.FC = () => {
   const { data, loading, error, refetch } = useQuery(GET_USUARIOS_ELIMINADOS);
+
+  // Estado de la alerta
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+
+  // Estado de la confirmacion
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+
+  const [usuarioSeleccionado, setUsuarioSeleccionado] =
+    useState<Usuario | null>(null);
 
   const [editStatusUser] = useMutation(EDITAR_ESTADO_ELIMINADO_USER, {
     onCompleted: () => {
@@ -38,7 +46,7 @@ const EliminadosPage: React.FC = () => {
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
-      }, 3000);
+      }, 2000);
     },
   });
 
@@ -55,8 +63,15 @@ const EliminadosPage: React.FC = () => {
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
-      }, 3000);
+      }, 2000);
     }
+  };
+  const handleConfirmacion = (confirmado: boolean) => {
+    if (confirmado && usuarioSeleccionado) {
+      handleRestaurarUsuario(usuarioSeleccionado.id);
+    }
+    setUsuarioSeleccionado(null);
+    setShowConfirmacion(false);
   };
 
   const usuarios: Usuario[] = data?.usersEliminados || [];
@@ -68,6 +83,15 @@ const EliminadosPage: React.FC = () => {
           type={alertType}
           message={alertMessage}
           onClose={() => setShowAlert(false)}
+        />
+      )}
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Eliminar Usuario"
+          mensaje={`¿Estás seguro de que deseas eliminar al usuario ${usuarioSeleccionado?.nombre}?`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmacion}
         />
       )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
@@ -137,7 +161,10 @@ const EliminadosPage: React.FC = () => {
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       <button
                         className="bg-blue-400 text-white font-semibold p-2 rounded hover:bg-blue-500 transition duration-300 text-sm sm:text-base w-full"
-                        onClick={() => handleRestaurarUsuario(usuario.id)}
+                        onClick={() => {
+                          setShowConfirmacion(true);
+                          setUsuarioSeleccionado(usuario);
+                        }}
                       >
                         Restaurar
                       </button>

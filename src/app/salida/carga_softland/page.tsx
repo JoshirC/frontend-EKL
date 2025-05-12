@@ -14,6 +14,8 @@ type OrdenAcopio = {
 
 const CargaSoftlandPage: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+
+  // Estado de la alerta
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
@@ -26,6 +28,7 @@ const CargaSoftlandPage: React.FC = () => {
   const handleDropdownClick = (id: number) => {
     setDropdownOpen(dropdownOpen === id ? null : id);
   };
+
   if (loading) {
     return (
       <div className="p-10">

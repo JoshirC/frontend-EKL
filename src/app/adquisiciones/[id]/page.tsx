@@ -9,6 +9,7 @@ import {
   UPDATE_ESTADO_ORDEN_ACOPIO,
   ELIMINAR_ORDEN_ACOPIO,
 } from "@/graphql/mutations";
+import Confirmacion from "@/components/confirmacion";
 type DetalleOrdenAcopio = {
   id: number;
   familia_producto: string;
@@ -26,11 +27,16 @@ export default function AcopioIdPage({
   const { id: id_acopio } = React.use(params);
   const id_acopio_num = parseInt(id_acopio);
   const { estadoOrdenAcopio } = useAdquisicionStore();
+
+  // Estado de la alerta
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+
+  // Estado de la confirmacion
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
 
   const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
@@ -76,19 +82,23 @@ export default function AcopioIdPage({
     });
   };
   const handleEliminarOrdenAcopio = () => {
-    if (confirm("¿Estás seguro de que deseas eliminar esta orden de acopio?")) {
-      try {
-        eliminarOrdenAcopio({
-          variables: {
-            id: id_acopio_num,
-          },
-        });
-      } catch (error) {
-        setAlertType("error");
-        setAlertMessage("Error al eliminar la orden de acopio");
-        setShowAlert(true);
-      }
+    try {
+      eliminarOrdenAcopio({
+        variables: {
+          id: id_acopio_num,
+        },
+      });
+    } catch (error) {
+      setAlertType("error");
+      setAlertMessage("Error al eliminar la orden de acopio");
+      setShowAlert(true);
     }
+  };
+  const handleConfirmacion = (confirmado: boolean) => {
+    if (confirmado) {
+      handleEliminarOrdenAcopio();
+    }
+    setShowConfirmacion(false);
   };
 
   if (loading) {
@@ -102,9 +112,13 @@ export default function AcopioIdPage({
   }
 
   if (error) {
-    setAlertType("error");
-    setAlertMessage(error.message);
-    setShowAlert(true);
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Error al cargar los detalles del acopio: {error.message}</p>
+        </div>
+      </div>
+    );
   }
 
   const { detalles } = data.ordenAcopio;
@@ -116,6 +130,15 @@ export default function AcopioIdPage({
           type={alertType}
           message={alertMessage}
           onClose={() => setShowAlert(false)}
+        />
+      )}
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Eliminar Orden de Acopio"
+          mensaje={`¿Estás seguro de que deseas eliminar la orden de Acopio?`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmacion}
         />
       )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
@@ -133,7 +156,9 @@ export default function AcopioIdPage({
               </button>
               <button
                 className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto"
-                onClick={handleEliminarOrdenAcopio}
+                onClick={() => {
+                  setShowConfirmacion(true);
+                }}
               >
                 Cancelar Acopio
               </button>
