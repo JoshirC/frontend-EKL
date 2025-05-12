@@ -412,7 +412,15 @@ export default function AcopioSalidaIdPage({
             <tbody>
               {currentItems.map((detalle) => (
                 <React.Fragment key={detalle.id}>
-                  <tr>
+                  <tr
+                    className={`${
+                      detalle.envios[0]?.cantidad_enviada === 0
+                        ? "bg-gray-100"
+                        : detalle.envios.length > 0
+                        ? "bg-orange-100"
+                        : ""
+                    }`}
+                  >
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.familia_producto}
                     </td>
@@ -489,12 +497,12 @@ export default function AcopioSalidaIdPage({
                     ) : detalle.codigo_producto !==
                       detalle.envios[0].codigo_producto_enviado ? (
                       <>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2 text-orange-400 font-semibold">
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2 font-semibold">
                           {detalle.envios[0]?.cantidad_enviada || "N/A"}
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
-                            className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                            className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
                             onClick={() =>
                               handleDropdownEnviosClick(detalle.id)
                             }
@@ -522,7 +530,7 @@ export default function AcopioSalidaIdPage({
                                   )
                                 }
                                 disabled={editLoading === detalle.id}
-                                className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
                               >
                                 {editLoading === detalle.id ? "..." : "Guardar"}
                               </button>
@@ -541,14 +549,17 @@ export default function AcopioSalidaIdPage({
                             </button>
                           ) : (
                             <div className="flex items-center gap-2">
+                              {detalle.envios[0].cantidad_enviada != 0 && (
+                                <button
+                                  onClick={() => handleEditClick(detalle)}
+                                  className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                >
+                                  Editar
+                                </button>
+                              )}
+
                               <button
-                                onClick={() => handleEditClick(detalle)}
-                                className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                              >
-                                Editar
-                              </button>
-                              <button
-                                className="bg-red-400 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
                                 onClick={() => {
                                   setShowConfirmacion(true);
                                   setIdEnvioEliminar(detalle.envios[0].id);

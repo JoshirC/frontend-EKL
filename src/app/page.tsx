@@ -25,14 +25,6 @@ export default function Home() {
       />
       <div className="flex justify-center items-center py-12">
         <h1 className="text-2xl font-bold">Welcome to the EKLIPSE HOME!</h1>
-        <button
-          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded"
-          onClick={() => {
-            setIsOpen(true);
-          }}
-        >
-          Confirmación
-        </button>
       </div>
     </div>
   );
