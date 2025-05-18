@@ -11,6 +11,12 @@ type Envio = {
   id: number;
   codigo_producto_enviado: string;
   cantidad_enviada: number;
+  producto: {
+    nombre_producto: string;
+    codigo: string;
+    familia: string;
+    unidad_medida: string;
+  };
 };
 type GuiaSalida = {
   id: number;
@@ -165,7 +171,7 @@ export default function CargaSoftlandDetallePage({
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {/* Replace with actual product description if available */}
-                    Descripción no disponible
+                    {envio.producto.nombre_producto}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {envio.cantidad_enviada}
@@ -177,7 +183,7 @@ export default function CargaSoftlandDetallePage({
                     />
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Unidad no disponible
+                    {envio.producto.unidad_medida}
                   </td>
                 </tr>
               ))}

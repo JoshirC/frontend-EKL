@@ -57,7 +57,7 @@ export const GET_CENTROS_COSTOS = gql`
     }
   }
 `;
-// Query para Detalle de Orden de Acopio
+
 export const GET_ORDEN_ACOPIO = gql`
   query ordenAcopio($id: Float!) {
     ordenAcopio(id: $id) {
@@ -67,16 +67,48 @@ export const GET_ORDEN_ACOPIO = gql`
       estado
       detalles {
         id
-        familia_producto
-        nombre_producto
         codigo_producto
+        producto {
+          id
+          nombre_producto
+          codigo
+          familia
+          unidad_medida
+          cantidad_softland
+          trazabilidad
+        }
         cantidad
-        unidad
         enviado
         envios {
           id
           cantidad_enviada
           codigo_producto_enviado
+        }
+      }
+    }
+  }
+`;
+// Query para Detalle de Orden de Acopio
+export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
+  query detalleOrdenAcopioID($id: Int!) {
+    detalleOrdenAcopioID(id: $id) {
+      codigo_producto
+      cantidad
+      producto {
+        nombre_producto
+        familia
+        unidad_medida
+      }
+      envios {
+        id
+        cantidad_enviada
+        codigo_producto_enviado
+        producto {
+          id
+          nombre_producto
+          codigo
+          familia
+          unidad_medida
         }
       }
     }
@@ -89,10 +121,13 @@ export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
       id
       detalleOrdenAcopio {
         id
-        nombre_producto
-        codigo_producto
         cantidad
-        unidad
+        producto {
+          nombre_producto
+          codigo
+          familia
+          unidad_medida
+        }
       }
       guiaSalida {
         id
@@ -106,9 +141,16 @@ export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
       }
       codigo_producto_enviado
       cantidad_enviada
+      producto {
+        nombre_producto
+        codigo
+        familia
+        unidad_medida
+      }
     }
   }
 `;
+
 //Query para Guia de Salida
 export const GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO = gql`
   query guiasDeSalidaPorOrdenAcopio($ordenAcopioId: Float!) {
@@ -129,6 +171,12 @@ export const GET_GUIA_DE_SALIDA = gql`
         id
         codigo_producto_enviado
         cantidad_enviada
+        producto {
+          nombre_producto
+          codigo
+          familia
+          unidad_medida
+        }
       }
     }
   }

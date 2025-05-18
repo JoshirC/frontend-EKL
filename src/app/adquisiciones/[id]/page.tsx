@@ -10,13 +10,17 @@ import {
   ELIMINAR_ORDEN_ACOPIO,
 } from "@/graphql/mutations";
 import Confirmacion from "@/components/confirmacion";
+type Producto = {
+  codigo: string;
+  nombre_producto: string;
+  unidad_medida: string;
+  familia: string;
+};
 type DetalleOrdenAcopio = {
   id: number;
-  familia_producto: string;
-  nombre_producto: string;
   codigo_producto: string;
   cantidad: number;
-  unidad: string;
+  producto: Producto;
 };
 
 export default function AcopioIdPage({
@@ -43,7 +47,6 @@ export default function AcopioIdPage({
   });
   const [eliminarOrdenAcopio] = useMutation(ELIMINAR_ORDEN_ACOPIO, {
     onCompleted: () => {
-      // Redirigir a la página de adquisiciones/acopio después de la mutación
       setAlertType("exitoso");
       setAlertMessage("La orden de acopio se ha eliminado correctamente");
       setShowAlert(true);
@@ -59,7 +62,6 @@ export default function AcopioIdPage({
   });
   const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
     onCompleted: () => {
-      // Redirigir a la página de adquisiciones/acopio después de la mutación
       setAlertType("exitoso");
       setAlertMessage("La orden de acopio se ha confirmado correctamente");
       setShowAlert(true);
@@ -193,16 +195,16 @@ export default function AcopioIdPage({
                 {detalles.map((detalle: DetalleOrdenAcopio) => (
                   <tr key={detalle.id}>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.familia_producto}
+                      {detalle.producto.familia}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.nombre_producto}
+                      {detalle.producto.nombre_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.codigo_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.unidad}
+                      {detalle.producto.unidad_medida}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.cantidad}

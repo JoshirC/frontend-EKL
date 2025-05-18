@@ -5,6 +5,12 @@ import { GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN } from "@/graphql/query";
 import { useQuery } from "@apollo/client";
 import Alert from "@/components/Alert";
 
+type Producto = {
+  nombre_producto: string;
+  codigo: string;
+  familia: string;
+  unidad_medida: string;
+};
 type Usuario = {
   id: number;
   rut: string;
@@ -14,11 +20,8 @@ type Usuario = {
 type DetalleOrdenAcopio = {
   id: number;
   id_orden_acopio: number;
-  familia_producto: string;
-  nombre_producto: string;
-  codigo_producto: string;
+  producto: Producto;
   cantidad: number;
-  unidad: string;
   enviado: boolean;
 };
 
@@ -26,6 +29,7 @@ type Envio = {
   id: number;
   detalleOrdenAcopio: DetalleOrdenAcopio;
   usuario: Usuario;
+  producto: Producto;
   codigo_producto_enviado: string;
   cantidad_enviada: number;
   guiaSalida: null | any;
@@ -119,7 +123,7 @@ export default function RegistroAcopioIdPage({
             <tbody>
               {detalleEnvio.map((detalle) => {
                 const codigoDiferente =
-                  detalle.detalleOrdenAcopio.codigo_producto !==
+                  detalle.detalleOrdenAcopio.producto.codigo !==
                   detalle.codigo_producto_enviado;
 
                 const cantidadDiferente =
@@ -136,10 +140,10 @@ export default function RegistroAcopioIdPage({
                 return (
                   <tr key={detalle.id} className={rowClass}>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.detalleOrdenAcopio.codigo_producto}
+                      {detalle.detalleOrdenAcopio.producto.codigo}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.detalleOrdenAcopio.nombre_producto}
+                      {detalle.detalleOrdenAcopio.producto.nombre_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.detalleOrdenAcopio.cantidad}{" "}
@@ -148,7 +152,7 @@ export default function RegistroAcopioIdPage({
                       {detalle.codigo_producto_enviado}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      Not Found
+                      {detalle.producto.nombre_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.usuario.nombre}

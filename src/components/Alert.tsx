@@ -16,20 +16,6 @@ const Alert: React.FC<AlertProps> = ({
   cerrar = false, // Valor por defecto
 }) => {
   useEffect(() => {
-    // Solo aplicar overflow-hidden si es modal
-    if (modal) {
-      document.body.style.overflow = "hidden";
-    }
-
-    // Limpieza: quitar overflow-hidden cuando el componente se desmonta
-    return () => {
-      if (modal) {
-        document.body.style.overflow = "";
-      }
-    };
-  }, [modal]);
-
-  useEffect(() => {
     // Configurar el temporizador para cerrar la alerta automáticamente si 'cerrar' es true
     if (cerrar) {
       const timer = setTimeout(() => {

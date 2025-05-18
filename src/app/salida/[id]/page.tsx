@@ -16,11 +16,19 @@ import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
+type Producto = {
+  codigo: string;
+  nombre_producto: string;
+  unidad_medida: string;
+  familia: string;
+  trazabilidad: boolean;
+};
 type Envio = {
   id: number;
   id_detalle_orden_acopio: number;
   cantidad_enviada: number;
   codigo_producto_enviado: string;
+  producto: Producto;
 };
 
 type DetalleOrdenAcopio = {
@@ -32,6 +40,7 @@ type DetalleOrdenAcopio = {
   cantidad: number;
   unidad: string;
   enviado: boolean;
+  producto: Producto;
   envios: Envio[];
 };
 
@@ -83,7 +92,7 @@ export default function AcopioSalidaIdPage({
     const detalles: DetalleOrdenAcopio[] = data?.ordenAcopio?.detalles || [];
 
     const grouped = detalles.reduce((acc, detalle) => {
-      const familia = detalle.familia_producto;
+      const familia = detalle.producto.familia;
       if (!acc[familia]) acc[familia] = [];
       acc[familia].push(detalle);
       return acc;
@@ -428,16 +437,16 @@ export default function AcopioSalidaIdPage({
                     }`}
                   >
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.familia_producto}
+                      {detalle.producto.familia}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.codigo_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.nombre_producto}
+                      {detalle.producto.nombre_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.unidad}
+                      {detalle.producto.unidad_medida}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.cantidad}
@@ -591,8 +600,7 @@ export default function AcopioSalidaIdPage({
                     <tr>
                       <td colSpan={7} className="border-0 p-2 sm:p-4">
                         <DropdownEnviosDetalleOrdenAcopio
-                          detalleOrdenAcopio={detalle}
-                          envios={detalle.envios}
+                          id_detalle_orden_acopio={detalle.id}
                           isOpen={true}
                           onClose={() => setDropdownEnviosOpen(null)}
                           onProcesoCompleto={stableRefetch}
