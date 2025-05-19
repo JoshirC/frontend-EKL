@@ -131,3 +131,13 @@ export const ELIMINAR_GUIA_SALIDA = gql`
     eliminarGuiaSalida(id: $id)
   }
 `;
+
+// Mutaciones para Productos
+export const UPDATE_TRAZABILIDAD = gql`
+  mutation updateTrazabilidad($codigo_producto: String!) {
+    updateTrazabilidad(codigo_producto: $codigo_producto) {
+      id
+      trazabilidad
+    }
+  }
+`;

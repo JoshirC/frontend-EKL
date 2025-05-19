@@ -1,7 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_PRODUCTOS } from "@/graphql/query";
+import { UPDATE_TRAZABILIDAD } from "@/graphql/mutations";
+import Alert from "@/components/Alert";
+import Confirmacion from "@/components/confirmacion";
 
 type Producto = {
   id: number;
@@ -15,30 +18,59 @@ type Producto = {
 };
 
 const ProductosPage: React.FC = () => {
-  const { loading, error, data } = useQuery(GET_PRODUCTOS);
+  const { loading, error, data, refetch } = useQuery(GET_PRODUCTOS);
+  const [editTrazabilidad] = useMutation(UPDATE_TRAZABILIDAD, {
+    onCompleted: () => {
+      refetch();
+      setAlertType("exitoso");
+      setAlertMessage("Trazabilidad actualizada correctamente");
+      setShowAlert(true);
+    },
+    onError: (error) => {
+      setAlertType("error");
+      setAlertMessage(`Error al actualizar trazabilidad: ${error.message}`);
+      setShowAlert(true);
+    },
+  });
+
   const [currentFamily, setCurrentFamily] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<Producto[]>([]);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
 
   useEffect(() => {
     if (data?.productos) {
-      const filtered = data.productos.filter((producto: Producto) => {
-        const matchesSearch =
-          producto.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          producto.nombre_producto
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
+      const filtered = data.productos
+        .filter((producto: Producto) => {
+          const matchesSearch =
+            producto.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            producto.nombre_producto
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase());
 
-        const matchesFamily =
-          !currentFamily || producto.familia === currentFamily;
+          const matchesFamily =
+            !currentFamily || producto.familia === currentFamily;
 
-        return matchesSearch && matchesFamily;
-      });
+          return matchesSearch && matchesFamily;
+        })
+        .sort((a: Producto, b: Producto) => {
+          if (a.trazabilidad !== b.trazabilidad) {
+            return a.trazabilidad ? -1 : 1;
+          }
+          return a.nombre_producto.localeCompare(b.nombre_producto);
+        });
+
       setFilteredProducts(filtered);
     }
   }, [data, searchTerm, currentFamily]);
 
-  if (loading) {
+  if (loading)
     return (
       <div className="p-10">
         <div className="bg-white p-6 rounded shadow">
@@ -46,9 +78,7 @@ const ProductosPage: React.FC = () => {
         </div>
       </div>
     );
-  }
-
-  if (error) {
+  if (error)
     return (
       <div className="p-10">
         <div className="bg-white p-6 rounded shadow">
@@ -56,23 +86,47 @@ const ProductosPage: React.FC = () => {
         </div>
       </div>
     );
-  }
 
   const productos: Producto[] = data.productos;
-
-  // Obtener todas las familias únicas
   const familyGroups = Array.from(
     new Set(productos.map((p) => p.familia))
   ).sort();
 
+  const handleConfirmacion = (confirmed: boolean) => {
+    if (confirmed && selectedProduct) {
+      editTrazabilidad({
+        variables: { codigo_producto: selectedProduct.codigo },
+      });
+    }
+    setShowConfirmacion(false);
+    setSelectedProduct(null);
+  };
+
   return (
     <div className="p-4 sm:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+          cerrar={true}
+        />
+      )}
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Trazabilidad"
+          mensaje={`¿Estás seguro de que deseas cambiar a trazable el producto: ${selectedProduct?.nombre_producto}?`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmacion}
+        />
+      )}
+
       <div className="bg-white p-6 rounded shadow">
-        {/* Título y botón de actualizar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold">Listado de Productos</h1>
           <div className="flex items-center gap-2">
-            {/* Buscador */}
+            {/* Barra de Busqueda */}
             <input
               type="text"
               placeholder="Buscar por código, descripción..."
@@ -80,20 +134,22 @@ const ProductosPage: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap">
+            <button
+              className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
+              onClick={() => refetch()}
+            >
               Actualizar Lista
             </button>
           </div>
         </div>
-        {/* Paginación por familia */}
+        {/* Paginacion por familia */}
         <div className="flex flex-col sm:flex-row justify-start items-center mt-2 pb-4 gap-4">
           <div className="flex items-center gap-2 sm:w-auto w-full">
             <button
               onClick={() => {
                 const currentIndex = familyGroups.indexOf(currentFamily || "");
-                if (currentIndex > 0) {
+                if (currentIndex > 0)
                   setCurrentFamily(familyGroups[currentIndex - 1]);
-                }
               }}
               disabled={
                 !currentFamily || familyGroups.indexOf(currentFamily) === 0
@@ -144,9 +200,8 @@ const ProductosPage: React.FC = () => {
             <button
               onClick={() => {
                 const currentIndex = familyGroups.indexOf(currentFamily || "");
-                if (currentIndex < familyGroups.length - 1) {
+                if (currentIndex < familyGroups.length - 1)
                   setCurrentFamily(familyGroups[currentIndex + 1]);
-                }
               }}
               disabled={
                 !currentFamily ||
@@ -163,7 +218,7 @@ const ProductosPage: React.FC = () => {
             </button>
           </div>
         </div>
-        {/* Tabla de productos */}
+        {/* Tabla de Productos */}
         <div className="overflow-x-auto">
           <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
             <thead className="bg-gray-200">
@@ -215,11 +270,15 @@ const ProductosPage: React.FC = () => {
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       <button
-                        className={` text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
+                        className={`text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
                           producto.trazabilidad
-                            ? "bg-green-500 text-white"
-                            : "bg-red-400 hover:bg-red-500 text-white"
+                            ? "bg-orange-500 hover:bg-orange-600"
+                            : "bg-red-400 hover:bg-red-500"
                         }`}
+                        onClick={() => {
+                          setShowConfirmacion(true);
+                          setSelectedProduct(producto);
+                        }}
                       >
                         {producto.trazabilidad ? "SI" : "NO"}
                       </button>
