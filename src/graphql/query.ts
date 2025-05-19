@@ -181,3 +181,18 @@ export const GET_GUIA_DE_SALIDA = gql`
     }
   }
 `;
+// Query para Productos
+export const GET_PRODUCTOS = gql`
+  query {
+    productos {
+      id
+      nombre_producto
+      codigo
+      familia
+      unidad_medida
+      cantidad
+      cantidad_softland
+      trazabilidad
+    }
+  }
+`;

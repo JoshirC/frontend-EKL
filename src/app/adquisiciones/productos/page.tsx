@@ -1,0 +1,247 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import { useQuery } from "@apollo/client";
+import { GET_PRODUCTOS } from "@/graphql/query";
+
+type Producto = {
+  id: number;
+  codigo: string;
+  nombre_producto: string;
+  familia: string;
+  unidad_medida: string;
+  cantidad: number;
+  cantidad_softland: number;
+  trazabilidad: boolean;
+};
+
+const ProductosPage: React.FC = () => {
+  const { loading, error, data } = useQuery(GET_PRODUCTOS);
+  const [currentFamily, setCurrentFamily] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredProducts, setFilteredProducts] = useState<Producto[]>([]);
+
+  useEffect(() => {
+    if (data?.productos) {
+      const filtered = data.productos.filter((producto: Producto) => {
+        const matchesSearch =
+          producto.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          producto.nombre_producto
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+
+        const matchesFamily =
+          !currentFamily || producto.familia === currentFamily;
+
+        return matchesSearch && matchesFamily;
+      });
+      setFilteredProducts(filtered);
+    }
+  }, [data, searchTerm, currentFamily]);
+
+  if (loading) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Cargando productos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Error al cargar productos: {error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const productos: Producto[] = data.productos;
+
+  // Obtener todas las familias únicas
+  const familyGroups = Array.from(
+    new Set(productos.map((p) => p.familia))
+  ).sort();
+
+  return (
+    <div className="p-4 sm:p-10">
+      <div className="bg-white p-6 rounded shadow">
+        {/* Título y botón de actualizar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <h1 className="text-2xl font-semibold">Listado de Productos</h1>
+          <div className="flex items-center gap-2">
+            {/* Buscador */}
+            <input
+              type="text"
+              placeholder="Buscar por código, descripción..."
+              className="w-full p-4 my-4 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap">
+              Actualizar Lista
+            </button>
+          </div>
+        </div>
+        {/* Paginación por familia */}
+        <div className="flex flex-col sm:flex-row justify-start items-center mt-2 pb-4 gap-4">
+          <div className="flex items-center gap-2 sm:w-auto w-full">
+            <button
+              onClick={() => {
+                const currentIndex = familyGroups.indexOf(currentFamily || "");
+                if (currentIndex > 0) {
+                  setCurrentFamily(familyGroups[currentIndex - 1]);
+                }
+              }}
+              disabled={
+                !currentFamily || familyGroups.indexOf(currentFamily) === 0
+              }
+              className={`p-3 rounded font-semibold text-sm sm:text-base ${
+                !currentFamily || familyGroups.indexOf(currentFamily) === 0
+                  ? "bg-gray-200 cursor-not-allowed"
+                  : "bg-orange-500 hover:bg-orange-600 text-white"
+              }`}
+            >
+              Anterior
+            </button>
+
+            <div className="flex-1 overflow-x-hidden">
+              <div className="flex space-x-2 justify-center">
+                {familyGroups
+                  .slice(
+                    Math.max(
+                      0,
+                      Math.min(
+                        familyGroups.indexOf(currentFamily || "") - 2,
+                        familyGroups.length - 5
+                      )
+                    ),
+                    Math.min(
+                      familyGroups.indexOf(currentFamily || "") + 3,
+                      familyGroups.length
+                    )
+                  )
+                  .map((family) => (
+                    <button
+                      key={family}
+                      onClick={() => setCurrentFamily(family)}
+                      className={`p-3 rounded text-sm sm:text-base font-semibold min-w-max whitespace-nowrap ${
+                        currentFamily === family
+                          ? "bg-gray-400 text-white"
+                          : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                      }`}
+                    >
+                      <span className="max-w-[100px] sm:max-w-[150px] truncate">
+                        {family}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                const currentIndex = familyGroups.indexOf(currentFamily || "");
+                if (currentIndex < familyGroups.length - 1) {
+                  setCurrentFamily(familyGroups[currentIndex + 1]);
+                }
+              }}
+              disabled={
+                !currentFamily ||
+                familyGroups.indexOf(currentFamily) === familyGroups.length - 1
+              }
+              className={`p-3 rounded font-semibold text-sm sm:text-base ${
+                !currentFamily ||
+                familyGroups.indexOf(currentFamily) === familyGroups.length - 1
+                  ? "bg-gray-200 cursor-not-allowed"
+                  : "bg-orange-500 hover:bg-orange-600 text-white"
+              }`}
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+        {/* Tabla de productos */}
+        <div className="overflow-x-auto">
+          <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Código
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Descripción
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Familia
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Unidad Medida
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Cantidad
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Cantidad Softland
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Trazabilidad
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((producto) => (
+                  <tr key={producto.id}>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {producto.codigo}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {producto.nombre_producto}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {producto.familia}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {producto.unidad_medida}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {producto.cantidad}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {producto.cantidad_softland}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      <button
+                        className={` text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
+                          producto.trazabilidad
+                            ? "bg-green-500 text-white"
+                            : "bg-red-400 hover:bg-red-500 text-white"
+                        }`}
+                      >
+                        {producto.trazabilidad ? "SI" : "NO"}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="border border-gray-300 px-4 py-6 text-center text-gray-500"
+                  >
+                    No se encontraron productos que coincidan con la búsqueda
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductosPage;
