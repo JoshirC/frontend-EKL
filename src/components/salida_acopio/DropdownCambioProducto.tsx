@@ -1,38 +1,42 @@
 import React, { useEffect, useState } from "react";
-import { useMutation } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
   UPDATE_ESTADO_DETALLE_ACOPIO,
 } from "@/graphql/mutations";
+import { GET_PRODUCTOS_ASOCIADOS_POR_CODIGO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
 import Alert from "../Alert";
+import CambiarProducto from "./cambiarProducto";
 interface DropdownAccionesProps {
   id_detalle_orden_acopio: number;
-  codigoProducto: string;
-  descripcion: string;
   cantidad: number;
   isOpen: boolean;
+  producto?: Producto;
   onClose: () => void;
   onProductoEnviado?: () => void;
 }
 
-interface Producto {
+type Producto = {
   codigo: string;
-  descripcion: string;
-  unidad: string;
-}
+  nombre_producto: string;
+  cantidad: number;
+  unidad_medida: string;
+  familia: string;
+  trazabilidad: boolean;
+};
 
 interface ProductoEnviado {
   codigo: string;
   enviado: boolean;
+  producto: Producto;
 }
 
-const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
+const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
   id_detalle_orden_acopio,
-  codigoProducto,
-  descripcion,
   cantidad,
   isOpen,
+  producto,
   onClose,
   onProductoEnviado, // Recibimos la prop
 }) => {
@@ -42,7 +46,8 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
-  const [cerrarModal, setCerrarModal] = useState(false);
+  // Estados para el modal cambiar producto
+  const [showCambiarProducto, setShowCambiarProducto] = useState(false);
   // Estados para productos
   const [productosAsociados, setProductosAsociados] = useState<Producto[]>([]);
   const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
@@ -52,44 +57,19 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
     []
   );
   const { rutUsuario } = useJwtStore();
-  const [loading, setLoading] = useState(false);
+  const [loadingState, setLoadingState] = useState(false);
 
   const [createEnvioDetalleOrdenAcopio] = useMutation(
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO
   );
   const [updateEstadoEnviado] = useMutation(UPDATE_ESTADO_DETALLE_ACOPIO);
 
-  // Obtener productos asociados
-  const fetchProductosAsociados = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:8000/api/v1/productos-asociados/${codigoProducto}`
-      );
-      if (!response.ok) {
-        setAlertType("error");
-        setAlertMessage("Error al obtener productos asociados");
-        setShowAlert(true);
-        return;
-      }
-
-      const data = await response.json();
-      setProductosAsociados(data);
-      setProductosFiltrados(data);
-      // Inicializar estado de envío para cada producto
-      setProductosEnviados(
-        data.map(
-          (p: Producto) =>
-            ({ codigo: p.codigo, enviado: false } as ProductoEnviado)
-        )
-      );
-    } catch (error) {
-      setAlertType("error");
-      setAlertMessage(
-        "Error al obtener productos asociados, descripción: " + error
-      );
-      setShowAlert(true);
+  const { loading, error, data } = useQuery(
+    GET_PRODUCTOS_ASOCIADOS_POR_CODIGO,
+    {
+      variables: { codigoProducto: producto?.codigo },
     }
-  };
+  );
 
   // Filtrar productos
   const filtrarProductos = (textoBusqueda: string) => {
@@ -100,7 +80,7 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
 
     const resultados = productosAsociados.filter(
       (producto) =>
-        producto.descripcion
+        producto.nombre_producto
           .toLowerCase()
           .includes(textoBusqueda.toLowerCase()) ||
         producto.codigo.toLowerCase().includes(textoBusqueda.toLowerCase())
@@ -127,7 +107,7 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
       return;
     }
 
-    setLoading(true);
+    setLoadingState(true);
 
     try {
       await createEnvioDetalleOrdenAcopio({
@@ -154,30 +134,55 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
       setAlertMessage("Error al enviar el producto, descripción: " + error);
       setShowAlert(true);
     } finally {
-      setLoading(false);
+      setLoadingState(false);
     }
   };
-
-  // Efectos
-  useEffect(() => {
-    if (isOpen) fetchProductosAsociados();
-  }, [isOpen, codigoProducto]);
 
   useEffect(() => {
     filtrarProductos(busqueda);
   }, [busqueda, productosAsociados]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (data?.productosAsociados) {
+      setProductosAsociados(data.productosAsociados);
+      setProductosFiltrados(data.productosAsociados);
+    }
+  }, [data?.productosAsociados]);
+
+  if (loading) return <div>Cargando...</div>;
+  if (error) {
+    setAlertType("error");
+    setAlertMessage("Error al cargar los productos asociados");
+    setShowAlert(true);
+    return null;
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded shadow-lg py-3 sm:py-4 px-4 sm:px-8 m-1">
+      <CambiarProducto
+        isOpen={showCambiarProducto}
+        onClose={() => setShowCambiarProducto(false)}
+        codigoProductoSolicitado={producto?.codigo || ""}
+        producto={
+          producto || {
+            codigo: "",
+            nombre_producto: "",
+            unidad_medida: "",
+            familia: "",
+            trazabilidad: false,
+          }
+        }
+      />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
         <h2 className="text-base font-semibold sm:text-lg">
           Productos para reemplazar
         </h2>
         <div className="hidden sm:flex items-center gap-4">
-          <button className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-500 transition duration-200">
-            Buscar otro producto
+          <button
+            className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-500 transition duration-200"
+            onClick={() => setShowCambiarProducto(true)}
+          >
+            Otros productos
           </button>
           <button
             className="bg-gray-500 text-white font-semibold px-4 py-2 rounded hover:bg-gray-600 transition duration-200"
@@ -191,11 +196,11 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
         </div>
       </div>
       <div className="bg-gray-200 p-3 sm:p-2 text-black rounded w-full text-center font-bold mt-3">
-        Producto - {descripcion}
+        Producto - {producto?.nombre_producto}
       </div>
       <div className="flex flex-col sm:flex-row justify-around items-center my-3 gap-4 sm:gap-6 font-bold">
         <div className="bg-gray-200 p-3 sm:p-2 text-black rounded w-full text-center">
-          Codigo Producto - {codigoProducto}
+          Codigo Producto - {producto?.codigo}
         </div>
         <div className="bg-gray-200 p-3 sm:p-2 text-black rounded w-full text-center">
           Cantidad a enviar - {cantidad}
@@ -236,40 +241,43 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
             >
               <div className="flex flex-col gap-1 sm:gap-2">
                 <h2 className="text-sm sm:text-base">
-                  Código: {producto.codigo}
+                  {producto.nombre_producto}
                 </h2>
                 <h2 className="text-gray-500 text-sm sm:text-base">
-                  {producto.descripcion}
+                  Código: {producto.codigo}
                 </h2>
               </div>
 
               {!fueEnviado ? (
-                <div className="flex flex-col justify-end sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-1/3">
+                <div className="flex flex-col justify-end  sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                   <input
                     type="number"
                     min="1"
                     value={cantidades[producto.codigo] || ""}
+                    placeholder={producto.cantidad.toString()}
                     onChange={(e) =>
                       handleCambioCantidad(
                         producto.codigo,
                         Number(e.target.value)
                       )
                     }
-                    className="w-20 border border-gray-300 rounded p-1 text-sm sm:text-base"
-                    disabled={loading}
+                    className="w-20 border border-gray-300 rounded p-2 text-sm sm:text-base"
+                    disabled={loadingState}
                   />
                   <button
                     onClick={() => handleEnviarProducto(producto.codigo)}
                     className={`bg-blue-400 text-white font-semibold p-2 sm:px-4 rounded w-full sm:w-auto ${
-                      loading ? "opacity-50" : "hover:bg-blue-500"
+                      loadingState ? "opacity-50" : "hover:bg-blue-500"
                     } transition duration-200`}
-                    disabled={loading}
+                    disabled={loadingState}
                   >
-                    {loading ? "Enviando..." : "Reemplazar"}
+                    {loadingState ? "Enviando..." : "Reemplazar"}
                   </button>
                 </div>
               ) : (
-                <div className="w-20"></div> // Espacio vacío para alinear
+                <div className="text-gray-500 text-sm sm:text-base">
+                  Producto ya enviado
+                </div>
               )}
             </div>
           );
@@ -298,4 +306,4 @@ const DropdownAcciones: React.FC<DropdownAccionesProps> = ({
   );
 };
 
-export default DropdownAcciones;
+export default DropdownCambioProducto;

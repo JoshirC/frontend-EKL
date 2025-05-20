@@ -2,8 +2,7 @@
 
 import React, { useState, use, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import CambiarProducto from "@/components/salida_acopio/cambiarProducto";
-import DropdownAcciones from "@/components/salida_acopio/DropdownAcciones";
+import DropdownCambioProducto from "@/components/salida_acopio/DropdownCambioProducto";
 import DropdownEnviosDetalleOrdenAcopio from "@/components/salida_acopio/dropdownEnviosDetalleOrdenAcopio";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
@@ -612,11 +611,10 @@ export default function AcopioSalidaIdPage({
                   {dropdownCambiarProductoOpen === detalle.id && (
                     <tr>
                       <td colSpan={7} className="border-0 p-2 sm:p-4">
-                        <DropdownAcciones
+                        <DropdownCambioProducto
                           id_detalle_orden_acopio={detalle.id}
-                          codigoProducto={detalle.codigo_producto}
-                          descripcion={detalle.nombre_producto}
                           cantidad={detalle.cantidad}
+                          producto={detalle.producto}
                           isOpen={true}
                           onClose={() => setDropdownCambiarProductoOpen(null)}
                           onProductoEnviado={stableRefetch}

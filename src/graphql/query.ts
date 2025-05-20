@@ -196,3 +196,17 @@ export const GET_PRODUCTOS = gql`
     }
   }
 `;
+export const GET_PRODUCTOS_ASOCIADOS_POR_CODIGO = gql`
+  query productosAsociados($codigoProducto: String!) {
+    productosAsociados(codigoProducto: $codigoProducto) {
+      id
+      codigo
+      nombre_producto
+      familia
+      unidad_medida
+      cantidad
+      cantidad_softland
+      trazabilidad
+    }
+  }
+`;
