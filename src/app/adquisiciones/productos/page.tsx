@@ -249,7 +249,7 @@ const ProductosPage: React.FC = () => {
             <tbody>
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((producto) => (
-                  <tr key={producto.id}>
+                  <tr key={producto.id} className="hover:bg-gray-100">
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {producto.codigo}
                     </td>
@@ -272,7 +272,7 @@ const ProductosPage: React.FC = () => {
                       <button
                         className={`text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
                           producto.trazabilidad
-                            ? "bg-orange-500 hover:bg-orange-600"
+                            ? "bg-orange-400 hover:bg-orange-500"
                             : "bg-red-400 hover:bg-red-500"
                         }`}
                         onClick={() => {
