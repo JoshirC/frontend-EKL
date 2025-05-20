@@ -74,6 +74,7 @@ export const GET_ORDEN_ACOPIO = gql`
           codigo
           familia
           unidad_medida
+          cantidad
           cantidad_softland
           trazabilidad
         }

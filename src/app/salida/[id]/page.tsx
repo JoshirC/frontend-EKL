@@ -20,6 +20,7 @@ type Producto = {
   nombre_producto: string;
   unidad_medida: string;
   familia: string;
+  cantidad: number;
   trazabilidad: boolean;
 };
 type Envio = {
@@ -208,9 +209,22 @@ export default function AcopioSalidaIdPage({
     cantidad: number,
     codigo: string
   ) => {
+    // Busca el detalle correspondiente
+    const detalle = currentItems.find((d) => d.id === id_detalle);
+    const cantidadSolicitada = detalle?.producto.cantidad ?? 0;
+
     if (cantidad < 0) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad no puede ser menor a 0");
+      setShowAlert(true);
+      return;
+    }
+
+    if (cantidad > cantidadSolicitada) {
+      setAlertType("advertencia");
+      setAlertMessage(
+        "La cantidad enviada no puede ser mayor a la disponible en sistema"
+      );
       setShowAlert(true);
       return;
     }
@@ -222,7 +236,7 @@ export default function AcopioSalidaIdPage({
       return;
     }
 
-    setLoadingSave(id_detalle); // Activa el estado de carga para este detalle
+    setLoadingSave(id_detalle);
 
     try {
       await createEnvioDetalleOrdenAcopio({
@@ -238,7 +252,7 @@ export default function AcopioSalidaIdPage({
       setAlertMessage("Error al crear el envío, descripción del error: " + err);
       setShowAlert(true);
     } finally {
-      setLoadingSave(null); // Desactiva el estado de carga
+      setLoadingSave(null);
     }
   };
 
@@ -248,6 +262,8 @@ export default function AcopioSalidaIdPage({
   };
 
   const handleSaveEdit = async (detalleId: number, envioId: number) => {
+    const detalle = currentItems.find((d) => d.id === detalleId);
+    const cantidadSolicitada = detalle?.producto.cantidad ?? 0;
     if (!editValue || isNaN(Number(editValue))) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad no es válida");
@@ -259,6 +275,14 @@ export default function AcopioSalidaIdPage({
     if (cantidad <= 0) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad debe ser mayor o igual a 0");
+      setShowAlert(true);
+      return;
+    }
+    if (cantidad > cantidadSolicitada) {
+      setAlertType("advertencia");
+      setAlertMessage(
+        "La cantidad enviada no puede ser mayor a la disponible en sistema"
+      );
       setShowAlert(true);
       return;
     }
@@ -458,6 +482,9 @@ export default function AcopioSalidaIdPage({
                             <input
                               type="number"
                               value={cantidadesTemporales[detalle.id] || ""}
+                              placeholder={
+                                detalle.producto.cantidad?.toString() || "0"
+                              }
                               onChange={(e) =>
                                 handleCambioCantidad(
                                   detalle.id,
