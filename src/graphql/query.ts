@@ -211,3 +211,22 @@ export const GET_PRODUCTOS_ASOCIADOS_POR_CODIGO = gql`
     }
   }
 `;
+export const GET_ORDEN_COMPRA = gql`
+  query ordenCompra($codigo_orden_compra: String!) {
+    ordenCompra(codigo_orden_compra: $codigo_orden_compra) {
+      codigo
+      nombre
+      cantidad
+      precio_unitario
+      valor_total
+      producto {
+        nombre_producto
+        familia
+        unidad_medida
+        cantidad
+        cantidad_softland
+        trazabilidad
+      }
+    }
+  }
+`;

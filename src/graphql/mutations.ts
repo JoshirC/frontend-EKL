@@ -141,3 +141,13 @@ export const UPDATE_TRAZABILIDAD = gql`
     }
   }
 `;
+export const CREATE_PRODUCTO_SOFTLAND = gql`
+  mutation ccreateProductoSoftland($createProductoCode: String!) {
+    createProductoSoftland(createProductoCode: $createProductoCode) {
+      nombre_producto
+      codigo
+      familia
+      unidad_medida
+    }
+  }
+`;
