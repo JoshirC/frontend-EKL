@@ -1,7 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { GET_ORDEN_COMPRA } from "@/graphql/query";
-import { CREATE_PRODUCTO_SOFTLAND } from "@/graphql/mutations";
+import {
+  CREATE_PRODUCTO_SOFTLAND,
+  CREATE_GUIA_ENTRADA_WITH_DETAILS,
+} from "@/graphql/mutations";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
@@ -22,6 +25,11 @@ type Producto = {
   cantidad: number;
   cantidad_softland: number;
   trazabilidad: boolean;
+};
+type DetalleGuiaEntrada = {
+  codigo_producto: string;
+  cantidad_ingresada: number;
+  precio_unitario: number;
 };
 const OrdenCompraPage: React.FC = () => {
   // Estado para almacenar el número de orden de compra
@@ -49,6 +57,24 @@ const OrdenCompraPage: React.FC = () => {
   const [fetchOrdenCompra, { data, loading, error, refetch }] =
     useLazyQuery(GET_ORDEN_COMPRA);
 
+  const [createGuiaEntrada] = useMutation(CREATE_GUIA_ENTRADA_WITH_DETAILS, {
+    onCompleted: (data) => {
+      if (data.createGuiaEntradaWithDetails) {
+        setAlertType("exitoso");
+        setAlertMessage("Guía de entrada creada exitosamente.");
+        setShowAlert(true);
+      } else {
+        setAlertType("error");
+        setAlertMessage("Error al crear la guía de entrada.");
+        setShowAlert(true);
+      }
+    },
+    onError: (error) => {
+      setAlertType("error");
+      setAlertMessage(`Error: ${error.message}`);
+      setShowAlert(true);
+    },
+  });
   const [createProductoSoftland] = useMutation(CREATE_PRODUCTO_SOFTLAND, {
     onCompleted: (data) => {
       if (data.createProductoSoftland) {
@@ -145,6 +171,27 @@ const OrdenCompraPage: React.FC = () => {
   const handleAgregarProductos = (nuevosProductos: DetalleOrdenCompra[]) => {
     setDetalles((prev) => [...prev, ...nuevosProductos]);
   };
+  const handleCrearGuiaEntrada = () => {
+    if (detalles.length === 0) {
+      setAlertType("advertencia");
+      setAlertMessage("No hay productos para crear la guía de entrada.");
+      setShowAlert(true);
+      return;
+    }
+    const detallesGuiaEntrada = detalles.map((detalle) => ({
+      codigo_producto: detalle.codigo,
+      cantidad_ingresada: detalle.cantidad,
+      precio_unitario: detalle.precio_unitario,
+    }));
+    const guiaEntradaData = {
+      numero_orden_compra: parseInt(ordenCompra, 10),
+      fecha_generacion: new Date().toISOString(),
+      guiaEntradaDetalle: detallesGuiaEntrada,
+    };
+    createGuiaEntrada({
+      variables: { createGuiaEntradaInput: guiaEntradaData },
+    });
+  };
   if (loading)
     return (
       <div className="p-10">
@@ -202,7 +249,10 @@ const OrdenCompraPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row justify-between items-center">
           <h1 className="text-2xl font-semibold">Orden de Compra</h1>
           {detalles.length > 0 && (
-            <button className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap">
+            <button
+              className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
+              onClick={handleCrearGuiaEntrada}
+            >
               Terminar Orden de Compra
             </button>
           )}

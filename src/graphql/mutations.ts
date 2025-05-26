@@ -151,3 +151,25 @@ export const CREATE_PRODUCTO_SOFTLAND = gql`
     }
   }
 `;
+
+// Mutaciones para guia de entrada
+export const CREATE_GUIA_ENTRADA_WITH_DETAILS = gql`
+  mutation createGuiaEntradaWithDetails($createGuiaEntradaInput: CreateGuiaEntradaInput!) {
+    createGuiaEntradaWithDetails(createGuiaEntradaInput: $createGuiaEntradaInput) {
+      id
+      numero_orden_compra
+      fecha_generacion
+      estado
+      guiaEntradaDetalle {
+        id
+        cantidad_ingresada
+        precio_unitario
+        producto {
+          codigo
+          nombre_producto
+          cantidad
+        }
+      }
+    }
+  }
+`;
