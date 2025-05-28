@@ -211,6 +211,7 @@ export const GET_PRODUCTOS_ASOCIADOS_POR_CODIGO = gql`
     }
   }
 `;
+// Query para Orden de Compra
 export const GET_ORDEN_COMPRA = gql`
   query ordenCompra($codigo_orden_compra: String!) {
     ordenCompra(codigo_orden_compra: $codigo_orden_compra) {
@@ -226,6 +227,46 @@ export const GET_ORDEN_COMPRA = gql`
         cantidad
         cantidad_softland
         trazabilidad
+      }
+    }
+  }
+`;
+// Query para Guia de Entrada
+export const GET_GUIA_ENTRADA_BY_ESTADO = gql`
+  query guiaEntradaByEstado($estado: String!) {
+    guiaEntradaByEstado(estado: $estado) {
+      id
+      fecha_generacion
+      numero_orden_compra
+      estado
+    }
+  }
+`;
+export const GET_GUIA_ENTRADA_BY_ID = gql`
+  query guiaEntrada($id: Int!) {
+    guiaEntrada(id: $id) {
+      id
+      codigo_bodega
+      numero_folio
+      fecha_generacion
+      codigo_proveedor
+      codigo_centro_costo
+      numero_factura
+      fecha_factura
+      numero_orden_compra
+      estado
+      guiaEntradaDetalle {
+        id
+        cantidad_ingresada
+        precio_unitario
+        id_guia_entrada
+        producto {
+          id
+          codigo
+          nombre_producto
+          familia
+          unidad_medida
+        }
       }
     }
   }

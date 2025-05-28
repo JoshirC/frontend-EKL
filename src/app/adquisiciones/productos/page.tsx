@@ -2,9 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_PRODUCTOS } from "@/graphql/query";
-import { UPDATE_TRAZABILIDAD } from "@/graphql/mutations";
+import {
+  UPDATE_TRAZABILIDAD,
+  ACTUALIZAR_STOCK_SOFTLAND,
+  ACTUALIZAR_PRODUCTOS_SOFTLAND,
+} from "@/graphql/mutations";
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
+import Cargando from "@/components/cargando";
 
 type Producto = {
   id: number;
@@ -43,7 +48,46 @@ const ProductosPage: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
+  const [showCargando, setShowCargando] = useState(false);
+  const [cargandoMensaje, setCargandoMensaje] = useState("");
 
+  const [actualizarStockSoftland] = useMutation(ACTUALIZAR_STOCK_SOFTLAND, {
+    onCompleted: () => {
+      refetch();
+      setShowCargando(false);
+      setAlertType("exitoso");
+      setAlertMessage("Stock de Softland actualizado correctamente");
+      setShowAlert(true);
+    },
+    onError: (error) => {
+      setShowCargando(false);
+      setAlertType("error");
+      setAlertMessage(
+        `Error al actualizar stock de Softland: ${error.message}`
+      );
+      setShowAlert(true);
+    },
+  });
+  const [actualizarProductosSoftland] = useMutation(
+    ACTUALIZAR_PRODUCTOS_SOFTLAND,
+    {
+      onCompleted: () => {
+        setShowCargando(false);
+        refetch();
+        setAlertType("exitoso");
+        setAlertMessage("Productos de Softland actualizados correctamente");
+        setShowAlert(true);
+      },
+      onError: (error) => {
+        setShowCargando(false);
+        setAlertType("error");
+        setAlertMessage(
+          `Error al actualizar productos de Softland: ${error.message}`
+        );
+        setShowAlert(true);
+      },
+    }
+  );
   useEffect(() => {
     if (data?.productos) {
       const filtered = data.productos
@@ -101,6 +145,16 @@ const ProductosPage: React.FC = () => {
     setShowConfirmacion(false);
     setSelectedProduct(null);
   };
+  const handleActualizarStockSoftland = () => {
+    setShowCargando(true);
+    setCargandoMensaje("Actualizando stock de productos desde Softland");
+    actualizarStockSoftland();
+  };
+  const handleActualizarProductosSoftland = () => {
+    setShowCargando(true);
+    setCargandoMensaje("Actualizando productos de Softland");
+    actualizarProductosSoftland();
+  };
 
   return (
     <div className="p-4 sm:p-10">
@@ -121,6 +175,13 @@ const ProductosPage: React.FC = () => {
           onConfirm={handleConfirmacion}
         />
       )}
+      {showCargando && (
+        <Cargando
+          isOpen={showCargando}
+          mensaje={cargandoMensaje}
+          onClose={() => setShowCargando(false)}
+        />
+      )}
 
       <div className="bg-white p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -136,9 +197,17 @@ const ProductosPage: React.FC = () => {
             />
             <button
               className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
-              onClick={() => refetch()}
+              onClick={() => handleActualizarProductosSoftland()}
+              disabled={loading}
             >
-              Actualizar Lista
+              Actualizar Productos
+            </button>
+            <button
+              className="bg-blue-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-blue-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
+              onClick={() => handleActualizarStockSoftland()}
+              disabled={loading}
+            >
+              Actualizar Stock Softland
             </button>
           </div>
         </div>

@@ -222,6 +222,16 @@ const Navbar = () => {
                     </div>
                   </Link>
                   {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                    <Link href="/entrada/revision">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200"
+                        onClick={handleSelectOption}
+                      >
+                        Revisión guia de Entrada
+                      </div>
+                    </Link>
+                  )}
+                  {!["Bodeguero"].includes(rolUsuario ?? "") && (
                     <Link href="/entrada/carga">
                       <div
                         className="block px-4 py-2 hover:bg-orange-200"
@@ -417,6 +427,16 @@ const Navbar = () => {
                         ▶ Ingreso de Productos
                       </div>
                     </Link>
+                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                      <Link href="/entrada/revision">
+                        <div
+                          className="block px-4 py-2 text-black font-medium hover:bg-orange-300 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          ▶ Revisión guia de Entrada
+                        </div>
+                      </Link>
+                    )}
                     {!["Bodeguero"].includes(rolUsuario ?? "") && (
                       <Link href="/entrada/carga">
                         <div

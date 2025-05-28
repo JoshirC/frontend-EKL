@@ -151,6 +151,16 @@ export const CREATE_PRODUCTO_SOFTLAND = gql`
     }
   }
 `;
+export const ACTUALIZAR_STOCK_SOFTLAND = gql`
+  mutation {
+    actualizarStockSoftland
+  }
+`;
+export const ACTUALIZAR_PRODUCTOS_SOFTLAND = gql`
+  mutation {
+    sincronizarProductosDesdeSoftland
+  }
+`;
 
 // Mutaciones para guia de entrada
 export const CREATE_GUIA_ENTRADA_WITH_DETAILS = gql`
@@ -170,6 +180,13 @@ export const CREATE_GUIA_ENTRADA_WITH_DETAILS = gql`
           cantidad
         }
       }
+    }
+  }
+`;
+export const UPDATE_GUIA_ENTRADA = gql`
+  mutation updateGuiaEntrada($updateGuiaEntradaInput: UpdateGuiaEntradaInput!) {
+    updateGuiaEntrada(updateGuiaEntradaInput: $updateGuiaEntradaInput) {
+      id
     }
   }
 `;

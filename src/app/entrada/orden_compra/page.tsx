@@ -26,11 +26,7 @@ type Producto = {
   cantidad_softland: number;
   trazabilidad: boolean;
 };
-type DetalleGuiaEntrada = {
-  codigo_producto: string;
-  cantidad_ingresada: number;
-  precio_unitario: number;
-};
+
 const OrdenCompraPage: React.FC = () => {
   // Estado para almacenar el número de orden de compra
   const [ordenCompra, setOrdenCompra] = useState<string>("");
@@ -53,7 +49,8 @@ const OrdenCompraPage: React.FC = () => {
     useState(false);
   // Estado para agregar un nuevo producto a la orden de compra
   const [mostrarAgregarProducto, setMostrarAgregarProducto] = useState(false);
-
+  // Estado para la fecha de hoy
+  const today = new Date();
   const [fetchOrdenCompra, { data, loading, error, refetch }] =
     useLazyQuery(GET_ORDEN_COMPRA);
 
@@ -63,6 +60,9 @@ const OrdenCompraPage: React.FC = () => {
         setAlertType("exitoso");
         setAlertMessage("Guía de entrada creada exitosamente.");
         setShowAlert(true);
+        setTimeout(() => {
+          window.location.href = "/entrada/revision"; // Redirigir a la página de revisión
+        }, 2000);
       } else {
         setAlertType("error");
         setAlertMessage("Error al crear la guía de entrada.");
@@ -113,7 +113,7 @@ const OrdenCompraPage: React.FC = () => {
         variables: { codigo_orden_compra: ordenCompra },
       });
       console.log(data);
-      if (!data?.ordenCompra || data.ordenCompra.length === 0) {
+      if (!data?.ordenCompra) {
         setAlertType("error");
         setAlertMessage("No se encontró la orden de compra.");
         setShowAlert(true);
@@ -183,9 +183,14 @@ const OrdenCompraPage: React.FC = () => {
       cantidad_ingresada: detalle.cantidad,
       precio_unitario: detalle.precio_unitario,
     }));
+    const fecha_generacion = `${today.getDate().toString().padStart(2, "0")}/${(
+      today.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}/${today.getFullYear()}`;
     const guiaEntradaData = {
       numero_orden_compra: parseInt(ordenCompra, 10),
-      fecha_generacion: new Date().toISOString(),
+      fecha_generacion,
       guiaEntradaDetalle: detallesGuiaEntrada,
     };
     createGuiaEntrada({
@@ -275,7 +280,7 @@ const OrdenCompraPage: React.FC = () => {
           </button>
         </div>
         {/* Tabla de Contenidos */}
-        {detalles.length > 0 && (
+        {detalles.length > 0 ? (
           <div className="overflow-x-auto mt-6">
             <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
               <thead className="bg-gray-200">
@@ -421,6 +426,12 @@ const OrdenCompraPage: React.FC = () => {
                 Agregar Producto
               </button>
             </div>
+          </div>
+        ) : (
+          <div className="mt-6 text-center">
+            <p className="text-gray-500">
+              No hay productos sin guardar en la orden de compra.
+            </p>
           </div>
         )}
       </div>
