@@ -280,7 +280,7 @@ const OrdenCompraPage: React.FC = () => {
           </button>
         </div>
         {/* Tabla de Contenidos */}
-        {detalles.length > 0 ? (
+        {detalles.length > 0 && ordenCompra != "" ? (
           <div className="overflow-x-auto mt-6">
             <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
               <thead className="bg-gray-200">

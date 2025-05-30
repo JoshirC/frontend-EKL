@@ -190,3 +190,19 @@ export const UPDATE_GUIA_ENTRADA = gql`
     }
   }
 `;
+export const UPDATE_ESTADO_GUIA_ENTRADAS = gql`
+  mutation updateEstadoGuiaEntrada($listId: [Int!]!, $estado: String!) {
+    updateEstadoGuiaEntrada(listId: $listId, estado: $estado) {
+      id
+      codigo_bodega
+      numero_folio
+      fecha_generacion
+      codigo_proveedor
+      codigo_centro_costo
+      numero_factura
+      fecha_factura
+      numero_orden_compra
+      estado
+    }
+  }
+`;

@@ -232,12 +232,12 @@ const Navbar = () => {
                     </Link>
                   )}
                   {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                    <Link href="/entrada/carga">
+                    <Link href="/entrada/carga_softland">
                       <div
                         className="block px-4 py-2 hover:bg-orange-200"
                         onClick={handleSelectOption}
                       >
-                        Carga Masiva
+                        Carga Masiva Softland
                       </div>
                     </Link>
                   )}
@@ -438,12 +438,12 @@ const Navbar = () => {
                       </Link>
                     )}
                     {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                      <Link href="/entrada/carga">
+                      <Link href="/entrada/carga_softland">
                         <div
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          ▶ Carga Masiva
+                          ▶ Carga Masiva Softland
                         </div>
                       </Link>
                     )}

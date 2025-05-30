@@ -236,9 +236,23 @@ export const GET_GUIA_ENTRADA_BY_ESTADO = gql`
   query guiaEntradaByEstado($estado: String!) {
     guiaEntradaByEstado(estado: $estado) {
       id
+      codigo_bodega
+      numero_folio
       fecha_generacion
+      codigo_proveedor
+      codigo_centro_costo
+      numero_factura
+      fecha_factura
       numero_orden_compra
-      estado
+      guiaEntradaDetalle {
+      id
+      producto {
+        codigo
+        nombre_producto
+    }
+        cantidad_ingresada
+        precio_unitario
+      }
     }
   }
 `;

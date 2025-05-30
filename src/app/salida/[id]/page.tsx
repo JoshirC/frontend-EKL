@@ -492,6 +492,7 @@ export default function AcopioSalidaIdPage({
                                 )
                               }
                               min={0}
+                              max={detalle.producto.cantidad || 0}
                               className="w-full border border-gray-300 rounded p-1"
                             />
                             <button
