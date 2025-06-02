@@ -306,6 +306,14 @@ const Navbar = () => {
                         Registro Acopio
                       </div>
                     </Link>
+                    <Link href="/reporte/trazabilidad">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200"
+                        onClick={handleSelectOption}
+                      >
+                        Trazabilidad
+                      </div>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -510,6 +518,14 @@ const Navbar = () => {
                           onClick={handleSelectOption}
                         >
                           ▶ Registro Acopio
+                        </div>
+                      </Link>
+                      <Link href="/reporte/trazabilidad">
+                        <div
+                          className="block px-4 py-2 hover:bg-orange-200"
+                          onClick={handleSelectOption}
+                        >
+                          ▶ Trazabilidad
                         </div>
                       </Link>
                     </div>

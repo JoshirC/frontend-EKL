@@ -197,7 +197,6 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
               id="fechaVencimiento"
               name="fechaVencimiento"
               type="date"
-              value={formData.fechaVencimiento}
               onChange={handleDateChange}
               required
               className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${

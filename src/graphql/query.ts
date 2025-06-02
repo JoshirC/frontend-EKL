@@ -285,3 +285,22 @@ export const GET_GUIA_ENTRADA_BY_ID = gql`
     }
   }
 `;
+// Query para Trazabilidad
+export const GET_LISTA_TRAZABILIDAD = gql`
+  query {
+    listaTrazabilidad {
+      id
+      numero_lote
+      fecha_elaboracion
+      fecha_vencimiento
+      temperatura
+      condicion_envasado
+      observaciones
+      producto {
+        id
+        codigo
+        nombre_producto
+      }
+    }
+  }
+`;
