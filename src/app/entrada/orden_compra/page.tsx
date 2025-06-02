@@ -9,6 +9,7 @@ import { useLazyQuery, useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
 import AgregarProductoOC from "@/components/entrada_productos/agregarProductoOC";
+import DropdownTrazabilidad from "@/components/entrada_productos/dropdownTrazabilidad";
 type DetalleOrdenCompra = {
   codigo: string;
   nombre: string;
@@ -53,7 +54,10 @@ const OrdenCompraPage: React.FC = () => {
   const today = new Date();
   const [fetchOrdenCompra, { data, loading, error, refetch }] =
     useLazyQuery(GET_ORDEN_COMPRA);
-
+  //Estado para abrir dropdown de trazabilidad
+  const [showDropdownTrazabilidad, setShowDropdownTrazabilidad] =
+    useState(false);
+  const [idTrazabilidad, setIdTrazabilidad] = useState<number | null>(null);
   const [createGuiaEntrada] = useMutation(CREATE_GUIA_ENTRADA_WITH_DETAILS, {
     onCompleted: (data) => {
       if (data.createGuiaEntradaWithDetails) {
@@ -310,110 +314,139 @@ const OrdenCompraPage: React.FC = () => {
               </thead>
               <tbody>
                 {detalles.map((detalle, index) => (
-                  <tr key={index} className="hover:bg-gray-100">
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.codigo}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.nombre}
-                    </td>
+                  <React.Fragment key={index}>
+                    <tr key={index} className="hover:bg-gray-100">
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {detalle.codigo}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {detalle.nombre}
+                      </td>
 
-                    {/* Validación si el editar esta activo en dicha fila */}
-                    {indexEditar == index ? (
-                      <>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          <input
-                            type="number"
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                            value={detalle.cantidad}
-                            onChange={(e) =>
-                              handleEditarDetalles(
-                                index,
-                                "cantidad",
-                                parseInt(e.target.value)
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          <input
-                            type="number"
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                            value={detalle.precio_unitario}
-                            onChange={(e) =>
-                              handleEditarDetalles(
-                                index,
-                                "precio_unitario",
-                                parseInt(e.target.value)
-                              )
-                            }
-                          />
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          {detalle.cantidad}
-                        </td>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          $ {detalle.precio_unitario}
-                        </td>
-                      </>
-                    )}
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      $ {detalle.valor_total}
-                    </td>
-                    {/* Validación si el producto debe tener trazabilidad */}
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.producto?.trazabilidad ? (
-                        <button className="bg-blue-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-blue-500 transition duration-300 w-full whitespace-nowrap">
-                          Registrar
-                        </button>
+                      {/* Validación si el editar esta activo en dicha fila */}
+                      {indexEditar == index ? (
+                        <>
+                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                            <input
+                              type="number"
+                              className="w-full p-2 border border-gray-300 rounded-md"
+                              value={detalle.cantidad}
+                              onChange={(e) =>
+                                handleEditarDetalles(
+                                  index,
+                                  "cantidad",
+                                  parseInt(e.target.value)
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                            <input
+                              type="number"
+                              className="w-full p-2 border border-gray-300 rounded-md"
+                              value={detalle.precio_unitario}
+                              onChange={(e) =>
+                                handleEditarDetalles(
+                                  index,
+                                  "precio_unitario",
+                                  parseInt(e.target.value)
+                                )
+                              }
+                            />
+                          </td>
+                        </>
                       ) : (
-                        <span className="text-sm"></span>
+                        <>
+                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                            {detalle.cantidad}
+                          </td>
+                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                            $ {detalle.precio_unitario}
+                          </td>
+                        </>
                       )}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      <div className="flex flex-row gap-2 justify-center">
-                        {/* Validación si el productos existe en la db */}
-                        {detalle.producto == null ? (
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        $ {detalle.valor_total}
+                      </td>
+                      {/* Validación si el producto debe tener trazabilidad */}
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {detalle.producto?.trazabilidad ? (
                           <button
-                            className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-blue-400 hover:bg-blue-500 "
+                            className="bg-blue-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-blue-500 transition duration-300 w-full whitespace-nowrap"
                             onClick={() => {
-                              setShowConfirmacionCrearProducto(true);
-                              setIndexCrearProducto(index);
+                              setShowDropdownTrazabilidad(true);
+                              setIdTrazabilidad(index);
                             }}
                           >
-                            Producto no existe
+                            Registrar
                           </button>
                         ) : (
-                          <button
-                            className={`text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
-                              indexEditar == index
-                                ? "bg-blue-400 hover:bg-blue-500"
-                                : "bg-orange-400 hover:bg-orange-500"
-                            }`}
-                            onClick={() =>
-                              indexEditar == index
-                                ? setIndexEditar(-1)
-                                : setIndexEditar(index)
-                            }
-                          >
-                            {indexEditar == index ? "Guardar" : "Editar"}
-                          </button>
+                          <span className="text-sm"></span>
                         )}
-                        <button
-                          className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-red-400 hover:bg-red-500 "
-                          onClick={() => {
-                            setShowConfirmacionEliminar(true);
-                            setIndexEliminar(index);
-                          }}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        <div className="flex flex-row gap-2 justify-center">
+                          {/* Validación si el productos existe en la db */}
+                          {detalle.producto == null ? (
+                            <button
+                              className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-blue-400 hover:bg-blue-500 "
+                              onClick={() => {
+                                setShowConfirmacionCrearProducto(true);
+                                setIndexCrearProducto(index);
+                              }}
+                            >
+                              Crear Producto
+                            </button>
+                          ) : (
+                            <button
+                              className={`text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
+                                indexEditar == index
+                                  ? "bg-blue-400 hover:bg-blue-500"
+                                  : "bg-orange-400 hover:bg-orange-500"
+                              }`}
+                              onClick={() =>
+                                indexEditar == index
+                                  ? setIndexEditar(-1)
+                                  : setIndexEditar(index)
+                              }
+                            >
+                              {indexEditar == index ? "Guardar" : "Editar"}
+                            </button>
+                          )}
+                          <button
+                            className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-red-400 hover:bg-red-500 "
+                            onClick={() => {
+                              setShowConfirmacionEliminar(true);
+                              setIndexEliminar(index);
+                            }}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    {/* Dropdown de trazabilidad */}
+                    {idTrazabilidad === index && (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="border-0 p-2 sm:p-4 bg-gray-100"
                         >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                          <DropdownTrazabilidad
+                            codigoProducto={detalle.codigo}
+                            isOpen={showDropdownTrazabilidad}
+                            onClose={() => {
+                              setShowDropdownTrazabilidad(false),
+                                setIdTrazabilidad(null);
+                            }}
+                            onTrazabilidadCompletado={() =>
+                              setShowDropdownTrazabilidad(false)
+                            }
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

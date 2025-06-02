@@ -625,7 +625,10 @@ export default function AcopioSalidaIdPage({
 
                   {dropdownEnviosOpen === detalle.id && (
                     <tr>
-                      <td colSpan={7} className="border-0 p-2 sm:p-4">
+                      <td
+                        colSpan={7}
+                        className="border-0 p-2 sm:p-4 bg-gray-100"
+                      >
                         <DropdownEnviosDetalleOrdenAcopio
                           id_detalle_orden_acopio={detalle.id}
                           isOpen={true}
@@ -638,7 +641,10 @@ export default function AcopioSalidaIdPage({
 
                   {dropdownCambiarProductoOpen === detalle.id && (
                     <tr>
-                      <td colSpan={7} className="border-0 p-2 sm:p-4">
+                      <td
+                        colSpan={7}
+                        className="border-0 p-2 sm:p-4 bg-gray-100 "
+                      >
                         <DropdownCambioProducto
                           id_detalle_orden_acopio={detalle.id}
                           cantidad={detalle.cantidad}

@@ -134,8 +134,8 @@ export const ELIMINAR_GUIA_SALIDA = gql`
 
 // Mutaciones para Productos
 export const UPDATE_TRAZABILIDAD = gql`
-  mutation updateTrazabilidad($codigo_producto: String!) {
-    updateTrazabilidad(codigo_producto: $codigo_producto) {
+  mutation updateTrazabilidadProducto($codigo_producto: String!) {
+    updateTrazabilidadProducto(codigo_producto: $codigo_producto) {
       id
       trazabilidad
     }
@@ -203,6 +203,25 @@ export const UPDATE_ESTADO_GUIA_ENTRADAS = gql`
       fecha_factura
       numero_orden_compra
       estado
+    }
+  }
+`;
+// Mutaciones para Trazabilidad
+export const CREATE_TRAZABILIDAD = gql`
+  mutation createTrazabilidad($createTrazabilidadInput: CreateTrazabilidadInput!) {
+    createTrazabilidad(createTrazabilidadInput: $createTrazabilidadInput) {
+      id
+      numero_lote
+      fecha_elaboracion
+      fecha_vencimiento
+      temperatura
+      condicion_envasado
+      observaciones
+      producto {
+        id
+        codigo
+        nombre_producto
+      }
     }
   }
 `;

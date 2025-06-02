@@ -4,7 +4,7 @@ import { GET_GUIA_ENTRADA_BY_ID } from "@/graphql/query";
 import { UPDATE_GUIA_ENTRADA } from "@/graphql/mutations";
 import { useQuery, useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
-
+import { formatDateToDDMMYYYY } from "@/utils/dataUtils";
 type Producto = {
   codigo: string;
   nombre_producto: string;
@@ -123,18 +123,10 @@ export default function GuiaEntradaIdPage({
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value) {
-      const [yyyy, mm, dd] = value.split("-");
-      setFormData((prev) => ({
-        ...prev,
-        fechaFactura: `${dd}/${mm}/${yyyy}`,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        fechaFactura: "",
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      fechaFactura: formatDateToDDMMYYYY(value),
+    }));
   };
   const validateForm = () => {
     const newErrors: FormErrors = {};
