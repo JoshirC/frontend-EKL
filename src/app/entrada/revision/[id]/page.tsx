@@ -251,6 +251,7 @@ export default function GuiaEntradaIdPage({
                     errors.numeroFolio ? "border-red-500" : "border-gray-300"
                   }`}
                   onChange={handleChange}
+                  value={formData.numeroFolio}
                 />
               </div>
 
@@ -271,6 +272,7 @@ export default function GuiaEntradaIdPage({
                       : "border-gray-300"
                   }`}
                   onChange={handleChange}
+                  value={formData.codigoProveedor}
                 />
               </div>
 
@@ -291,6 +293,7 @@ export default function GuiaEntradaIdPage({
                       : "border-gray-300"
                   }`}
                   onChange={handleChange}
+                  value={formData.codigoCentroCosto}
                 />
               </div>
             </div>
@@ -313,6 +316,7 @@ export default function GuiaEntradaIdPage({
                     errors.numeroFactura ? "border-red-500" : "border-gray-300"
                   }`}
                   onChange={handleChange}
+                  value={formData.numeroFactura}
                 />
               </div>
 
@@ -326,6 +330,7 @@ export default function GuiaEntradaIdPage({
                 <input
                   id="fechaFactura"
                   name="fechaFactura"
+                  value={formData.fechaFactura}
                   type="date"
                   className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     errors.fechaFactura ? "border-red-500" : "border-gray-300"
@@ -348,6 +353,7 @@ export default function GuiaEntradaIdPage({
                     errors.codigoBodega ? "border-red-500" : "border-gray-300"
                   }`}
                   onChange={handleChange}
+                  value={formData.codigoBodega}
                 />
               </div>
             </div>

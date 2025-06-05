@@ -1,27 +1,38 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { CREATE_TRAZABILIDAD } from "@/graphql/mutations";
-import { useMutation } from "@apollo/client";
+
+import React, { useState, useEffect } from "react";
 import { formatDateToDDMMYYYY } from "@/utils/dataUtils";
+import { useJwtStore } from "@/store/jwtStore";
 
 interface DropdownTrazabilidadProps {
   isOpen: boolean;
   codigoProducto?: string;
+  cantidadProducto?: number;
   onClose: () => void;
-  onTrazabilidadCompletado?: () => void;
+  onTrazabilidadCompletado?: (datos: DataInput) => void; // Cambiado: ahora recibe datos
 }
 type FormErrors = {
   numeroLote?: string;
   fechaElaboracion?: string;
   fechaVencimiento?: string;
   temperatura?: string;
-  condicionEnvase?: string;
   observaciones?: string;
+};
+type DataInput = {
+  numero_lote: string;
+  cantidad_producto: number;
+  fecha_elaboracion: string;
+  fecha_vencimiento: string;
+  temperatura: string;
+  observaciones: string;
+  codigo_producto: string;
+  rut_usuario: string;
 };
 
 const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
   isOpen,
   codigoProducto,
+  cantidadProducto,
   onClose,
   onTrazabilidadCompletado,
 }) => {
@@ -33,30 +44,13 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
     fechaElaboracion: "",
     fechaVencimiento: "",
     temperatura: "",
-    condicionEnvase: "",
     observaciones: "",
   });
 
-  const [createTrazabilidad] = useMutation(CREATE_TRAZABILIDAD, {
-    onCompleted: () => {
-      onTrazabilidadCompletado?.();
-      setFormData({
-        numeroLote: "",
-        fechaElaboracion: "",
-        fechaVencimiento: "",
-        temperatura: "",
-        condicionEnvase: "",
-        observaciones: "",
-      });
-      setErrors({});
-    },
-    onError: (error) => {
-      console.error("Error al crear trazabilidad:", error);
-    },
-  });
   useEffect(() => {
     validateForm();
   }, [formData]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -87,32 +81,31 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
     if (!formData.fechaVencimiento || formData.fechaVencimiento === "") {
       errors.fechaVencimiento = "La fecha de vencimiento es obligatoria.";
     }
-    if (!formData.condicionEnvase || formData.condicionEnvase === "") {
-      errors.condicionEnvase = "La condición del envase es obligatoria.";
-    }
     setErrors(errors);
     setIsFormValid(Object.keys(errors).length === 0);
   };
+  const { rutUsuario } = useJwtStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isFormValid) {
       const input = {
         numero_lote: formData.numeroLote,
+        cantidad_producto: cantidadProducto || 0,
         fecha_elaboracion: formData.fechaElaboracion,
         fecha_vencimiento: formData.fechaVencimiento,
         temperatura: formData.temperatura,
-        condicion_envasado: formData.condicionEnvase,
         observaciones: formData.observaciones,
         codigo_producto: codigoProducto || "",
+        rut_usuario: rutUsuario || "",
       };
-      createTrazabilidad({
-        variables: { createTrazabilidadInput: input },
-      }).catch((error) => {
+      try {
+        onTrazabilidadCompletado?.(input);
+        onClose();
+      } catch (error) {
         console.error("Error al crear trazabilidad:", error);
-      });
+      }
     }
-    onTrazabilidadCompletado?.();
   };
 
   return (
@@ -157,6 +150,7 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
               id="numeroLote"
               name="numeroLote"
               type="text"
+              value={formData.numeroLote}
               onChange={handleChange}
               required
               className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
@@ -226,32 +220,6 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-1 gap-6 mb-6">
           <div>
             <label
-              htmlFor="condicionEnvase"
-              className="block text-start font-medium text-gray-700 mb-1"
-            >
-              Condición del Envase *
-            </label>
-            <select
-              id="condicionEnvase"
-              name="condicionEnvase"
-              value={formData.condicionEnvase}
-              onChange={handleChange}
-              required
-              className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.condicionEnvase ? "border-red-500" : "border-gray-300"
-              }`}
-            >
-              <option value="">Seleccione...</option>
-              <option value="bueno">Bueno</option>
-              <option value="regular">Regular</option>
-              <option value="malo">Malo</option>
-            </select>
-          </div>
-        </div>
-        {/* Cuarta fila */}
-        <div className="grid grid-cols-1 sm:grid-cols-1 gap-6 mb-6">
-          <div>
-            <label
               htmlFor="observaciones"
               className="block text-start font-medium text-gray-700 mb-1"
             >
@@ -262,9 +230,9 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
               name="observaciones"
               value={formData.observaciones}
               onChange={handleChange}
-              rows={3}
               className="p-3 w-full border rounded-lg shadow-sm border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            ></textarea>
+              rows={2}
+            />
           </div>
         </div>
       </form>

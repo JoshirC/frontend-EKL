@@ -6,11 +6,14 @@ import { useQuery } from "@apollo/client";
 type Trazabilidad = {
   id: number;
   numero_lote: string;
+  cantidad_producto: number;
   fecha_elaboracion: string;
   fecha_vencimiento: string;
   temperatura: string;
-  condicion_envasado: string;
   observaciones: string;
+  codigo_proveedor: string;
+  numero_factura: number;
+  usuario: Usuario;
   producto: Producto;
 };
 type Producto = {
@@ -22,6 +25,9 @@ type Producto = {
   cantidad: number;
   cantidad_softland: number;
   trazabilidad: boolean;
+};
+type Usuario = {
+  nombre: string;
 };
 const TrazabilidadPage: React.FC = () => {
   const { loading, error, data } = useQuery(GET_LISTA_TRAZABILIDAD);
@@ -44,6 +50,9 @@ const TrazabilidadPage: React.FC = () => {
                   Producto
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Cantidad
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Lote
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -56,10 +65,16 @@ const TrazabilidadPage: React.FC = () => {
                   Temperatura
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Condición Envasado
+                  Observaciones
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Observaciones
+                  Código Proveedor
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Número Factura
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Usuario
                 </th>
               </tr>
             </thead>
@@ -91,6 +106,9 @@ const TrazabilidadPage: React.FC = () => {
                       {item.producto.nombre_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {item.cantidad_producto}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {item.numero_lote}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -103,10 +121,16 @@ const TrazabilidadPage: React.FC = () => {
                       {item.temperatura}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.condicion_envasado}
+                      {item.observaciones}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.observaciones}
+                      {item.codigo_proveedor}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {item.numero_factura}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {item.usuario.nombre}
                     </td>
                   </tr>
                 );

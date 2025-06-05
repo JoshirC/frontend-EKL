@@ -291,15 +291,22 @@ export const GET_LISTA_TRAZABILIDAD = gql`
     listaTrazabilidad {
       id
       numero_lote
+      cantidad_producto
       fecha_elaboracion
       fecha_vencimiento
       temperatura
-      condicion_envasado
       observaciones
+      codigo_proveedor
+      numero_factura
       producto {
         id
         codigo
         nombre_producto
+      }
+      usuario {
+        id
+        nombre
+        rut
       }
     }
   }

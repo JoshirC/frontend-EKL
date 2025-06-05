@@ -208,19 +208,24 @@ export const UPDATE_ESTADO_GUIA_ENTRADAS = gql`
 `;
 // Mutaciones para Trazabilidad
 export const CREATE_TRAZABILIDAD = gql`
-  mutation createTrazabilidad($createTrazabilidadInput: CreateTrazabilidadInput!) {
+  mutation createTrazabilidad($createTrazabilidadInput: [CreateTrazabilidadInput!]!) {
     createTrazabilidad(createTrazabilidadInput: $createTrazabilidadInput) {
       id
       numero_lote
+      cantidad_producto
       fecha_elaboracion
       fecha_vencimiento
       temperatura
-      condicion_envasado
       observaciones
       producto {
         id
         codigo
         nombre_producto
+      }
+      usuario {
+        id
+        nombre
+        rut
       }
     }
   }
