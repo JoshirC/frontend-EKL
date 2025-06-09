@@ -44,6 +44,10 @@ type Producto = {
   cantidad_softland: number;
   trazabilidad: boolean;
 };
+type OrdenCompra = {
+  productos: DetalleOrdenCompra[];
+  ultimo_num_inter: number;
+};
 type FormErrors = {
   codigoBodega?: string;
   numeroFolio?: string;
@@ -155,14 +159,18 @@ const OrdenCompraPage: React.FC = () => {
       const { data } = await fetchOrdenCompra({
         variables: { codigo_orden_compra: ordenCompra },
       });
-      console.log(data);
+      console.log("Datos de la orden de compra:", data);
       if (!data?.ordenCompra) {
         setAlertType("error");
         setAlertMessage("No se encontró la orden de compra.");
         setShowAlert(true);
         setDetalles([]);
       } else {
-        setDetalles(data.ordenCompra);
+        setDetalles(data.ordenCompra.productos);
+        setFormData((prev) => ({
+          ...prev,
+          numeroFolio: data.ordenCompra.ultimo_num_inter + 1,
+        }));
       }
     } catch (err) {
       setAlertType("error");
@@ -257,7 +265,6 @@ const OrdenCompraPage: React.FC = () => {
       fecha_factura: formData.fechaFactura,
       trazabilidad: dataTrazabilidad,
     };
-    console.log("Datos de la guía de entrada:", guiaEntradaData);
     createGuiaEntrada({
       variables: { createGuiaEntradaInput: guiaEntradaData },
     });
@@ -413,7 +420,7 @@ const OrdenCompraPage: React.FC = () => {
         {/* Buscador y Botón */}
         <div className=" flex flex-col sm:flex-row gap-4 mt-4">
           <input
-            id="ordenCompra" //este campo es para registrar el id de la orden de compra y mostrarlo como sugerencia
+            id="ordenCompra"
             className="w-full p-4 border border-gray-300 rounded-md"
             placeholder="Ingrese el número de la orden de compra a buscar"
             onChange={(e) => setOrdenCompra(e.target.value)}
@@ -456,8 +463,12 @@ const OrdenCompraPage: React.FC = () => {
                       htmlFor="numeroFolio"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Número de Folio *
+                      Número de Folio
                     </label>
+                    <div className="p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300">
+                      {formData.numeroFolio}
+                    </div>
+                    {/*
                     <input
                       id="numeroFolio"
                       name="numeroFolio"
@@ -470,8 +481,8 @@ const OrdenCompraPage: React.FC = () => {
                       }`}
                       onChange={handleChange}
                     />
+                    */}
                   </div>
-
                   <div>
                     <label
                       htmlFor="codigoProveedor"
@@ -623,6 +634,9 @@ const OrdenCompraPage: React.FC = () => {
                           <>
                             <td className="border border-gray-300 px-2 sm:px-4 py-2">
                               <input
+                                name="cantidad"
+                                id="cantidad"
+                                min="1"
                                 type="number"
                                 className="w-full p-2 border border-gray-300 rounded-md"
                                 value={detalle.cantidad}
@@ -637,7 +651,10 @@ const OrdenCompraPage: React.FC = () => {
                             </td>
                             <td className="border border-gray-300 px-2 sm:px-4 py-2">
                               <input
+                                name="precio_unitario"
+                                id="precio_unitario"
                                 type="number"
+                                min="0"
                                 className="w-full p-2 border border-gray-300 rounded-md"
                                 value={detalle.precio_unitario}
                                 onChange={(e) =>
