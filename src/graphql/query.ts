@@ -311,3 +311,29 @@ export const GET_LISTA_TRAZABILIDAD = gql`
     }
   }
 `;
+export const GET_TRAZABILIDAD_BY_CODIGO_PRODUCTO = gql`
+  query trazabilidadByCodigoProducto($codigo_producto: String!) {
+    trazabilidadByCodigoProducto(codigo_producto: $codigo_producto) {
+      id
+      numero_lote
+      cantidad_producto
+      fecha_elaboracion
+      fecha_vencimiento
+      temperatura
+      observaciones
+      fecha_registro
+      codigo_proveedor
+      numero_factura
+      usuario {
+        id
+        nombre
+        rut
+      }
+      producto {
+        id
+        codigo
+        nombre_producto
+      }
+    }
+  }
+`;

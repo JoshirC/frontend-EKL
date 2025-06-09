@@ -4,6 +4,7 @@ import React, { useState, use, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import DropdownCambioProducto from "@/components/salida_acopio/DropdownCambioProducto";
 import DropdownEnviosDetalleOrdenAcopio from "@/components/salida_acopio/dropdownEnviosDetalleOrdenAcopio";
+import DropdownTrazabilidad from "@/components/salida_acopio/dropdownTrazabilidad";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
   UPDATE_ESTADO_DETALLE_ACOPIO,
@@ -72,6 +73,9 @@ export default function AcopioSalidaIdPage({
   );
   const [dropdownCambiarProductoOpen, setDropdownCambiarProductoOpen] =
     useState<number | null>(null);
+  const [dropdownTrazabilidadOpen, setDropdownTrazabilidadOpen] = useState<
+    number | null
+  >(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [editLoading, setEditLoading] = useState<number | null>(null);
@@ -309,7 +313,9 @@ export default function AcopioSalidaIdPage({
     setEditingId(null);
     setEditValue("");
   };
-
+  const handleDropdownTrazabilidadClick = (id: number) => {
+    setDropdownTrazabilidadOpen(dropdownTrazabilidadOpen === id ? null : id);
+  };
   const handleDropdownEnviosClick = (id: number) => {
     setDropdownEnviosOpen(dropdownEnviosOpen === id ? null : id);
   };
@@ -478,45 +484,58 @@ export default function AcopioSalidaIdPage({
                     {detalle.envios.length === 0 ? (
                       <>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          <div className="flex items-center justify-between space-x-2">
-                            <input
-                              type="number"
-                              value={cantidadesTemporales[detalle.id] || ""}
-                              placeholder={
-                                detalle.producto.cantidad?.toString() || "0"
-                              }
-                              onChange={(e) =>
-                                handleCambioCantidad(
-                                  detalle.id,
-                                  Number(e.target.value) || 0
-                                )
-                              }
-                              min={0}
-                              max={detalle.producto.cantidad || 0}
-                              className="w-full border border-gray-300 rounded p-1"
-                            />
+                          {/* Verificacion de la trazabilidad del producto */}
+                          {detalle.producto.trazabilidad ? (
                             <button
+                              className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
                               onClick={() =>
-                                handleCrearEnvioDetalle(
-                                  detalle.id,
-                                  cantidadesTemporales[detalle.id] !== undefined
-                                    ? cantidadesTemporales[detalle.id]
-                                    : 0,
-                                  detalle.codigo_producto
-                                )
+                                handleDropdownTrazabilidadClick(detalle.id)
                               }
-                              disabled={loadingSave === detalle.id} // Deshabilita el botón si está en estado de carga
-                              className={`${
-                                loadingSave === detalle.id
-                                  ? "bg-gray-400 cursor-not-allowed"
-                                  : "bg-blue-400 hover:bg-blue-500"
-                              } text-white font-semibold py-2 px-4 rounded transition duration-200`}
                             >
-                              {loadingSave === detalle.id
-                                ? "Guardando..."
-                                : "Guardar"}
+                              Trazabilidad
                             </button>
-                          </div>
+                          ) : (
+                            <div className="flex items-center justify-between space-x-2">
+                              <input
+                                type="number"
+                                value={cantidadesTemporales[detalle.id] || ""}
+                                placeholder={
+                                  detalle.producto.cantidad?.toString() || "0"
+                                }
+                                onChange={(e) =>
+                                  handleCambioCantidad(
+                                    detalle.id,
+                                    Number(e.target.value) || 0
+                                  )
+                                }
+                                min={0}
+                                max={detalle.producto.cantidad || 0}
+                                className="w-full border border-gray-300 rounded p-1"
+                              />
+                              <button
+                                onClick={() =>
+                                  handleCrearEnvioDetalle(
+                                    detalle.id,
+                                    cantidadesTemporales[detalle.id] !==
+                                      undefined
+                                      ? cantidadesTemporales[detalle.id]
+                                      : 0,
+                                    detalle.codigo_producto
+                                  )
+                                }
+                                disabled={loadingSave === detalle.id}
+                                className={`${
+                                  loadingSave === detalle.id
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-blue-400 hover:bg-blue-500"
+                                } text-white font-semibold py-2 px-4 rounded transition duration-200`}
+                              >
+                                {loadingSave === detalle.id
+                                  ? "Guardando..."
+                                  : "Guardar"}
+                              </button>
+                            </div>
+                          )}
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
@@ -652,6 +671,21 @@ export default function AcopioSalidaIdPage({
                           isOpen={true}
                           onClose={() => setDropdownCambiarProductoOpen(null)}
                           onProductoEnviado={stableRefetch}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  {dropdownTrazabilidadOpen === detalle.id && (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="border-0 p-2 sm:p-4 bg-gray-100"
+                      >
+                        <DropdownTrazabilidad
+                          id_detalle_orden_acopio={detalle.id}
+                          codigo_producto={detalle.codigo_producto}
+                          isOpen={true}
+                          onClose={() => setDropdownTrazabilidadOpen(null)}
                         />
                       </td>
                     </tr>

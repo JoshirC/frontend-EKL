@@ -240,12 +240,12 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
               }`}
             >
               <div className="flex flex-col gap-1 sm:gap-2">
-                <h2 className="text-sm sm:text-base">
-                  {producto.nombre_producto}
-                </h2>
-                <h2 className="text-gray-500 text-sm sm:text-base">
-                  Código: {producto.codigo}
-                </h2>
+                <p>
+                  <strong>Producto:</strong> {producto.nombre_producto}
+                </p>
+                <p>
+                  <strong>Código:</strong> {producto.codigo}
+                </p>
               </div>
 
               {!fueEnviado ? (
