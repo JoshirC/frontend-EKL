@@ -13,6 +13,7 @@ interface DropdownTrazabilidadProps {
   codigo_producto: string;
   isOpen: boolean;
   onClose: () => void;
+  onTrazabilidadCompleta?: () => void;
 }
 type Trazabilidad = {
   id: number;
@@ -41,6 +42,7 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
   codigo_producto,
   isOpen,
   onClose,
+  onTrazabilidadCompleta,
 }) => {
   const [isVisible, setIsVisible] = useState(isOpen);
   const { loading, error, data } = useQuery(
@@ -71,8 +73,29 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
   }, [isOpen]);
 
   if (!isVisible) return null;
-  if (loading) return <p>Cargando...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loading) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="bg-red-100 text-red-700 p-4 rounded flex justify-between items-center">
+        <span>Error: {error.message}</span>
+        <button
+          className="ml-4 text-red-700 font-bold text-lg hover:text-red-900"
+          onClick={onClose}
+          aria-label="Cerrar"
+        >
+          x
+        </button>
+      </div>
+    );
+  }
   const trazabilidad: Trazabilidad[] = data.trazabilidadByCodigoProducto;
 
   // Manejar cambio de cantidad
@@ -135,6 +158,7 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
           className="bg-gray-500 text-white font-semibold px-4 py-2 rounded hover:bg-gray-600 transition duration-200"
           onClick={() => {
             onClose();
+            onTrazabilidadCompleta && onTrazabilidadCompleta();
           }}
         >
           Cerrar

@@ -54,17 +54,16 @@ export default function AcopioSalidaIdPage({
   const id_acopio_num = parseFloat(id_acopio);
   const { rutUsuario, rolUsuario } = useJwtStore();
 
-  // Estados para manejar la carga de datos y errores
+  // Estados
+  const [desactivacionBoton, setDesactivacionBoton] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
   const [cerrarModal, setCerrarModal] = useState(false);
-  // Estado de la confirmación
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [idEnvioEliminar, setIdEnvioEliminar] = useState<number | null>(null);
-  // Estados para formularios y UI
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
   >({});
@@ -79,10 +78,7 @@ export default function AcopioSalidaIdPage({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [editLoading, setEditLoading] = useState<number | null>(null);
-  // Agrega un nuevo estado para manejar el estado de carga del botón "Guardar"
   const [loadingSave, setLoadingSave] = useState<number | null>(null);
-
-  // Estados para paginación estable
   const [currentFamily, setCurrentFamily] = useState<string | null>(null);
   const [familyGroups, setFamilyGroups] = useState<string[]>([]);
 
@@ -400,8 +396,15 @@ export default function AcopioSalidaIdPage({
               Confirmación de Acopio N°{id_acopio}
             </div>
             <button
-              className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-500 transition duration-200"
+              className={`bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200
+    ${
+      desactivacionBoton
+        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+        : "hover:bg-orange-500"
+    }
+  `}
               onClick={() => handleCambioEstadoAcopio("Subir")}
+              disabled={desactivacionBoton}
             >
               Confirmar Acopio
             </button>
@@ -487,10 +490,18 @@ export default function AcopioSalidaIdPage({
                           {/* Verificacion de la trazabilidad del producto */}
                           {detalle.producto.trazabilidad ? (
                             <button
-                              className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
-                              onClick={() =>
-                                handleDropdownTrazabilidadClick(detalle.id)
-                              }
+                              className={`bg-blue-400 w-full text-white font-semibold py-2 px-2 rounded transition duration-200
+    ${
+      desactivacionBoton
+        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+        : "hover:bg-blue-500"
+    }
+  `}
+                              onClick={() => {
+                                handleDropdownTrazabilidadClick(detalle.id);
+                                setDesactivacionBoton(true);
+                              }}
+                              disabled={desactivacionBoton}
                             >
                               Trazabilidad
                             </button>
@@ -511,6 +522,7 @@ export default function AcopioSalidaIdPage({
                                 min={0}
                                 max={detalle.producto.cantidad || 0}
                                 className="w-full border border-gray-300 rounded p-1"
+                                disabled={desactivacionBoton}
                               />
                               <button
                                 onClick={() =>
@@ -523,12 +535,17 @@ export default function AcopioSalidaIdPage({
                                     detalle.codigo_producto
                                   )
                                 }
-                                disabled={loadingSave === detalle.id}
-                                className={`${
+                                disabled={
+                                  desactivacionBoton ||
                                   loadingSave === detalle.id
-                                    ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-blue-400 hover:bg-blue-500"
-                                } text-white font-semibold py-2 px-4 rounded transition duration-200`}
+                                }
+                                className={`text-white font-semibold py-2 px-4 rounded transition duration-200
+    ${
+      desactivacionBoton || loadingSave === detalle.id
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-blue-400 hover:bg-blue-500"
+    }
+  `}
                               >
                                 {loadingSave === detalle.id
                                   ? "Guardando..."
@@ -539,10 +556,18 @@ export default function AcopioSalidaIdPage({
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
-                            onClick={() =>
-                              handleDropdownCambiarProductoClick(detalle.id)
-                            }
-                            className="bg-orange-400 hover:bg-orange-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
+                            onClick={() => {
+                              handleDropdownCambiarProductoClick(detalle.id);
+                              setDesactivacionBoton(true);
+                            }}
+                            className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200
+    ${
+      desactivacionBoton
+        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+        : "bg-orange-400 hover:bg-orange-500"
+    }
+  `}
+                            disabled={desactivacionBoton}
                           >
                             Cambiar Producto
                           </button>
@@ -552,10 +577,18 @@ export default function AcopioSalidaIdPage({
                       <>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
-                            onClick={() =>
-                              handleDropdownEnviosClick(detalle.id)
-                            }
-                            className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                            onClick={() => {
+                              handleDropdownEnviosClick(detalle.id);
+                              setDesactivacionBoton(true);
+                            }}
+                            className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
+    ${
+      desactivacionBoton
+        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+        : "bg-orange-400 hover:bg-orange-500"
+    }
+  `}
+                            disabled={desactivacionBoton}
                           >
                             Ver Envíos
                           </button>
@@ -570,10 +603,18 @@ export default function AcopioSalidaIdPage({
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
-                            className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                            onClick={() =>
-                              handleDropdownEnviosClick(detalle.id)
-                            }
+                            className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
+    ${
+      desactivacionBoton
+        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+        : "bg-orange-400 hover:bg-orange-500"
+    }
+  `}
+                            onClick={() => {
+                              handleDropdownEnviosClick(detalle.id);
+                              setDesactivacionBoton(true);
+                            }}
+                            disabled={desactivacionBoton}
                           >
                             Ver Envio
                           </button>
@@ -620,18 +661,32 @@ export default function AcopioSalidaIdPage({
                               {detalle.envios[0].cantidad_enviada != 0 && (
                                 <button
                                   onClick={() => handleEditClick(detalle)}
-                                  className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                  className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
+    ${
+      desactivacionBoton
+        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+        : "bg-orange-400 hover:bg-orange-500"
+    }
+  `}
+                                  disabled={desactivacionBoton}
                                 >
                                   Editar
                                 </button>
                               )}
 
                               <button
-                                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                className={`bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
+    ${
+      desactivacionBoton
+        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+        : ""
+    }
+  `}
                                 onClick={() => {
                                   setShowConfirmacion(true);
                                   setIdEnvioEliminar(detalle.envios[0].id);
                                 }}
+                                disabled={desactivacionBoton}
                               >
                                 Eliminar
                               </button>
@@ -651,7 +706,10 @@ export default function AcopioSalidaIdPage({
                         <DropdownEnviosDetalleOrdenAcopio
                           id_detalle_orden_acopio={detalle.id}
                           isOpen={true}
-                          onClose={() => setDropdownEnviosOpen(null)}
+                          onClose={() => {
+                            setDropdownEnviosOpen(null);
+                            setDesactivacionBoton(false);
+                          }}
                           onProcesoCompleto={stableRefetch}
                         />
                       </td>
@@ -669,7 +727,10 @@ export default function AcopioSalidaIdPage({
                           cantidad={detalle.cantidad}
                           producto={detalle.producto}
                           isOpen={true}
-                          onClose={() => setDropdownCambiarProductoOpen(null)}
+                          onClose={() => {
+                            setDropdownCambiarProductoOpen(null);
+                            setDesactivacionBoton(false);
+                          }}
                           onProductoEnviado={stableRefetch}
                         />
                       </td>
@@ -685,7 +746,11 @@ export default function AcopioSalidaIdPage({
                           id_detalle_orden_acopio={detalle.id}
                           codigo_producto={detalle.codigo_producto}
                           isOpen={true}
-                          onClose={() => setDropdownTrazabilidadOpen(null)}
+                          onClose={() => {
+                            setDropdownTrazabilidadOpen(null);
+                            setDesactivacionBoton(false);
+                          }}
+                          onTrazabilidadCompleta={stableRefetch}
                         />
                       </td>
                     </tr>
@@ -708,13 +773,19 @@ export default function AcopioSalidaIdPage({
                   }
                 }}
                 disabled={
-                  !currentFamily || familyGroups.indexOf(currentFamily) === 0
+                  desactivacionBoton ||
+                  !currentFamily ||
+                  familyGroups.indexOf(currentFamily) === 0
                 }
-                className={`p-3 rounded font-semibold text-sm sm:text-base ${
-                  !currentFamily || familyGroups.indexOf(currentFamily) === 0
-                    ? "bg-gray-200 cursor-not-allowed"
-                    : "bg-orange-500 hover:bg-orange-600 text-white"
-                }`}
+                className={`p-3 rounded font-semibold text-sm sm:text-base
+    ${
+      desactivacionBoton ||
+      !currentFamily ||
+      familyGroups.indexOf(currentFamily) === 0
+        ? "bg-gray-200 cursor-not-allowed"
+        : "bg-orange-500 hover:bg-orange-600 text-white"
+    }
+  `}
               >
                 Anterior
               </button>
@@ -739,6 +810,7 @@ export default function AcopioSalidaIdPage({
                       <button
                         key={family}
                         onClick={() => setCurrentFamily(family)}
+                        disabled={desactivacionBoton}
                         className={`p-3 rounded text-sm sm:text-base font-semibold min-w-max whitespace-nowrap ${
                           currentFamily === family
                             ? "bg-gray-400 text-white"
@@ -763,17 +835,20 @@ export default function AcopioSalidaIdPage({
                   }
                 }}
                 disabled={
+                  desactivacionBoton ||
                   !currentFamily ||
                   familyGroups.indexOf(currentFamily) ===
                     familyGroups.length - 1
                 }
-                className={`p-3 rounded font-semibold text-sm sm:text-base ${
-                  !currentFamily ||
-                  familyGroups.indexOf(currentFamily) ===
-                    familyGroups.length - 1
-                    ? "bg-gray-200 cursor-not-allowed"
-                    : "bg-orange-500 hover:bg-orange-600 text-white"
-                }`}
+                className={`p-3 rounded font-semibold text-sm sm:text-base
+    ${
+      desactivacionBoton ||
+      !currentFamily ||
+      familyGroups.indexOf(currentFamily) === familyGroups.length - 1
+        ? "bg-gray-200 cursor-not-allowed"
+        : "bg-orange-500 hover:bg-orange-600 text-white"
+    }
+  `}
               >
                 Siguiente
               </button>

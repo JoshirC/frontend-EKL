@@ -46,12 +46,15 @@ const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({
 
   if (error) {
     return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="text-red-500">
-            Error al cargar los datos: {error.message}
-          </p>
-        </div>
+      <div className="bg-red-100 text-red-700 p-4 rounded flex justify-between items-center">
+        <span>Error: {error.message}</span>
+        <button
+          className="ml-4 text-red-700 font-bold text-lg hover:text-red-900"
+          onClick={onClose}
+          aria-label="Cerrar"
+        >
+          x
+        </button>
       </div>
     );
   }
