@@ -1,6 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
+import { GET_CENTROS_COSTOS } from "@/graphql/query";
+import Alert from "@/components/Alert";
+import ListaVacia from "@/components/listaVacia";
 
 type CentroCosto = {
   centroCosto: string;
@@ -8,19 +11,14 @@ type CentroCosto = {
   Proceso: number;
 };
 
-const GET_CENTROS_COSTOS = gql`
-  query {
-    ordenAcopioDosEstados(estado1: "Pendiente", estado2: "Proceso") {
-      centroCosto
-      Pendiente
-      Proceso
-    }
-  }
-`;
-
 const AcopioProductosPage: React.FC = () => {
   const { loading, error, data } = useQuery(GET_CENTROS_COSTOS);
   const [centrosDeCostos, setCentrosDeCostos] = useState<CentroCosto[]>([]);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
 
   useEffect(() => {
     if (data) {
@@ -39,19 +37,20 @@ const AcopioProductosPage: React.FC = () => {
   }
 
   if (error) {
-    return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="text-red-500">
-            Error al cargar los datos: {error.message}
-          </p>
-        </div>
-      </div>
-    );
+    setAlertType("error");
+    setAlertMessage(error.message);
+    setShowAlert(true);
   }
 
   return (
     <div className="p-4 sm:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex justify-between items-center mb-4">
           <div className="text-xl sm:text-2xl font-semibold">
@@ -59,6 +58,11 @@ const AcopioProductosPage: React.FC = () => {
           </div>
         </div>
         <div>
+          {centrosDeCostos.length === 0 && (
+            <div className="p-4 rounded bg-gray-100">
+              <ListaVacia mensaje="No hay ordenes de Acopio con estado Pendiente o Proceso." />
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {centrosDeCostos.map((centro) => (
               <div

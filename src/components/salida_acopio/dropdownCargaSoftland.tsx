@@ -1,6 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
-
+import React, { useState } from "react";
+import { useQuery } from "@apollo/client";
+import { GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO } from "@/graphql/query";
+import Alert from "../Alert";
 interface DropdownCargaSoftlandProps {
   idAcopio: number;
   isOpen: boolean;
@@ -8,9 +10,9 @@ interface DropdownCargaSoftlandProps {
 }
 
 type SalidaAcopio = {
-  idSalida: number;
-  idOrdenAcopio: number;
-  fechaSalida: string;
+  id: number;
+  fechaCreacion: number;
+  codigo: string;
 };
 
 const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({
@@ -18,72 +20,97 @@ const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [salidaAcopio, setSalidaAcopio] = useState<SalidaAcopio[]>([]);
   if (!isOpen) return null;
+  // Componente para mostrar la alerta
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
+  const { loading, error, data } = useQuery(
+    GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO,
+    {
+      variables: { ordenAcopioId: idAcopio },
+    }
+  );
 
-  useEffect(() => {
-    const fetchSalidaAcopio = async () => {
-      const response = await fetch("/api/salidaAcopio.json");
-      const data = await response.json();
-      const salidaAcopioFiltrado = data.filter(
-        (salida: SalidaAcopio) => salida.idOrdenAcopio === idAcopio
-      );
-      setSalidaAcopio(salidaAcopioFiltrado);
-    };
-    fetchSalidaAcopio();
-  }, []);
+  if (loading) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Cargando detalles del acopio...</p>
+        </div>
+      </div>
+    );
+  }
 
+  if (error) {
+    return (
+      <div className="bg-red-100 text-red-700 p-4 rounded flex justify-between items-center">
+        <span>Error: {error.message}</span>
+        <button
+          className="ml-4 text-red-700 font-bold text-lg hover:text-red-900"
+          onClick={onClose}
+          aria-label="Cerrar"
+        >
+          x
+        </button>
+      </div>
+    );
+  }
+  const salidaAcopio: SalidaAcopio[] = data?.guiasDeSalidaPorOrdenAcopio || [];
   return (
-    <tr>
-      <td colSpan={4} className="border-0 p-2 sm:p-4">
-        <div className="bg-white border border-gray-200 rounded shadow-lg py-3 sm:py-4 px-4 sm:px-8 m-1">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
-            <h2 className="text-base sm:text-lg">
-              Listado de Guias de Salida para la Orden de Acopio N°{idAcopio}
+    <div className="bg-white border border-gray-200 rounded shadow-lg py-3 sm:py-4 px-4 sm:px-8 m-1">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
+        <h2 className="text-base sm:text-lg">
+          Listado de Guias de Salida para la Orden de Acopio N°{idAcopio}
+        </h2>
+
+        <button
+          className="hidden sm:block bg-gray-500 text-white font-semibold p-2 sm:px-4 sm:py-2 rounded hover:bg-gray-600 transition duration-200"
+          onClick={onClose}
+        >
+          Cerrar
+        </button>
+      </div>
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+          modal={true}
+        />
+      )}
+
+      {salidaAcopio.map((salida) => (
+        <div
+          key={salida.id}
+          className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 mt-2 gap-2 sm:gap-4"
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+            <h2 className="text-sm sm:text-base">
+              Guia de Salida N°{salida.id}
             </h2>
-
-            <button
-              className="hidden sm:block bg-gray-500 text-white font-semibold p-2 sm:px-4 sm:py-2 rounded hover:bg-gray-600 transition duration-200"
-              onClick={onClose}
-            >
-              Cerrar
-            </button>
           </div>
-
-          {salidaAcopio.map((salida) => (
-            <div
-              key={salida.idSalida}
-              className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 mt-2 gap-2 sm:gap-4"
-            >
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <h2 className="text-sm sm:text-base">
-                  Guia de Salida N°{salida.idSalida}
-                </h2>
-                <h2 className="text-gray-500 text-sm sm:text-base">
-                  Fecha de Salida: {salida.fechaSalida}
-                </h2>
-              </div>
-              <button
-                className="bg-blue-400 text-white font-semibold p-2 sm:px-4 sm:py-2 rounded hover:bg-blue-500 w-full sm:w-auto"
-                onClick={() => {
-                  window.location.href = `/salida/carga_softland/${salida.idSalida}`;
-                  onClose();
-                }}
-              >
-                ▶
-              </button>
-            </div>
-          ))}
-
           <button
-            className="sm:hidden bg-gray-500 text-white w-full font-semibold p-2 mt-4 rounded hover:bg-gray-600 transition duration-200"
-            onClick={onClose}
+            className="bg-blue-400 text-white font-semibold p-2 sm:px-4 sm:py-2 rounded hover:bg-blue-500 w-full sm:w-auto"
+            onClick={() => {
+              window.location.href = `/salida/carga_softland/${salida.id}`;
+              onClose();
+            }}
           >
-            Cerrar
+            Ver Detalles
           </button>
         </div>
-      </td>
-    </tr>
+      ))}
+
+      <button
+        className="sm:hidden bg-gray-500 text-white w-full font-semibold p-2 mt-4 rounded hover:bg-gray-600 transition duration-200"
+        onClick={onClose}
+      >
+        Cerrar
+      </button>
+    </div>
   );
 };
 

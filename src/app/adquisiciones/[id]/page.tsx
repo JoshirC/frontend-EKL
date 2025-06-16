@@ -1,43 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
-import { useQuery, gql, useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { useAdquisicionStore } from "@/store/adquisicionStore";
 import Alert from "@/components/Alert";
+import { GET_ORDEN_ACOPIO } from "@/graphql/query";
+import {
+  UPDATE_ESTADO_ORDEN_ACOPIO,
+  ELIMINAR_ORDEN_ACOPIO,
+} from "@/graphql/mutations";
+import Confirmacion from "@/components/confirmacion";
+type Producto = {
+  codigo: string;
+  nombre_producto: string;
+  unidad_medida: string;
+  familia: string;
+};
 type DetalleOrdenAcopio = {
   id: number;
-  familia_producto: string;
-  nombre_producto: string;
   codigo_producto: string;
   cantidad: number;
-  unidad: string;
+  producto: Producto;
 };
 
-const GET_ORDEN_ACOPIO = gql`
-  query ordenAcopio($id: Float!) {
-    ordenAcopio(id: $id) {
-      id
-      centroCosto
-      fecha
-      estado
-      detalles {
-        id
-        familia_producto
-        nombre_producto
-        codigo_producto
-        cantidad
-        unidad
-      }
-    }
-  }
-`;
-const UPDATE_ESTADO_ORDEN_ACOPIO = gql`
-  mutation ($id: Float!, $estado: String!) {
-    updateEstadoOrdenAcopio(id: $id, estado: $estado) {
-      id
-    }
-  }
-`;
 export default function AcopioIdPage({
   params,
 }: {
@@ -46,19 +31,43 @@ export default function AcopioIdPage({
   const { id: id_acopio } = React.use(params);
   const id_acopio_num = parseInt(id_acopio);
   const { estadoOrdenAcopio } = useAdquisicionStore();
+
+  // Estado de la alerta
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
 
+  // Estado de la confirmacion
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+
   const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
   });
+  const [eliminarOrdenAcopio] = useMutation(ELIMINAR_ORDEN_ACOPIO, {
+    onCompleted: () => {
+      setAlertType("exitoso");
+      setAlertMessage("La orden de acopio se ha eliminado correctamente");
+      setShowAlert(true);
+      setTimeout(() => {
+        window.location.href = "/adquisiciones/acopio/";
+      }, 2000);
+    },
+    onError: (mutationError) => {
+      setAlertType("error");
+      setAlertMessage(mutationError.message);
+      setShowAlert(true);
+    },
+  });
   const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
     onCompleted: () => {
-      // Redirigir a la página de adquisiciones/acopio después de la mutación
-      window.location.href = "/adquisiciones/acopio/";
+      setAlertType("exitoso");
+      setAlertMessage("La orden de acopio se ha confirmado correctamente");
+      setShowAlert(true);
+      setTimeout(() => {
+        window.location.href = "/adquisiciones/acopio/";
+      }, 2000);
     },
     onError: (mutationError) => {
       setAlertType("error");
@@ -74,6 +83,25 @@ export default function AcopioIdPage({
       },
     });
   };
+  const handleEliminarOrdenAcopio = () => {
+    try {
+      eliminarOrdenAcopio({
+        variables: {
+          id: id_acopio_num,
+        },
+      });
+    } catch (error) {
+      setAlertType("error");
+      setAlertMessage("Error al eliminar la orden de acopio");
+      setShowAlert(true);
+    }
+  };
+  const handleConfirmacion = (confirmado: boolean) => {
+    if (confirmado) {
+      handleEliminarOrdenAcopio();
+    }
+    setShowConfirmacion(false);
+  };
 
   if (loading) {
     return (
@@ -86,9 +114,13 @@ export default function AcopioIdPage({
   }
 
   if (error) {
-    setAlertType("error");
-    setAlertMessage(error.message);
-    setShowAlert(true);
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Error al cargar los detalles del acopio: {error.message}</p>
+        </div>
+      </div>
+    );
   }
 
   const { detalles } = data.ordenAcopio;
@@ -100,6 +132,15 @@ export default function AcopioIdPage({
           type={alertType}
           message={alertMessage}
           onClose={() => setShowAlert(false)}
+        />
+      )}
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Eliminar Orden de Acopio"
+          mensaje={`¿Estás seguro de que deseas eliminar la orden de Acopio?`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmacion}
         />
       )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
@@ -115,7 +156,12 @@ export default function AcopioIdPage({
               >
                 Confirmar Acopio
               </button>
-              <button className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto">
+              <button
+                className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto"
+                onClick={() => {
+                  setShowConfirmacion(true);
+                }}
+              >
                 Cancelar Acopio
               </button>
             </div>
@@ -149,16 +195,16 @@ export default function AcopioIdPage({
                 {detalles.map((detalle: DetalleOrdenAcopio) => (
                   <tr key={detalle.id}>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.familia_producto}
+                      {detalle.producto.familia}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.nombre_producto}
+                      {detalle.producto.nombre_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.codigo_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.unidad}
+                      {detalle.producto.unidad_medida}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.cantidad}

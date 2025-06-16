@@ -5,9 +5,14 @@ import Alert from "@/components/Alert";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCargaCompleta?: () => void;
 }
 
-const NuevaOrdenAcopio: React.FC<ModalProps> = ({ isOpen, onClose }) => {
+const NuevaOrdenAcopio: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  onCargaCompleta,
+}) => {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false); // <- Estado para loading
   const [showAlert, setShowAlert] = useState(false);
@@ -29,6 +34,7 @@ const NuevaOrdenAcopio: React.FC<ModalProps> = ({ isOpen, onClose }) => {
   const handleClose = () => {
     setArchivo(null);
     onClose();
+    onCargaCompleta && onCargaCompleta();
   };
 
   const handleUpload = async () => {

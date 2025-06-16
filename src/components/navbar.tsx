@@ -190,6 +190,14 @@ const Navbar = () => {
                         Ordenes de Acopio
                       </div>
                     </Link>
+                    <Link href="/adquisiciones/productos">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200"
+                        onClick={handleSelectOption}
+                      >
+                        Productos
+                      </div>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -205,7 +213,7 @@ const Navbar = () => {
               </button>
               {openEntrada && (
                 <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
-                  <Link href="/entrada/productos">
+                  <Link href="/entrada/orden_compra">
                     <div
                       className="block px-4 py-2 hover:bg-orange-200"
                       onClick={handleSelectOption}
@@ -214,12 +222,22 @@ const Navbar = () => {
                     </div>
                   </Link>
                   {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                    <Link href="/entrada/carga">
+                    <Link href="/entrada/revision">
                       <div
                         className="block px-4 py-2 hover:bg-orange-200"
                         onClick={handleSelectOption}
                       >
-                        Carga Masiva
+                        Revisión guia de Entrada
+                      </div>
+                    </Link>
+                  )}
+                  {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                    <Link href="/entrada/carga_softland">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200"
+                        onClick={handleSelectOption}
+                      >
+                        Carga Masiva Softland
                       </div>
                     </Link>
                   )}
@@ -270,26 +288,36 @@ const Navbar = () => {
             </div>
 
             {/* Reporte */}
-            <div className="relative flex justify-center">
-              <button
-                onClick={handleOpenReporte}
-                className="text-black font-semibold hover:text-white transition duration-300"
-              >
-                Reporte
-              </button>
-              {openReporte && (
-                <div className="mt-10 w-35 bg-orange-400 text-l text-black shadow-lg rounded-md sm:absolute">
-                  <Link href="/reporte/registro_acopio">
-                    <div
-                      className="block px-4 py-2 hover:bg-orange-200"
-                      onClick={handleSelectOption}
-                    >
-                      Registro Acopio
-                    </div>
-                  </Link>
-                </div>
-              )}
-            </div>
+            {!["Jefe Bodega", "Bodeguero"].includes(rolUsuario ?? "") && (
+              <div className="relative flex justify-center">
+                <button
+                  onClick={handleOpenReporte}
+                  className="text-black font-semibold hover:text-white transition duration-300"
+                >
+                  Reporte
+                </button>
+                {openReporte && (
+                  <div className="mt-10 w-35 bg-orange-400 text-l text-black shadow-lg rounded-md sm:absolute">
+                    <Link href="/reporte/registro_acopio">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200"
+                        onClick={handleSelectOption}
+                      >
+                        Registro Acopio
+                      </div>
+                    </Link>
+                    <Link href="/reporte/trazabilidad">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200"
+                        onClick={handleSelectOption}
+                      >
+                        Trazabilidad
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Datos Usuario */}
             <div className="relative flex justify-center">
@@ -376,6 +404,14 @@ const Navbar = () => {
                           ▶ Ordenes de Acopio
                         </div>
                       </Link>
+                      <Link href="/adquisiciones/productos">
+                        <div
+                          className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          ▶ Productos
+                        </div>
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -391,7 +427,7 @@ const Navbar = () => {
                 </button>
                 {openEntrada && (
                   <div className="pl-4">
-                    <Link href="/entrada/productos">
+                    <Link href="/entrada/orden_compra">
                       <div
                         className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                         onClick={handleSelectOption}
@@ -400,12 +436,22 @@ const Navbar = () => {
                       </div>
                     </Link>
                     {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                      <Link href="/entrada/carga">
+                      <Link href="/entrada/revision">
+                        <div
+                          className="block px-4 py-2 text-black font-medium hover:bg-orange-300 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          ▶ Revisión guia de Entrada
+                        </div>
+                      </Link>
+                    )}
+                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                      <Link href="/entrada/carga_softland">
                         <div
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          ▶ Carga Masiva
+                          ▶ Carga Masiva Softland
                         </div>
                       </Link>
                     )}
@@ -456,26 +502,36 @@ const Navbar = () => {
               </div>
 
               {/* Reporte */}
-              <div>
-                <button
-                  onClick={handleOpenReporte}
-                  className="block w-full text-left px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                >
-                  Reporte
-                </button>
-                {openReporte && (
-                  <div className="pl-4">
-                    <Link href="/reporte/registro_acopio">
-                      <div
-                        className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                        onClick={handleSelectOption}
-                      >
-                        ▶ Registro Acopio
-                      </div>
-                    </Link>
-                  </div>
-                )}
-              </div>
+              {!["Jefe Bodega", "Bodeguero"].includes(rolUsuario ?? "") && (
+                <div>
+                  <button
+                    onClick={handleOpenReporte}
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                  >
+                    Reporte
+                  </button>
+                  {openReporte && (
+                    <div className="pl-4">
+                      <Link href="/reporte/registro_acopio">
+                        <div
+                          className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          ▶ Registro Acopio
+                        </div>
+                      </Link>
+                      <Link href="/reporte/trazabilidad">
+                        <div
+                          className="block px-4 py-2 hover:bg-orange-200"
+                          onClick={handleSelectOption}
+                        >
+                          ▶ Trazabilidad
+                        </div>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Datos Usuario */}
               <div>

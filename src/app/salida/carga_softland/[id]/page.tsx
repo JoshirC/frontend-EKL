@@ -1,14 +1,27 @@
 "use client";
-import { maxHeaderSize } from "http";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, use } from "react";
 import Barcode from "react-barcode";
+import { GET_GUIA_DE_SALIDA } from "@/graphql/query";
+import { ELIMINAR_GUIA_SALIDA } from "@/graphql/mutations";
+import { useQuery, useMutation } from "@apollo/client";
+import Alert from "@/components/Alert";
+import Confirmacion from "@/components/confirmacion";
 
-type DetalleSalida = {
-  idOrdenAcopio: number;
-  idSalida: number;
-  codProducto: string;
-  nombreProducto: string;
-  cantidadEnviada: number;
+type Envio = {
+  id: number;
+  codigo_producto_enviado: string;
+  cantidad_enviada: number;
+  producto: {
+    nombre_producto: string;
+    codigo: string;
+    familia: string;
+    unidad_medida: string;
+  };
+};
+type GuiaSalida = {
+  id: number;
+  codigo: string;
+  envios: Envio[];
 };
 
 export default function CargaSoftlandDetallePage({
@@ -17,34 +30,107 @@ export default function CargaSoftlandDetallePage({
   params: Promise<{ id: string }>;
 }) {
   const { id: id_salida } = use(params);
-  const [detalleSalida, setDetalleSalida] = useState<DetalleSalida[]>([]);
+  const id_salida_num = parseFloat(id_salida);
 
-  useEffect(() => {
-    const fetchDetalleSalida = async () => {
-      try {
-        const response = await fetch("/api/detalleSalidaAcopio.json");
-        const data = await response.json();
-        const detallesFiltrados = data.filter(
-          (detalle: DetalleSalida) => detalle.idSalida === Number(id_salida)
-        );
-        setDetalleSalida(detallesFiltrados);
-      } catch (error) {
-        console.error("Error al cargar los detalles:", error);
-      }
-    };
+  // Componente para mostrar la alerta
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [cerrarModal, setCerrarModal] = useState(false);
 
-    fetchDetalleSalida();
-  }, [detalleSalida]);
+  // Estado de la confirmacion
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
 
+  const { loading, error, data } = useQuery(GET_GUIA_DE_SALIDA, {
+    variables: { id: id_salida_num },
+  });
+  const [EliminarGuiaSalida] = useMutation(ELIMINAR_GUIA_SALIDA, {
+    variables: { id: id_salida_num },
+    onCompleted: () => {
+      setAlertType("exitoso");
+      setAlertMessage("La guía de salida se ha eliminado correctamente");
+      setShowAlert(true);
+      setCerrarModal(true);
+
+      setTimeout(() => {
+        window.location.href = "/salida/carga_softland";
+      }, 2000);
+    },
+  });
+  const handleEliminarGuiaSalida = async () => {
+    try {
+      await EliminarGuiaSalida();
+    } catch (error) {
+      setAlertType("error");
+      setAlertMessage(
+        "Error al eliminar la guía de salida, descripción: " + error
+      );
+      setShowAlert(true);
+    }
+  };
+  const handleConfirmacion = (confirmado: boolean) => {
+    if (confirmado) {
+      handleEliminarGuiaSalida();
+    }
+    setShowConfirmacion(false);
+  };
+  if (loading) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Cargando detalles del acopio...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p className="text-red-500">
+            Error al cargar detalles del acopio, descripción del error:{" "}
+            {error.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const guiaSalida: GuiaSalida = data?.guiaDeSalida || null;
   return (
     <div className="p-4 sm:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+          cerrar={cerrarModal}
+        />
+      )}
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Termino de Guia de Salida"
+          mensaje={`¿Estás seguro de que terminaste de subir la Guia a Softland?\nRecuerda que la guia se eliminara de este sistema una vez subida.`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmacion}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">
             Detalle de Guia de Salida N°{id_salida}
           </div>
-          <button className="bg-orange-400 hover:bg-orange-500 font-semibold text-white p-3 sm:px-4 sm:py-2 rounded w-full sm:w-auto">
-            Completar
+          <button
+            className="bg-orange-400 hover:bg-orange-500 font-semibold text-white p-3 sm:px-4 sm:py-2 rounded w-full sm:w-auto"
+            onClick={() => {
+              setShowConfirmacion(true);
+            }}
+          >
+            Finalizar
           </button>
         </div>
         <div className="overflow-x-auto">
@@ -58,7 +144,7 @@ export default function CargaSoftlandDetallePage({
                   Código de Barras Producto
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Descrpción Producto
+                  Descripción Producto
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Cantidad
@@ -66,28 +152,38 @@ export default function CargaSoftlandDetallePage({
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Código de Barras Cantidad
                 </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Unidad de Medida
+                </th>
               </tr>
             </thead>
             <tbody>
-              {detalleSalida.map((detalle, index) => (
-                <tr key={index}>
+              {guiaSalida.envios.map((envio) => (
+                <tr key={envio.id}>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.codProducto}
-                  </td>
-                  <td className="border border-gray-200 px-2 sm:px-4 py-2 flex justify-center">
-                    <Barcode value={detalle.codProducto} height={75} />
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.nombreProducto}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.cantidadEnviada}
+                    {envio.codigo_producto_enviado}
                   </td>
                   <td className="border border-gray-200 px-2 sm:px-4 py-2 flex justify-center">
                     <Barcode
-                      value={detalle.cantidadEnviada.toString()}
+                      value={envio.codigo_producto_enviado}
                       height={75}
                     />
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {/* Replace with actual product description if available */}
+                    {envio.producto.nombre_producto}
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {envio.cantidad_enviada}
+                  </td>
+                  <td className="border border-gray-200 px-2 sm:px-4 py-2 flex justify-center">
+                    <Barcode
+                      value={envio.cantidad_enviada.toString()}
+                      height={75}
+                    />
+                  </td>
+                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    {envio.producto.unidad_medida}
                   </td>
                 </tr>
               ))}

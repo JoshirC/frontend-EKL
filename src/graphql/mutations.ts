@@ -1,5 +1,22 @@
 import { gql } from '@apollo/client';
 
+
+// Mutaciones para AUTH
+
+export const LOGIN_MUTATION = gql`
+  mutation Login($loginUserInput: LoginUserInput!) {
+    login(loginUserInput: $loginUserInput) {
+      access_token
+      user {
+        rut
+        rol
+        nombre
+      }
+    }
+  }
+`;
+
+//Mutaciones para Usuarios
 export const CREATE_USER = gql`
   mutation CreateUser($userInput: CreateUserInput!) {
     createUser(userInput: $userInput) {
@@ -10,17 +27,206 @@ export const CREATE_USER = gql`
     }
   }
 `;
+export const UPDATE_USER = gql`
+mutation UpdateUser($updateUserInput: UpdateUserInput!) {
+  updateUser(updateUserInput: $updateUserInput) {
+    id
+    rut
+    nombre
+    correo
+    rol
+  }
+}
+`;
+export const EDITAR_ESTADO_ELIMINADO_USER = gql`
+  mutation EditStatusUser($id: Float!) {
+    editStatusUser(id: $id) {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
+export const EDIT_PASSWORD_USER = gql`
+  mutation EditPasswordUser(
+    $rut: String!
+    $editPasswordUserInput: EditPasswordUserInput!
+  ) {
+    editPasswordUser(rut: $rut, editPasswordUserInput: $editPasswordUserInput) {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
 
-export const LOGIN = gql`
-  mutation Login($loginUserInput: LoginUserInput!) {
-    login(loginUserInput: $loginUserInput) {
-      token
-      user {
-        rut
-        nombre
-        correo
-        rol
+// Mutaciones para Envío de Detalle de Orden de Acopio
+
+export const UPDATE_CANTIDAD_ENVIO_DETALLE = gql`
+  mutation updateCantidadEnvioDetalleOrdenAcopio($id: Int!, $cantidad: Int!) {
+    updateCantidadEnvioDetalleOrdenAcopio(id: $id, cantidad: $cantidad) {
+      id
+      codigo_producto_enviado
+      cantidad_enviada
+    }
+  }
+`;
+export const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
+  mutation createEnvioDetalleOrdenAcopio(
+    $id_detalle_orden_acopio: Int!
+    $cantidad_enviada: Int!
+    $codigo_producto_enviado: String!
+    $usuario_rut: String!
+  ) {
+    createEnvioDetalleOrdenAcopio(
+      createEnvioDetalleOrdenAcopioInput: {
+        id_detalle_orden_acopio: $id_detalle_orden_acopio
+        cantidad_enviada: $cantidad_enviada
+        codigo_producto_enviado: $codigo_producto_enviado
+        usuario_rut: $usuario_rut
+      }
+    ) {
+      codigo_producto_enviado
+      cantidad_enviada
+    }
+  }
+`;
+export const REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
+  mutation removeEnvioDetalleOrdenAcopio($id: Int!) {
+    removeEnvioDetalleOrdenAcopio(id: $id)
+  }
+`;
+
+// Mutaciones para Detalle de Orden de Acopio
+
+export const UPDATE_ESTADO_DETALLE_ACOPIO = gql`
+mutation updateEstadoEnviado($id: Float!) {
+  updateEstadoEnviado(id: $id) {
+    enviado
+  }
+}
+`;
+
+// Mutaciones para Orden de Acopio
+
+export const UPDATE_ESTADO_ORDEN_ACOPIO = gql`
+  mutation ($id: Float!, $estado: String!) {
+    updateEstadoOrdenAcopio(id: $id, estado: $estado) {
+      id
+    }
+  }
+`;
+export const ELIMINAR_ORDEN_ACOPIO = gql`
+  mutation removeOrdenAcopio($id: Float!) {
+    removeOrdenAcopio(id: $id)
+  }
+`;
+// Mutaciones para Guia de Salida
+export const ELIMINAR_GUIA_SALIDA = gql`
+  mutation eliminarGuiaSalida($id: Float!) {
+    eliminarGuiaSalida(id: $id)
+  }
+`;
+
+// Mutaciones para Productos
+export const UPDATE_TRAZABILIDAD = gql`
+  mutation updateTrazabilidadProducto($codigo_producto: String!) {
+    updateTrazabilidadProducto(codigo_producto: $codigo_producto) {
+      id
+      trazabilidad
+    }
+  }
+`;
+export const CREATE_PRODUCTO_SOFTLAND = gql`
+  mutation ccreateProductoSoftland($createProductoCode: String!) {
+    createProductoSoftland(createProductoCode: $createProductoCode) {
+      nombre_producto
+      codigo
+      familia
+      unidad_medida
+    }
+  }
+`;
+export const ACTUALIZAR_STOCK_SOFTLAND = gql`
+  mutation {
+    actualizarStockSoftland
+  }
+`;
+export const ACTUALIZAR_PRODUCTOS_SOFTLAND = gql`
+  mutation {
+    sincronizarProductosDesdeSoftland
+  }
+`;
+
+// Mutaciones para guia de entrada
+export const CREATE_GUIA_ENTRADA_WITH_DETAILS = gql`
+  mutation createGuiaEntradaWithDetails($createGuiaEntradaInput: CreateGuiaEntradaInput!) {
+    createGuiaEntradaWithDetails(createGuiaEntradaInput: $createGuiaEntradaInput) {
+      id
+      numero_orden_compra
+      fecha_generacion
+      estado
+      guiaEntradaDetalle {
+        id
+        cantidad_ingresada
+        precio_unitario
+        producto {
+          codigo
+          nombre_producto
+          cantidad
+        }
       }
     }
   }
-`; 
+`;
+export const UPDATE_GUIA_ENTRADA = gql`
+  mutation updateGuiaEntrada($updateGuiaEntradaInput: UpdateGuiaEntradaInput!) {
+    updateGuiaEntrada(updateGuiaEntradaInput: $updateGuiaEntradaInput) {
+      id
+    }
+  }
+`;
+export const UPDATE_ESTADO_GUIA_ENTRADAS = gql`
+  mutation updateEstadoGuiaEntrada($listId: [Int!]!, $estado: String!) {
+    updateEstadoGuiaEntrada(listId: $listId, estado: $estado) {
+      id
+      codigo_bodega
+      numero_folio
+      fecha_generacion
+      codigo_proveedor
+      codigo_centro_costo
+      numero_factura
+      fecha_factura
+      numero_orden_compra
+      estado
+    }
+  }
+`;
+// Mutaciones para Trazabilidad
+export const CREATE_TRAZABILIDAD = gql`
+  mutation createTrazabilidad($createTrazabilidadInput: [CreateTrazabilidadInput!]!) {
+    createTrazabilidad(createTrazabilidadInput: $createTrazabilidadInput) {
+      id
+      numero_lote
+      cantidad_producto
+      fecha_elaboracion
+      fecha_vencimiento
+      temperatura
+      observaciones
+      producto {
+        id
+        codigo
+        nombre_producto
+      }
+      usuario {
+        id
+        nombre
+        rut
+      }
+    }
+  }
+`;

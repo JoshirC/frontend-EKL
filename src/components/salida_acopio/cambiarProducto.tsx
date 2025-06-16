@@ -1,17 +1,25 @@
 "use client";
 
 import React from "react";
-
+type Producto = {
+  codigo: string;
+  nombre_producto: string;
+  unidad_medida: string;
+  familia: string;
+  trazabilidad: boolean;
+};
 interface CambiarProductoProps {
   isOpen: boolean;
   onClose: () => void;
-  codigoProducto: string;
+  producto: Producto;
+  codigoProductoSolicitado: string;
 }
 
 const CambiarProducto: React.FC<CambiarProductoProps> = ({
   isOpen,
   onClose,
-  codigoProducto,
+  producto,
+  codigoProductoSolicitado,
 }) => {
   const handleClose = () => {
     onClose();
@@ -28,10 +36,10 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
     <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
       <div className="bg-white opacity-100 w-full max-w-md rounded-lg shadow-lg p-8 max-h-[90vh] overflow-y-auto">
         <h1 className="text-2xl font-bold mb-4 text-center">
-          Cambiar Producto {codigoProducto}
+          Cambiar {producto.nombre_producto}
         </h1>
         <h2 className="text-sm mb-4 text-center">
-          Ingresa un reemplazo para el producto
+          Busque el producto que desea cambiar por el solicitado
         </h2>
         {/* El backend debe enviar los productos disponibles para reemplazar */}
         <select

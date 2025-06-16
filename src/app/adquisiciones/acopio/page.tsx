@@ -1,9 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import NuevaOrdenAcopio from "@/components/adquisiciones/nuevaOrdenAcopio";
-import { useAdquisicionStore } from "@/store/adquisicionStore";
 import Alert from "@/components/Alert";
+import { GET_ORDENES_ACOPIO } from "@/graphql/query";
+import ListaVacia from "@/components/listaVacia";
 type OrdenAcopio = {
   id: number;
   centroCosto: string;
@@ -11,27 +12,18 @@ type OrdenAcopio = {
   estado: string;
 };
 
-const GET_ORDENES_ACOPIO = gql`
-  query {
-    ordenAcopiosByEstado(estado: "Revision") {
-      id
-      centroCosto
-      fecha
-      estado
-    }
-  }
-`;
-
 const AcopioPage: React.FC = () => {
   const [modalNuevaOrdenAcopio, setModalNuevaOrdenAcopio] = useState(false);
-  const { estadoOrdenAcopio, setEstadoOrdenAcopio } = useAdquisicionStore();
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+  const [cerrarModal, setCerrarModal] = useState(false);
 
-  const { loading, error, data, refetch } = useQuery(GET_ORDENES_ACOPIO);
+  const { loading, error, data, refetch } = useQuery(GET_ORDENES_ACOPIO, {
+    variables: { estado: "Revision" },
+  });
 
   const abrirModalNuevaOrdenAcopio = () => {
     setModalNuevaOrdenAcopio(true);
@@ -39,6 +31,19 @@ const AcopioPage: React.FC = () => {
 
   const cerrarModalNuevaOrdenAcopio = () => {
     setModalNuevaOrdenAcopio(false);
+  };
+  const handleCargaCompleta = async () => {
+    try {
+      await refetch();
+      setAlertType("exitoso");
+      setAlertMessage("El Consolidado se ha subido correctamente");
+      setShowAlert(true);
+      setCerrarModal(true);
+    } catch (error) {
+      setAlertType("error");
+      setAlertMessage("Error al actualizar la lista de órdenes");
+      setShowAlert(true);
+    }
   };
 
   if (loading) {
@@ -63,12 +68,14 @@ const AcopioPage: React.FC = () => {
       <NuevaOrdenAcopio
         isOpen={modalNuevaOrdenAcopio}
         onClose={cerrarModalNuevaOrdenAcopio}
+        onCargaCompleta={handleCargaCompleta}
       />
       {showAlert && (
         <Alert
           type={alertType}
           message={alertMessage}
           onClose={() => setShowAlert(false)}
+          cerrar={cerrarModal}
         />
       )}
 
@@ -104,6 +111,13 @@ const AcopioPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
+              {ordenes.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>
+                    <ListaVacia mensaje="No hay órdenes de acopio disponibles para confirmar." />
+                  </td>
+                </tr>
+              ) : null}
               {ordenes.map((orden) => (
                 <tr key={orden.id}>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -123,7 +137,6 @@ const AcopioPage: React.FC = () => {
                       className="bg-orange-400 text-white font-semibold px-3 sm:px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
                       onClick={() => {
                         window.location.href = `/adquisiciones/${orden.id}`;
-                        setEstadoOrdenAcopio(orden.estado);
                       }}
                     >
                       Detalles

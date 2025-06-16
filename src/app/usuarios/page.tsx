@@ -4,8 +4,12 @@ import NuevoUsuario from "@/components/usuarios/nuevoUsuario";
 import CambiarContraseña from "@/components/usuarios/cambiarContraseña";
 import { useModalStore } from "@/store/modalStore";
 import React, { useState } from "react";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
+import { GET_USUARIOS_NO_ELIMINADOS } from "@/graphql/query";
+import { UPDATE_USER, EDITAR_ESTADO_ELIMINADO_USER } from "@/graphql/mutations";
+import ListaVacia from "@/components/listaVacia";
+import Confirmacion from "@/components/confirmacion";
 
 type Usuario = {
   id: number;
@@ -14,42 +18,6 @@ type Usuario = {
   correo: string;
   rol: string;
 };
-
-const GET_USUARIOS_NO_ELIMINADOS = gql`
-  query GetUsuariosNoEliminados {
-    usersNoEliminados {
-      id
-      rut
-      nombre
-      correo
-      rol
-    }
-  }
-`;
-
-const UPDATE_USER = gql`
-  mutation UpdateUser($updateUserInput: UpdateUserInput!) {
-    updateUser(updateUserInput: $updateUserInput) {
-      id
-      rut
-      nombre
-      correo
-      rol
-    }
-  }
-`;
-
-const EDITAR_ESTADO_ELIMINADO_USER = gql`
-  mutation EditStatusUser($id: Float!) {
-    editStatusUser(id: $id) {
-      id
-      rut
-      nombre
-      correo
-      rol
-    }
-  }
-`;
 
 const UsuariosPage: React.FC = () => {
   const {
@@ -73,6 +41,9 @@ const UsuariosPage: React.FC = () => {
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+
+  // Estados para el modal de confirmación
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
 
   const { data, loading, error, refetch } = useQuery(
     GET_USUARIOS_NO_ELIMINADOS
@@ -172,6 +143,12 @@ const UsuariosPage: React.FC = () => {
       console.error("Error al eliminar usuario:", error);
     }
   };
+  const handleConfirmarEliminar = (confirmed: boolean) => {
+    if (confirmed) {
+      handleEliminarUsuario(usuarioSeleccionado?.id || 0);
+    }
+    setShowConfirmacion(false);
+  };
 
   const usuarios: Usuario[] = data?.usersNoEliminados || [];
 
@@ -206,6 +183,15 @@ const UsuariosPage: React.FC = () => {
           type={alertType}
           message={alertMessage}
           onClose={() => setShowAlert(false)}
+        />
+      )}
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Eliminar Usuario"
+          mensaje={`¿Estás seguro de que deseas eliminar al usuario ${usuarioSeleccionado?.nombre}?`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmarEliminar}
         />
       )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
@@ -258,6 +244,13 @@ const UsuariosPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
+                {usuarios.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="text-center">
+                      <ListaVacia mensaje="No hay usuarios para mostrar. Revisa en el apartado de eliminados." />
+                    </td>
+                  </tr>
+                )}
                 {usuarios.map((usuario) => (
                   <tr key={usuario.id}>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
@@ -292,7 +285,10 @@ const UsuariosPage: React.FC = () => {
                         </button>
                         <button
                           className="bg-red-500 text-white font-semibold p-2 rounded hover:bg-red-600 transition duration-300 text-sm sm:text-base w-full"
-                          onClick={() => handleEliminarUsuario(usuario.id)}
+                          onClick={() => {
+                            setShowConfirmacion(true);
+                            setUsuarioSeleccionado(usuario);
+                          }}
                         >
                           Eliminar
                         </button>

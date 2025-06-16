@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useEffect, use } from "react";
-import { useQuery, gql } from "@apollo/client";
+import React, { use, useState } from "react";
+import { useQuery } from "@apollo/client";
 import { useSalidaStore } from "@/store/salidaStore";
+import { GET_ORDENES_ACOPIO_DOS_ESTADOS } from "@/graphql/query";
+import Alert from "@/components/Alert";
+import ListaVacia from "@/components/listaVacia";
 
 type OrdenAcopio = {
   id: number;
@@ -11,42 +14,30 @@ type OrdenAcopio = {
   estado: string;
 };
 
-const GET_ORDENES_ACOPIO = gql`
-  query ($centroCosto: String!, $estado1: String!, $estado2: String!) {
-    ordenAcopioByCentroCostoYEstados(
-      centroCosto: $centroCosto
-      estado1: $estado1
-      estado2: $estado2
-    ) {
-      id
-      centroCosto
-      fecha
-      estado
-    }
-  }
-`;
-
 export default function CentroCostoNamePage({
   params,
 }: {
   params: Promise<{ centro_costo: string }>;
 }) {
   const { centro_costo } = use(params);
+  const sanitizedCentroCosto = decodeURIComponent(centro_costo).replace(
+    /[^a-zA-Z0-9 ]/g,
+    ""
+  );
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
   const { setCentroCosto, setFecha, setEstado } = useSalidaStore();
 
-  const { loading, error, data } = useQuery(GET_ORDENES_ACOPIO, {
+  const { loading, error, data } = useQuery(GET_ORDENES_ACOPIO_DOS_ESTADOS, {
     variables: {
-      centroCosto: centro_costo,
+      centroCosto: sanitizedCentroCosto,
       estado1: "Pendiente",
       estado2: "Proceso",
     },
   });
-
-  useEffect(() => {
-    if (data) {
-      console.log("Datos cargados:", data.ordenAcopioByCentroCostoYEstados);
-    }
-  }, [data]);
 
   if (loading) {
     return (
@@ -59,24 +50,25 @@ export default function CentroCostoNamePage({
   }
 
   if (error) {
-    return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="text-red-500">
-            Error al cargar los datos: {error.message}
-          </p>
-        </div>
-      </div>
-    );
+    setAlertType("error");
+    setAlertMessage(error.message);
+    setShowAlert(true);
   }
 
   const ordenes: OrdenAcopio[] = data.ordenAcopioByCentroCostoYEstados;
 
   return (
     <div className="p-4 sm:p-10">
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="text-xl sm:text-2xl font-semibold mb-4">
-          Lista de Acopio {centro_costo}
+          Lista de Acopio {sanitizedCentroCosto}
         </div>
         <div className="overflow-x-auto">
           <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
@@ -95,6 +87,13 @@ export default function CentroCostoNamePage({
               </tr>
             </thead>
             <tbody>
+              {ordenes.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center">
+                    <ListaVacia mensaje="El centro de Costo no tiene listas de Acopio" />
+                  </td>
+                </tr>
+              )}
               {ordenes.map((orden) => (
                 <tr key={orden.id}>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">

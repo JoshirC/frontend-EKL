@@ -1,23 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
-
-const EDIT_PASSWORD_USER = gql`
-  mutation EditPasswordUser(
-    $rut: String!
-    $editPasswordUserInput: EditPasswordUserInput!
-  ) {
-    editPasswordUser(rut: $rut, editPasswordUserInput: $editPasswordUserInput) {
-      id
-      rut
-      nombre
-      correo
-      rol
-    }
-  }
-`;
+import { EDIT_PASSWORD_USER } from "@/graphql/mutations";
 
 interface CambiarContraseñaProps {
   nombreUsuario: string;
