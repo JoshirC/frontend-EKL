@@ -6,6 +6,7 @@ import {
   UPDATE_TRAZABILIDAD,
   ACTUALIZAR_STOCK_SOFTLAND,
   ACTUALIZAR_PRODUCTOS_SOFTLAND,
+  AJUSTE_DE_INVENTARIO,
 } from "@/graphql/mutations";
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
@@ -47,9 +48,30 @@ const ProductosPage: React.FC = () => {
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
   const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [mensajeConfirmacion, setMensajeConfirmacion] = useState("");
+  const [tituloConfirmacion, setTituloConfirmacion] = useState("");
+  const [estadoConfirmacion, setEstadoConfirmacion] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [showCargando, setShowCargando] = useState(false);
   const [cargandoMensaje, setCargandoMensaje] = useState("");
+
+  const [ajusteDeInventarioSoftland] = useMutation(AJUSTE_DE_INVENTARIO, {
+    onCompleted: () => {
+      refetch();
+      setShowCargando(false);
+      setAlertType("exitoso");
+      setAlertMessage("Ajuste de inventario realizado correctamente");
+      setShowAlert(true);
+    },
+    onError: (error) => {
+      setShowCargando(false);
+      setAlertType("error");
+      setAlertMessage(
+        `Error al realizar ajuste de inventario: ${error.message}`
+      );
+      setShowAlert(true);
+    },
+  });
 
   const [actualizarStockSoftland] = useMutation(ACTUALIZAR_STOCK_SOFTLAND, {
     onCompleted: () => {
@@ -137,13 +159,24 @@ const ProductosPage: React.FC = () => {
   ).sort();
 
   const handleConfirmacion = (confirmed: boolean) => {
-    if (confirmed && selectedProduct) {
-      editTrazabilidad({
-        variables: { codigo_producto: selectedProduct.codigo },
-      });
+    if (estadoConfirmacion === "trazabilidad") {
+      if (confirmed && selectedProduct) {
+        editTrazabilidad({
+          variables: { codigo_producto: selectedProduct.codigo },
+        });
+      }
+      setShowConfirmacion(false);
+      setSelectedProduct(null);
     }
-    setShowConfirmacion(false);
-    setSelectedProduct(null);
+    if (estadoConfirmacion === "ajusteInventario") {
+      if (confirmed) {
+        setShowCargando(true);
+        setCargandoMensaje("Realizando ajuste de inventario con Softland");
+        ajusteDeInventarioSoftland();
+      }
+      setShowConfirmacion(false);
+      setSelectedProduct(null);
+    }
   };
   const handleActualizarStockSoftland = () => {
     setShowCargando(true);
@@ -169,8 +202,8 @@ const ProductosPage: React.FC = () => {
       {showConfirmacion && (
         <Confirmacion
           isOpen={showConfirmacion}
-          titulo="Trazabilidad"
-          mensaje={`¿Estás seguro de que deseas cambiar a trazable el producto: ${selectedProduct?.nombre_producto}?`}
+          titulo={tituloConfirmacion}
+          mensaje={mensajeConfirmacion}
           onClose={() => setShowConfirmacion(false)}
           onConfirm={handleConfirmacion}
         />
@@ -187,14 +220,6 @@ const ProductosPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold">Listado de Productos</h1>
           <div className="flex items-center gap-2">
-            {/* Barra de Busqueda */}
-            <input
-              type="text"
-              placeholder="Buscar por código, descripción..."
-              className="w-full p-4 my-4 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
             <button
               className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
               onClick={() => handleActualizarProductosSoftland()}
@@ -208,6 +233,19 @@ const ProductosPage: React.FC = () => {
               disabled={loading}
             >
               Actualizar Stock Softland
+            </button>
+            <button
+              className="bg-gray-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-gray-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
+              onClick={() => {
+                setTituloConfirmacion("Ajuste de Inventario");
+                setMensajeConfirmacion(
+                  "¿Estás seguro de que deseas realizar un ajuste de inventario?"
+                );
+                setEstadoConfirmacion("ajusteInventario");
+                setShowConfirmacion(true);
+              }}
+            >
+              Ajuste de Inventario
             </button>
           </div>
         </div>
@@ -286,6 +324,14 @@ const ProductosPage: React.FC = () => {
               Siguiente
             </button>
           </div>
+          {/* Barra de Busqueda */}
+          <input
+            type="text"
+            placeholder="Buscar por código, descripción..."
+            className="w-full p-4 my-4 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
         {/* Tabla de Productos */}
         <div className="overflow-x-auto">
@@ -345,6 +391,15 @@ const ProductosPage: React.FC = () => {
                             : "bg-red-400 hover:bg-red-500"
                         }`}
                         onClick={() => {
+                          setTituloConfirmacion("Trazabilidad");
+                          setMensajeConfirmacion(
+                            `¿Estás seguro de que deseas ${
+                              producto.trazabilidad ? "desactivar" : "activar"
+                            } la trazabilidad del producto: ${
+                              producto.nombre_producto
+                            }?`
+                          );
+                          setEstadoConfirmacion("trazabilidad");
                           setShowConfirmacion(true);
                           setSelectedProduct(producto);
                         }}

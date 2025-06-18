@@ -161,6 +161,11 @@ export const ACTUALIZAR_PRODUCTOS_SOFTLAND = gql`
     sincronizarProductosDesdeSoftland
   }
 `;
+export const AJUSTE_DE_INVENTARIO = gql`
+  mutation{
+    ajusteDeInventarioSoftland
+  }
+`;
 
 // Mutaciones para guia de entrada
 export const CREATE_GUIA_ENTRADA_WITH_DETAILS = gql`
