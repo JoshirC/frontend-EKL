@@ -235,3 +235,19 @@ export const CREATE_TRAZABILIDAD = gql`
     }
   }
 `;
+// Mutaciones para correos
+export const CORREO_AJUSTE_DE_INVENTARIO = gql`
+  mutation correoAjusteDeInventario($usuario: String!, $fecha: String!) {
+    correoAjusteDeInventario(usuario: $usuario, fecha: $fecha)
+  }
+`;
+export const CORREO_DE_SUGERENCIAS = gql`
+  mutation correoDeSugerencias($usuario: String!, $mensaje: String!) {
+    correoDeSugerencias(usuario: $usuario, mensaje: $mensaje)
+  }
+`;
+export const CORREO_CAMBIOS_EN_ORDEN_COMPRA = gql`
+  mutation notificarCambiosEnOrden($input: NotificarCambioOrdenInput!) {
+    notificarCambiosEnOrden(input: $input)
+  }
+`;

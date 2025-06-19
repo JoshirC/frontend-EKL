@@ -4,6 +4,7 @@ import { GET_ORDEN_COMPRA } from "@/graphql/query";
 import {
   CREATE_PRODUCTO_SOFTLAND,
   CREATE_GUIA_ENTRADA_WITH_DETAILS,
+  CORREO_CAMBIOS_EN_ORDEN_COMPRA,
 } from "@/graphql/mutations";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
@@ -57,11 +58,22 @@ type FormErrors = {
   fechaFactura?: string;
   producto?: string;
 };
+// 1. Agrega el tipo para el historial de cambios
+type HistorialProducto = {
+  codigo_producto: string;
+  nombre: string;
+  estado: "agregado" | "eliminado";
+};
+
 const OrdenCompraPage: React.FC = () => {
   // Estado para almacenar el número de orden de compra
   const [ordenCompra, setOrdenCompra] = useState<string>("");
   // Estado para almacenar los detalles de la orden de compra
   const [detalles, setDetalles] = useState<DetalleOrdenCompra[]>([]);
+  // Estado para el historial de cambios de productos
+  const [historialCambiosProductos, setHistorialCambiosProductos] = useState<
+    HistorialProducto[]
+  >([]);
   // Estado para almacenar el índice del detalle que se está editando
   const [indexEditar, setIndexEditar] = useState<number>(-1);
   const [indexEliminar, setIndexEliminar] = useState<number>(-1);
@@ -100,16 +112,32 @@ const OrdenCompraPage: React.FC = () => {
   const [trazabilidadProductos, setTrazabilidadProductos] = useState<
     TrazabilidadProducto[]
   >([]);
-
+  const [correoCambios] = useMutation(CORREO_CAMBIOS_EN_ORDEN_COMPRA, {
+    onCompleted: (data) => {
+      if (data.notificarCambiosEnOrden) {
+        setHistorialCambiosProductos([]);
+      } else {
+        console.error(
+          "Error al enviar el correo de cambios en la orden de compra."
+        );
+      }
+    },
+    onError: (error) => {
+      console.error(
+        `Error al enviar el correo de cambios en la orden de compra: ${error.message}`
+      );
+    },
+  });
   const [createGuiaEntrada] = useMutation(CREATE_GUIA_ENTRADA_WITH_DETAILS, {
     onCompleted: (data) => {
       if (data.createGuiaEntradaWithDetails) {
         setAlertType("exitoso");
         setAlertMessage("Guía de entrada creada exitosamente.");
         setShowAlert(true);
-        setTimeout(() => {
-          window.location.href = "/entrada/revision"; // Redirigir a la página de revisión
-        }, 2000);
+        handleEnviarCorreoCambios();
+        // setTimeout(() => {
+        //   window.location.reload(); // Recargar la página
+        // }, 2000);
       } else {
         setAlertType("error");
         setAlertMessage("Error al crear la guía de entrada.");
@@ -159,7 +187,6 @@ const OrdenCompraPage: React.FC = () => {
       const { data } = await fetchOrdenCompra({
         variables: { codigo_orden_compra: ordenCompra },
       });
-      console.log("Datos de la orden de compra:", data);
       if (!data?.ordenCompra) {
         setAlertType("error");
         setAlertMessage("No se encontró la orden de compra.");
@@ -181,9 +208,20 @@ const OrdenCompraPage: React.FC = () => {
   };
 
   const handleEliminarProducto = (index: number) => {
+    const productoEliminado = detalles[index];
     const nuevaLista = [...detalles];
     nuevaLista.splice(index, 1);
     setDetalles(nuevaLista);
+
+    // Registrar en historial
+    setHistorialCambiosProductos((prev) => [
+      ...prev,
+      {
+        codigo_producto: productoEliminado.codigo,
+        nombre: productoEliminado.nombre,
+        estado: "eliminado",
+      },
+    ]);
   };
   const handleEditarDetalles = (
     index: number,
@@ -219,8 +257,17 @@ const OrdenCompraPage: React.FC = () => {
     setShowConfirmacionCrearProducto(false);
     setIndexCrearProducto(-1);
   };
+  // 3. Modifica handleAgregarProductos para registrar los productos agregados
   const handleAgregarProductos = (nuevosProductos: DetalleOrdenCompra[]) => {
     setDetalles((prev) => [...prev, ...nuevosProductos]);
+    setHistorialCambiosProductos((prev) => [
+      ...prev,
+      ...nuevosProductos.map((prod) => ({
+        codigo_producto: prod.codigo,
+        nombre: prod.nombre,
+        estado: "agregado" as const,
+      })),
+    ]);
   };
   const handleCrearGuiaEntrada = async () => {
     if (detalles.length === 0) {
@@ -362,6 +409,30 @@ const OrdenCompraPage: React.FC = () => {
     setShowDropdownTrazabilidad(false);
     setIdTrazabilidad(null);
   };
+  const handleEnviarCorreoCambios = async () => {
+    if (historialCambiosProductos.length === 0) {
+      return;
+    }
+
+    try {
+      await correoCambios({
+        variables: {
+          input: {
+            ordenCompra: ordenCompra,
+            productos: historialCambiosProductos.map((prod) => ({
+              codigo_producto: prod.codigo_producto,
+              nombre: prod.nombre,
+              estado: prod.estado,
+            })),
+          },
+        },
+      });
+      console.log("Correo enviado exitosamente.");
+      setHistorialCambiosProductos([]);
+    } catch (error: any) {
+      console.error("Error al enviar el correo:", error.message);
+    }
+  };
   if (loading)
     return (
       <div className="p-10">
@@ -468,20 +539,6 @@ const OrdenCompraPage: React.FC = () => {
                     <div className="p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300">
                       {formData.numeroFolio}
                     </div>
-                    {/*
-                    <input
-                      id="numeroFolio"
-                      name="numeroFolio"
-                      type="number"
-                      min="1"
-                      className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.numeroFolio
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      onChange={handleChange}
-                    />
-                    */}
                   </div>
                   <div>
                     <label

@@ -7,11 +7,12 @@ import {
   ACTUALIZAR_STOCK_SOFTLAND,
   ACTUALIZAR_PRODUCTOS_SOFTLAND,
   AJUSTE_DE_INVENTARIO,
+  CORREO_AJUSTE_DE_INVENTARIO,
 } from "@/graphql/mutations";
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
 import Cargando from "@/components/cargando";
-
+import { useJwtStore } from "@/store/jwtStore";
 type Producto = {
   id: number;
   codigo: string;
@@ -25,20 +26,7 @@ type Producto = {
 
 const ProductosPage: React.FC = () => {
   const { loading, error, data, refetch } = useQuery(GET_PRODUCTOS);
-  const [editTrazabilidad] = useMutation(UPDATE_TRAZABILIDAD, {
-    onCompleted: () => {
-      refetch();
-      setAlertType("exitoso");
-      setAlertMessage("Trazabilidad actualizada correctamente");
-      setShowAlert(true);
-    },
-    onError: (error) => {
-      setAlertType("error");
-      setAlertMessage(`Error al actualizar trazabilidad: ${error.message}`);
-      setShowAlert(true);
-    },
-  });
-
+  const { nombreUsuario } = useJwtStore();
   const [currentFamily, setCurrentFamily] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<Producto[]>([]);
@@ -54,8 +42,33 @@ const ProductosPage: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [showCargando, setShowCargando] = useState(false);
   const [cargandoMensaje, setCargandoMensaje] = useState("");
-
+  const [editTrazabilidad] = useMutation(UPDATE_TRAZABILIDAD, {
+    onCompleted: () => {
+      refetch();
+      setAlertType("exitoso");
+      setAlertMessage("Trazabilidad actualizada correctamente");
+      setShowAlert(true);
+    },
+    onError: (error) => {
+      setAlertType("error");
+      setAlertMessage(`Error al actualizar trazabilidad: ${error.message}`);
+      setShowAlert(true);
+    },
+  });
   const [ajusteDeInventarioSoftland] = useMutation(AJUSTE_DE_INVENTARIO, {
+    onCompleted: () => {
+      handleEnviarCorreoAjusteDeInventario();
+    },
+    onError: (error) => {
+      setShowCargando(false);
+      setAlertType("error");
+      setAlertMessage(
+        `Error al realizar ajuste de inventario: ${error.message}`
+      );
+      setShowAlert(true);
+    },
+  });
+  const [correoAjusteDeInventario] = useMutation(CORREO_AJUSTE_DE_INVENTARIO, {
     onCompleted: () => {
       refetch();
       setShowCargando(false);
@@ -67,7 +80,7 @@ const ProductosPage: React.FC = () => {
       setShowCargando(false);
       setAlertType("error");
       setAlertMessage(
-        `Error al realizar ajuste de inventario: ${error.message}`
+        `Error al enviar correo de ajuste de inventario: ${error.message}`
       );
       setShowAlert(true);
     },
@@ -187,6 +200,15 @@ const ProductosPage: React.FC = () => {
     setShowCargando(true);
     setCargandoMensaje("Actualizando productos de Softland");
     actualizarProductosSoftland();
+  };
+  const handleEnviarCorreoAjusteDeInventario = () => {
+    const fecha = new Date().toLocaleDateString();
+    correoAjusteDeInventario({
+      variables: {
+        usuario: nombreUsuario,
+        fecha: fecha,
+      },
+    });
   };
 
   return (
