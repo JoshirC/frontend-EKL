@@ -163,7 +163,7 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {/* Usuarios */}
-            {["Administrador"].includes(rolUsuario ?? "") && (
+            {["Administrador", "Soporte"].includes(rolUsuario ?? "") && (
               <Link href="/usuarios">
                 <div className="text-black font-semibold hover:text-gray-100 transition duration-300">
                   Usuarios
@@ -374,7 +374,7 @@ const Navbar = () => {
           <div className="md:hidden rounded-lg">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               {/* Usuarios */}
-              {["Administrador"].includes(rolUsuario ?? "") && (
+              {["Administrador", "Soporte"].includes(rolUsuario ?? "") && (
                 <Link href="/usuarios">
                   <div
                     className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"

@@ -8,6 +8,7 @@ import Cookies from "js-cookie";
 import { useJwtStore } from "@/store/jwtStore";
 import Alert from "@/components/Alert";
 import { LOGIN_MUTATION } from "@/graphql/mutations";
+import { validarRut } from "@/utils/validarRut";
 
 export default function Login() {
   const [rut, setRut] = useState("");
@@ -23,12 +24,10 @@ export default function Login() {
 
   const [login, { loading }] = useMutation<LoginResponse>(LOGIN_MUTATION, {
     onCompleted: (data) => {
-      Cookies.set("token", data.login.access_token, { expires: 7 }); // Expira en 7 días
-      //Cookies.set("rol", data.login.user.rol, { expires: 7 }); // Guardar rol en cookies
+      Cookies.set("token", data.login.access_token, { expires: 7 });
       setToken(data.login.access_token);
       setRutUsuario(data.login.user.rut);
       setRolUsuario(data.login.user.rol);
-      console.log(data.login.user);
       setNombreUsuario(data.login.user.nombre);
       router.push("/");
     },
@@ -48,23 +47,46 @@ export default function Login() {
     },
   });
 
+  // Función para validar que no haya caracteres peligrosos
+  const contieneCaracteresPeligrosos = (texto: string) => {
+    // Puedes ajustar la expresión regular según tus necesidades
+    const regex = /['";_]/;
+    return regex.test(texto);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      const result = await login({
-        variables: {
-          loginUserInput: {
-            rut,
-            contrasena,
-          } as LoginUserInput,
-        },
-      });
-    } catch (error) {
+    if (!validarRut(rut)) {
+      setAlertType("advertencia");
+      setAlertMessage("El RUT debe ser sin puntos y con guión.");
+      setShowAlert(true);
+      return;
+    }
+    // Validación básica para evitar inyección SQL
+    else if (
+      contieneCaracteresPeligrosos(rut) ||
+      contieneCaracteresPeligrosos(contrasena)
+    ) {
       setAlertType("error");
-      setAlertMessage(
-        "Error al iniciar sesión. Por favor, intente nuevamente."
-      );
+      setAlertMessage("No se permiten caracteres especiales en los campos.");
+      setShowAlert(true);
+      return;
+    } else {
+      try {
+        const result = await login({
+          variables: {
+            loginUserInput: {
+              rut,
+              contrasena,
+            } as LoginUserInput,
+          },
+        });
+      } catch (error) {
+        setAlertType("error");
+        setAlertMessage(
+          "Error al iniciar sesión. Por favor, intente nuevamente."
+        );
+      }
     }
   };
 
@@ -109,7 +131,7 @@ export default function Login() {
                   placeholder="Ingrese su número de Rut"
                   className="w-full px-3 py-2 text-sm sm:text-base focus:outline-none"
                   value={rut}
-                  onChange={(e) => setRut(e.target.value)}
+                  onChange={(e) => setRut(e.target.value.toLocaleUpperCase())}
                   disabled={loading}
                   required
                 />

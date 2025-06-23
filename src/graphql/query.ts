@@ -22,6 +22,17 @@ export const GET_USUARIOS_ELIMINADOS = gql`
     }
   }
 `;
+export const GET_USUARIO_BY_ID = gql`
+  query GetUsuarioById($id: Float!) {
+    user(id: $id) {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
+  }
+`;
 
 //Querys para Orden de Acopio
 export const GET_ORDENES_ACOPIO = gql`
