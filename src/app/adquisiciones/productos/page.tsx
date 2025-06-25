@@ -42,14 +42,17 @@ const ProductosPage: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [showCargando, setShowCargando] = useState(false);
   const [cargandoMensaje, setCargandoMensaje] = useState("");
+  const [botonCargando, setBotonCargando] = useState(false);
   const [editTrazabilidad] = useMutation(UPDATE_TRAZABILIDAD, {
     onCompleted: () => {
       refetch();
       setAlertType("exitoso");
       setAlertMessage("Trazabilidad actualizada correctamente");
       setShowAlert(true);
+      setBotonCargando(false);
     },
     onError: (error) => {
+      setBotonCargando(false);
       setAlertType("error");
       setAlertMessage(`Error al actualizar trazabilidad: ${error.message}`);
       setShowAlert(true);
@@ -58,8 +61,10 @@ const ProductosPage: React.FC = () => {
   const [ajusteDeInventarioSoftland] = useMutation(AJUSTE_DE_INVENTARIO, {
     onCompleted: () => {
       handleEnviarCorreoAjusteDeInventario();
+      setBotonCargando(false);
     },
     onError: (error) => {
+      setBotonCargando(false);
       setShowCargando(false);
       setAlertType("error");
       setAlertMessage(
@@ -71,12 +76,14 @@ const ProductosPage: React.FC = () => {
   const [correoAjusteDeInventario] = useMutation(CORREO_AJUSTE_DE_INVENTARIO, {
     onCompleted: () => {
       refetch();
+      setBotonCargando(false);
       setShowCargando(false);
       setAlertType("exitoso");
       setAlertMessage("Ajuste de inventario realizado correctamente");
       setShowAlert(true);
     },
     onError: (error) => {
+      setBotonCargando(false);
       setShowCargando(false);
       setAlertType("error");
       setAlertMessage(
@@ -93,8 +100,10 @@ const ProductosPage: React.FC = () => {
       setAlertType("exitoso");
       setAlertMessage("Stock de Softland actualizado correctamente");
       setShowAlert(true);
+      setBotonCargando(false);
     },
     onError: (error) => {
+      setBotonCargando(false);
       setShowCargando(false);
       setAlertType("error");
       setAlertMessage(
@@ -114,6 +123,7 @@ const ProductosPage: React.FC = () => {
         setShowAlert(true);
       },
       onError: (error) => {
+        setBotonCargando(false);
         setShowCargando(false);
         setAlertType("error");
         setAlertMessage(
@@ -174,6 +184,7 @@ const ProductosPage: React.FC = () => {
   const handleConfirmacion = (confirmed: boolean) => {
     if (estadoConfirmacion === "trazabilidad") {
       if (confirmed && selectedProduct) {
+        setBotonCargando(true);
         editTrazabilidad({
           variables: { codigo_producto: selectedProduct.codigo },
         });
@@ -183,6 +194,7 @@ const ProductosPage: React.FC = () => {
     }
     if (estadoConfirmacion === "ajusteInventario") {
       if (confirmed) {
+        setBotonCargando(true);
         setShowCargando(true);
         setCargandoMensaje("Realizando ajuste de inventario con Softland");
         ajusteDeInventarioSoftland();
@@ -193,11 +205,13 @@ const ProductosPage: React.FC = () => {
   };
   const handleActualizarStockSoftland = () => {
     setShowCargando(true);
+    setBotonCargando(true);
     setCargandoMensaje("Actualizando stock de productos desde Softland");
     actualizarStockSoftland();
   };
   const handleActualizarProductosSoftland = () => {
     setShowCargando(true);
+    setBotonCargando(true);
     setCargandoMensaje("Actualizando productos de Softland");
     actualizarProductosSoftland();
   };
@@ -243,16 +257,24 @@ const ProductosPage: React.FC = () => {
           <h1 className="text-2xl font-semibold">Listado de Productos</h1>
           <div className="flex items-center gap-2">
             <button
-              className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
+              className={`font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap ${
+                loading || botonCargando
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-orange-400 text-white hover:bg-orange-500"
+              }`}
               onClick={() => handleActualizarProductosSoftland()}
-              disabled={loading}
+              disabled={loading || botonCargando}
             >
               Actualizar Productos
             </button>
             <button
-              className="bg-blue-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-blue-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
+              className={`font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap ${
+                loading || botonCargando
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-blue-400 text-white hover:bg-blue-500"
+              }`}
               onClick={() => handleActualizarStockSoftland()}
-              disabled={loading}
+              disabled={loading || botonCargando}
             >
               Actualizar Stock Softland
             </button>
@@ -281,7 +303,9 @@ const ProductosPage: React.FC = () => {
                   setCurrentFamily(familyGroups[currentIndex - 1]);
               }}
               disabled={
-                !currentFamily || familyGroups.indexOf(currentFamily) === 0
+                !currentFamily ||
+                familyGroups.indexOf(currentFamily) === 0 ||
+                botonCargando
               }
               className={`p-3 rounded font-semibold text-sm sm:text-base ${
                 !currentFamily || familyGroups.indexOf(currentFamily) === 0
@@ -317,6 +341,7 @@ const ProductosPage: React.FC = () => {
                           ? "bg-gray-400 text-white"
                           : "bg-gray-100 hover:bg-gray-300 text-gray-800"
                       }`}
+                      disabled={botonCargando}
                     >
                       <span className="max-w-[100px] sm:max-w-[150px] truncate">
                         {family}
@@ -334,7 +359,9 @@ const ProductosPage: React.FC = () => {
               }}
               disabled={
                 !currentFamily ||
-                familyGroups.indexOf(currentFamily) === familyGroups.length - 1
+                familyGroups.indexOf(currentFamily) ===
+                  familyGroups.length - 1 ||
+                botonCargando
               }
               className={`p-3 rounded font-semibold text-sm sm:text-base ${
                 !currentFamily ||
@@ -408,10 +435,13 @@ const ProductosPage: React.FC = () => {
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       <button
                         className={`text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
-                          producto.trazabilidad
-                            ? "bg-orange-400 hover:bg-orange-500"
+                          botonCargando
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : producto.trazabilidad
+                            ? "bg-blue-400 hover:bg-blue-500"
                             : "bg-red-400 hover:bg-red-500"
                         }`}
+                        disabled={botonCargando}
                         onClick={() => {
                           setTituloConfirmacion("Trazabilidad");
                           setMensajeConfirmacion(

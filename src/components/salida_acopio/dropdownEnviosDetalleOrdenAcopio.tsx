@@ -14,6 +14,7 @@ type Producto = {
   codigo: string;
   nombre_producto: string;
   unidad_medida: string;
+  cantidad: number;
   familia: string;
   trazabilidad?: boolean;
 };
@@ -56,8 +57,9 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
   const [editValues, setEditValues] = useState<Record<number, string>>({});
   const [editLoading, setEditLoading] = useState<number | null>(null);
   const [enviosEliminados, setEnviosEliminados] = useState<number[]>([]);
+  const [botonCargando, setBotonCargando] = useState(false);
 
-  const { loading, error, data } = useQuery<{
+  const { loading, error, data, refetch } = useQuery<{
     detalleOrdenAcopioID: DetalleOrdenAcopio;
   }>(GET_DETALLE_ORDEN_ACOPIO_BY_ID, {
     variables: { id: id_detalle_orden_acopio },
@@ -66,7 +68,15 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
   const [updateCantidadEnvioDetalle] = useMutation(
     UPDATE_CANTIDAD_ENVIO_DETALLE,
     {
-      onCompleted: () => setEditLoading(null),
+      onCompleted: () => {
+        refetch();
+        setEditLoading(null);
+        setAlertType("exitoso");
+        setAlertMessage("Cantidad del envío actualizada correctamente");
+        setShowAlert(true);
+        setActivarEditar(false);
+        setBotonCargando(false);
+      },
       onError: (mutationError) => {
         setAlertType("error");
         setAlertMessage(
@@ -101,7 +111,11 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
     setEditValues((prev) => ({ ...prev, [envioId]: value }));
   };
 
-  const handleSaveEdit = async (envioId: number) => {
+  const handleSaveEdit = async (
+    envioId: number,
+    cantidad_enviada: number,
+    cantidad_sistema: number
+  ) => {
     const value = editValues[envioId];
     if (!value || isNaN(Number(value))) {
       setAlertType("advertencia");
@@ -109,14 +123,33 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       setShowAlert(true);
       return;
     }
-    const cantidad = Number(value);
+    let cantidad = Number(value);
     if (cantidad <= 0) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad debe ser mayor a cero");
       setShowAlert(true);
       return;
     }
-
+    if (enviosEliminados.includes(envioId)) {
+      setAlertType("advertencia");
+      setAlertMessage("No se puede editar un envío eliminado");
+      setShowAlert(true);
+      return;
+    }
+    if (cantidad > cantidad_sistema + cantidad_enviada) {
+      setAlertType("advertencia");
+      setAlertMessage(
+        `La cantidad no puede ser mayor a la cantidad del sistema (${cantidad_sistema})`
+      );
+      setShowAlert(true);
+      return;
+    }
+    if (cantidad === cantidad_enviada) {
+      setAlertType("advertencia");
+      setAlertMessage("No se ha realizado ningún cambio en la cantidad");
+      setShowAlert(true);
+      return;
+    }
     setEditLoading(envioId);
     try {
       await updateCantidadEnvioDetalle({
@@ -192,8 +225,8 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       {showConfirmacion && (
         <Confirmacion
           isOpen={showConfirmacion}
-          titulo="Eliminar Envío"
-          mensaje="¿Estás seguro de que deseas eliminar el envío?"
+          titulo="Anular Envío"
+          mensaje="¿Estás seguro de que deseas anular el envío?"
           onClose={() => setShowConfirmacion(false)}
           onConfirm={handleConfirmacion}
         />
@@ -225,7 +258,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-around items-center my-3 gap-4 ">
+      <div className="flex flex-col sm:flex-row justify-around items-center my-3 gap-4 font-semibold">
         <div className="bg-gray-200 p-2 rounded text-center w-full">
           Producto: {detalleOrdenAcopio?.producto?.nombre_producto ?? "N/A"}
         </div>
@@ -263,7 +296,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
             <h2 className="">
               Código producto Enviado: {envio.codigo_producto_enviado}
               {esEnvioEliminado(envio.id) && (
-                <span className="ml-2 text-red-500">(Eliminado)</span>
+                <span className="ml-2 text-red-500">(Anulado)</span>
               )}
             </h2>
           </div>
@@ -274,17 +307,30 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
                 <div className="flex w-full gap-2">
                   <input
                     type="number"
-                    placeholder={`Cantidad: ${envio.cantidad_enviada}`}
+                    placeholder={`Cantidad Sistema: ${
+                      envio?.producto?.cantidad ?? 0
+                    }`}
                     value={editValues[envio.id] ?? ""}
                     onChange={(e) => handleEditChange(envio.id, e.target.value)}
                     className="w-full border p-2 rounded"
                   />
                   <button
-                    onClick={() => handleSaveEdit(envio.id)}
-                    disabled={editLoading === envio.id}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
+                    onClick={() => {
+                      handleSaveEdit(
+                        envio.id,
+                        envio.cantidad_enviada,
+                        envio.producto?.cantidad ?? 0
+                      );
+                      setBotonCargando(true);
+                    }}
+                    disabled={editLoading === envio.id || botonCargando}
+                    className={`${
+                      botonCargando
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-400 hover:bg-blue-500"
+                    } text-white px-4 py-2 rounded w-full font-semibold`}
                   >
-                    {editLoading === envio.id ? "Guardando..." : "Guardar"}
+                    Guardar
                   </button>
                 </div>
               ) : (
@@ -299,7 +345,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
                       setIdEnvioEliminar(envio.id);
                     }}
                   >
-                    Eliminar
+                    Anular
                   </button>
                 </div>
               )}

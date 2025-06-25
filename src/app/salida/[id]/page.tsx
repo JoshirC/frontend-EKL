@@ -133,8 +133,12 @@ export default function AcopioSalidaIdPage({
   const [createEnvioDetalleOrdenAcopio] = useMutation(
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
     {
-      onCompleted: stableRefetch,
+      onCompleted: () => {
+        stableRefetch();
+        setDesactivacionBoton(false);
+      },
       onError: (error) => {
+        setDesactivacionBoton(false);
         setAlertType("error");
         setAlertMessage("Error al crear el envío: " + error.message);
         setShowAlert(true);
@@ -146,7 +150,9 @@ export default function AcopioSalidaIdPage({
     {
       onCompleted: () => {
         setAlertType("exitoso");
-        setAlertMessage("El envío se ha eliminado correctamente");
+        setAlertMessage(
+          "Los valores del envío han sido anulados correctamente"
+        );
         setShowAlert(true);
         setCerrarModal(true);
         stableRefetch();
@@ -217,19 +223,23 @@ export default function AcopioSalidaIdPage({
       setAlertType("advertencia");
       setAlertMessage("La cantidad no puede ser menor a 0");
       setShowAlert(true);
+      setDesactivacionBoton(false);
       return;
     }
 
     if (cantidad > cantidadSolicitada) {
       setAlertType("advertencia");
+      setDesactivacionBoton(false);
       setAlertMessage(
-        "La cantidad enviada no puede ser mayor a la disponible en sistema"
+        "La cantidad enviada no puede ser mayor a la disponible en sistema. Cantidad en sistema: " +
+          cantidadSolicitada
       );
       setShowAlert(true);
       return;
     }
 
     if (!rutUsuario) {
+      setDesactivacionBoton(false);
       setAlertType("error");
       setAlertMessage("Error: No se ha encontrado el RUT del usuario");
       setShowAlert(true);
@@ -248,6 +258,7 @@ export default function AcopioSalidaIdPage({
         },
       });
     } catch (err) {
+      setDesactivacionBoton(false);
       setAlertType("error");
       setAlertMessage("Error al crear el envío, descripción del error: " + err);
       setShowAlert(true);
@@ -261,7 +272,11 @@ export default function AcopioSalidaIdPage({
     setEditValue(detalle.envios[0]?.cantidad_enviada?.toString() || "");
   };
 
-  const handleSaveEdit = async (detalleId: number, envioId: number) => {
+  const handleSaveEdit = async (
+    detalleId: number,
+    envioId: number,
+    cantidad_enviada: number
+  ) => {
     const detalle = currentItems.find((d) => d.id === detalleId);
     const cantidadSolicitada = detalle?.producto.cantidad ?? 0;
     if (!editValue || isNaN(Number(editValue))) {
@@ -272,7 +287,13 @@ export default function AcopioSalidaIdPage({
     }
 
     const cantidad = Number(editValue);
-    if (cantidad <= 0) {
+    if (cantidad === cantidad_enviada) {
+      setAlertType("advertencia");
+      setAlertMessage("La cantidad no puede ser igual al envío actual");
+      setShowAlert(true);
+      return;
+    }
+    if (cantidad < 0) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad debe ser mayor o igual a 0");
       setShowAlert(true);
@@ -281,7 +302,8 @@ export default function AcopioSalidaIdPage({
     if (cantidad > cantidadSolicitada) {
       setAlertType("advertencia");
       setAlertMessage(
-        "La cantidad enviada no puede ser mayor a la disponible en sistema"
+        "La cantidad enviada no puede ser mayor a la disponible en sistema . Cantidad en sistema: " +
+          cantidadSolicitada
       );
       setShowAlert(true);
       return;
@@ -350,7 +372,7 @@ export default function AcopioSalidaIdPage({
     return (
       <div className="p-10">
         <div className="bg-white p-6 rounded shadow">
-          <p>Cargando detalles del acopio...</p>
+          <h1>Cargando detalles del acopio...</h1>
         </div>
       </div>
     );
@@ -382,8 +404,8 @@ export default function AcopioSalidaIdPage({
       {showConfirmacion && (
         <Confirmacion
           isOpen={showConfirmacion}
-          titulo="Eliminar Envío"
-          mensaje={`¿Estás seguro de que deseas eliminar el envio?`}
+          titulo="Anular Envío"
+          mensaje={`¿Estás seguro de que deseas anular el envio?`}
           onClose={() => setShowConfirmacion(false)}
           onConfirm={handleConfirmacion}
         />
@@ -414,6 +436,21 @@ export default function AcopioSalidaIdPage({
             <div className="text-xl sm:text-2xl font-semibold">
               Detalle de Acopio N°{id_acopio}
             </div>
+            <button
+              className={`bg-gray-400 text-white font-semibold px-4 py-2 rounded transition duration-200
+    ${
+      desactivacionBoton
+        ? "bg-gray-400 cursor-not-allowed "
+        : "hover:bg-gray-500"
+    }
+  `}
+              onClick={() =>
+                (window.location.href = "/salida/acopio_productos")
+              }
+              disabled={desactivacionBoton}
+            >
+              Salir
+            </button>
           </div>
         )}
 
@@ -525,7 +562,7 @@ export default function AcopioSalidaIdPage({
                                 disabled={desactivacionBoton}
                               />
                               <button
-                                onClick={() =>
+                                onClick={() => {
                                   handleCrearEnvioDetalle(
                                     detalle.id,
                                     cantidadesTemporales[detalle.id] !==
@@ -533,8 +570,9 @@ export default function AcopioSalidaIdPage({
                                       ? cantidadesTemporales[detalle.id]
                                       : 0,
                                     detalle.codigo_producto
-                                  )
-                                }
+                                  );
+                                  setDesactivacionBoton(true);
+                                }}
                                 disabled={
                                   desactivacionBoton ||
                                   loadingSave === detalle.id
@@ -635,7 +673,8 @@ export default function AcopioSalidaIdPage({
                                 onClick={() =>
                                   handleSaveEdit(
                                     detalle.id,
-                                    detalle.envios[0].id
+                                    detalle.envios[0].id,
+                                    detalle.envios[0].cantidad_enviada
                                   )
                                 }
                                 disabled={editLoading === detalle.id}
@@ -675,20 +714,20 @@ export default function AcopioSalidaIdPage({
                               )}
 
                               <button
-                                className={`bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
-    ${
-      desactivacionBoton
-        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
-        : ""
-    }
-  `}
+                                className={`font-semibold py-2 px-4 rounded transition duration-200 w-full
+                                  ${
+                                    desactivacionBoton
+                                      ? "bg-gray-400 cursor-not-allowed text-white"
+                                      : "bg-red-500 hover:bg-red-600 text-white"
+                                  }
+                                `}
                                 onClick={() => {
                                   setShowConfirmacion(true);
                                   setIdEnvioEliminar(detalle.envios[0].id);
                                 }}
                                 disabled={desactivacionBoton}
                               >
-                                Eliminar
+                                Anular
                               </button>
                             </div>
                           )}

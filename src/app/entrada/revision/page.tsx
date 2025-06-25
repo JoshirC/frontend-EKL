@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { GET_GUIA_ENTRADA_BY_ESTADO } from "@/graphql/query";
 import { useQuery } from "@apollo/client";
 
@@ -11,6 +11,7 @@ type GuiaEntrada = {
 };
 
 const RevisionPage: React.FC = () => {
+  const [botonCargando, setBotonCargando] = useState(false);
   // Consulta para obtener las guías de entrada pendientes de revisión
   const { loading, error, data } = useQuery(GET_GUIA_ENTRADA_BY_ESTADO, {
     variables: { estado: "Ingresado" },
@@ -27,7 +28,7 @@ const RevisionPage: React.FC = () => {
     return (
       <div className="p-10">
         <div className="bg-white p-6 rounded shadow">
-          <p>Error al cargar productos: {error.message}</p>
+          <p>{error.message}</p>
         </div>
       </div>
     );
@@ -72,8 +73,14 @@ const RevisionPage: React.FC = () => {
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     <button
-                      className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-orange-400 hover:bg-orange-500"
+                      className={`text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
+                        botonCargando
+                          ? "bg-gray-400"
+                          : "bg-orange-400 hover:bg-orange-500"
+                      }`}
+                      disabled={botonCargando}
                       onClick={() => {
+                        setBotonCargando(true);
                         window.location.href = `/entrada/revision/${guia.id}`;
                       }}
                     >

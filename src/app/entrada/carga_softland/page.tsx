@@ -64,6 +64,7 @@ const CargaSoftlandPage: React.FC = () => {
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+  const [botonCargando, setBotonCargando] = useState(false);
   const { loading, error, data } = useQuery(GET_GUIA_ENTRADA_BY_ESTADO, {
     variables: { estado: "Subir" },
   });
@@ -81,7 +82,7 @@ const CargaSoftlandPage: React.FC = () => {
       setAlertType("exitoso");
       setAlertMessage("Archivo Generado exitosamente");
       setTimeout(() => {
-        window.location.href = "/entrada/orden_compra";
+        window.location.reload();
       }, 3000); // Ocultar alerta después de 3 segundos
     } catch (error) {
       console.error("Error al actualizar el estado:", error);
@@ -100,7 +101,7 @@ const CargaSoftlandPage: React.FC = () => {
     return (
       <div className="p-10">
         <div className="bg-white p-6 rounded shadow">
-          <p>Error al cargar guías de entrada: {error.message}</p>
+          <p>{error.message}</p>
         </div>
       </div>
     );
@@ -124,8 +125,16 @@ const CargaSoftlandPage: React.FC = () => {
             Carga Softland Guias de Entrada
           </h1>
           <button
-            className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
-            onClick={exportarAExcel}
+            className={`${
+              botonCargando
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-orange-400 hover:bg-orange-500"
+            } text-white font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap`}
+            onClick={() => {
+              exportarAExcel();
+              setBotonCargando(true);
+            }}
+            disabled={botonCargando}
           >
             Exportar a Excel
           </button>

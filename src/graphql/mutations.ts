@@ -81,6 +81,7 @@ export const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
     $cantidad_enviada: Int!
     $codigo_producto_enviado: String!
     $usuario_rut: String!
+    $id_trazabilidad: Int
   ) {
     createEnvioDetalleOrdenAcopio(
       createEnvioDetalleOrdenAcopioInput: {
@@ -88,6 +89,7 @@ export const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
         cantidad_enviada: $cantidad_enviada
         codigo_producto_enviado: $codigo_producto_enviado
         usuario_rut: $usuario_rut
+        id_trazabilidad: $id_trazabilidad
       }
     ) {
       codigo_producto_enviado

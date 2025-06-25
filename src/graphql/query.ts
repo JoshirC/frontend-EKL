@@ -121,6 +121,7 @@ export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
           codigo
           familia
           unidad_medida
+          cantidad
         }
       }
     }
@@ -252,6 +253,7 @@ export const GET_GUIA_ENTRADA_BY_ESTADO = gql`
       id
       codigo_bodega
       numero_folio
+      estado
       fecha_generacion
       codigo_proveedor
       codigo_centro_costo
@@ -302,25 +304,35 @@ export const GET_GUIA_ENTRADA_BY_ID = gql`
 // Query para Trazabilidad
 export const GET_LISTA_TRAZABILIDAD = gql`
   query {
-    listaTrazabilidad {
-      id
-      numero_lote
-      cantidad_producto
-      fecha_elaboracion
-      fecha_vencimiento
-      temperatura
-      observaciones
-      codigo_proveedor
-      numero_factura
-      producto {
+    trazabilidadesConEnvios {
+      trazabilidad {
         id
-        codigo
-        nombre_producto
-      }
-      usuario {
-        id
-        nombre
-        rut
+        numero_lote
+        cantidad_producto
+        fecha_elaboracion
+        fecha_vencimiento
+        temperatura
+        observaciones
+        codigo_proveedor
+        numero_factura
+        producto {
+          id
+          codigo
+          nombre_producto
+        }
+        usuario {
+          id
+          nombre
+          rut
+        }
+      } 
+      enviosDetalle{
+        envioDetalle{
+          id
+          cantidad_enviada
+        }
+        centroCosto
+        fecha
       }
     }
   }

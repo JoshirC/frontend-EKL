@@ -33,14 +33,14 @@ const NuevaOrdenAcopio: React.FC<ModalProps> = ({
 
   const handleClose = () => {
     setArchivo(null);
+    setShowAlert(false);
     onClose();
-    onCargaCompleta && onCargaCompleta();
   };
 
   const handleUpload = async () => {
     if (!archivo) {
-      setAlertType("error");
-      setAlertMessage("Por favor selecciona un archivo antes de subir.");
+      setAlertType("advertencia");
+      setAlertMessage("Selecciona un archivo antes de subir.");
       setShowAlert(true);
       return;
     }
@@ -51,7 +51,7 @@ const NuevaOrdenAcopio: React.FC<ModalProps> = ({
     try {
       setIsUploading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/upload-excel/`,
+        `${process.env.NEXT_PUBLIC_PYTHON_API}/api/v1/upload-excel/`,
         {
           method: "POST",
           body: formData,
@@ -77,8 +77,10 @@ const NuevaOrdenAcopio: React.FC<ModalProps> = ({
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
-        handleClose();
-      }, 2000); // Ocultar la alerta después de 2 segundos
+        setArchivo(null);
+        onClose();
+        onCargaCompleta && onCargaCompleta();
+      }, 2000);
     } catch (error: any) {
       setAlertType("error");
       setAlertMessage(error.message || "Ocurrió un error inesperado.");
@@ -116,20 +118,30 @@ const NuevaOrdenAcopio: React.FC<ModalProps> = ({
                   setArchivo(e.target.files[0]);
                 }
               }}
+              disabled={isUploading}
             />
 
             {/* Botón para subir archivo */}
             <button
               onClick={handleUpload}
               disabled={isUploading}
-              className="bg-orange-400 text-white font-bold py-2 px-4 rounded hover:bg-orange-500 transition duration-300 w-full mt-4"
+              className={`font-bold py-2 px-4 rounded transition duration-300 w-full mt-4 ${
+                isUploading
+                  ? "bg-gray-300 text-white cursor-not-allowed"
+                  : "bg-orange-400 text-white hover:bg-orange-500"
+              }`}
             >
               {isUploading ? "Subiendo..." : "Subir Archivo"}
             </button>
             {/* Botón para cerrar */}
             <button
               onClick={handleClose}
-              className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600 transition duration-300 w-full mt-6"
+              className={`font-bold py-2 px-4 rounded transition duration-300 w-full mt-4 ${
+                isUploading
+                  ? "bg-gray-300 text-white cursor-not-allowed"
+                  : "bg-gray-400 text-white hover:bg-gray-500"
+              }`}
+              disabled={isUploading}
             >
               Cancelar
             </button>

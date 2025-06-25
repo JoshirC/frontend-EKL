@@ -49,7 +49,7 @@ export default function GuiaEntradaIdPage({
 }) {
   const { id } = React.use(params);
   const id_num = parseInt(id);
-
+  const [botonCargando, setBotonCargando] = useState(false);
   // Estados del formulario
   const [formData, setFormData] = useState({
     codigoBodega: "",
@@ -208,19 +208,44 @@ export default function GuiaEntradaIdPage({
               Guía de Entrada N°{id_num}
             </h1>
           </div>
-
-          <button
-            onClick={handleSubmit}
-            className={`w-full sm:w-auto font-semibold p-3 rounded transition-colors duration-200 shadow-sm ${
-              isFormValid
-                ? "bg-orange-400 hover:bg-orange-500 text-white cursor-pointer"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
-            disabled={!isFormValid}
-            type="submit"
-          >
-            Confirmar Guía de Entrada
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                handleSubmit(
+                  new Event(
+                    "submit"
+                  ) as unknown as React.FormEvent<HTMLFormElement>
+                );
+                setBotonCargando(true);
+              }}
+              className={`w-full sm:w-auto font-semibold p-3 rounded transition-colors duration-200 shadow-sm ${
+                botonCargando
+                  ? "bg-gray-400 text-gray-500 cursor-not-allowed"
+                  : isFormValid
+                  ? "bg-orange-400 hover:bg-orange-500 text-white cursor-pointer"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+              disabled={!isFormValid || botonCargando}
+              type="submit"
+            >
+              Confirmar Guía de Entrada
+            </button>
+            <button
+              onClick={() => {
+                window.location.href = "/entrada/revision";
+                setBotonCargando(true);
+              }}
+              className={`w-full sm:w-auto font-semibold p-3 rounded transition-colors duration-200 shadow-sm ${
+                botonCargando
+                  ? "bg-gray-400 text-gray-500 cursor-not-allowed"
+                  : "bg-gray-400 hover:bg-gray-500 text-white"
+              }`}
+              type="button"
+              disabled={botonCargando}
+            >
+              Lista de guías
+            </button>
+          </div>
         </div>
         {/* Formulario */}
         <form onSubmit={handleSubmit}>

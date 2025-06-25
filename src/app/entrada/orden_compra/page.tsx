@@ -96,6 +96,7 @@ const OrdenCompraPage: React.FC = () => {
     useState(false);
   // Estado para agregar un nuevo producto a la orden de compra
   const [mostrarAgregarProducto, setMostrarAgregarProducto] = useState(false);
+  const [botonBuscar, setBotonBuscar] = useState(false);
   // Estado para la fecha de hoy
   const today = new Date();
   const [fetchOrdenCompra, { data, loading, error, refetch }] =
@@ -469,8 +470,14 @@ const OrdenCompraPage: React.FC = () => {
   if (error)
     return (
       <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p>Error al cargar productos: {error.message}</p>
+        <div className="bg-white p-6 rounded shadow flex justify-between items-center">
+          <p>{error.message}</p>
+          <button
+            className="bg-gray-400 text-white font-semibold p-3 rounded hover:bg-gray-500 transition duration-300"
+            onClick={() => window.location.reload()}
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -525,7 +532,10 @@ const OrdenCompraPage: React.FC = () => {
           <button
             type="submit"
             className="bg-gray-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-gray-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
-            onClick={handleBuscarOrdenCompra}
+            onClick={() => {
+              handleBuscarOrdenCompra();
+              setBotonBuscar(true);
+            }}
           >
             Buscar
           </button>
@@ -873,13 +883,13 @@ const OrdenCompraPage: React.FC = () => {
               </div>
             </div>
           </div>
-        ) : (
+        ) : botonBuscar && ordenCompra.length !== 0 ? (
           <div className="mt-6 text-center">
             <p className="text-gray-500">
-              No hay productos sin guardar en la orden de compra.
+              No se encontraron productos para la orden de compra ingresada.
             </p>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
