@@ -62,7 +62,9 @@ type FormErrors = {
 type HistorialProducto = {
   codigo_producto: string;
   nombre: string;
-  estado: "agregado" | "eliminado";
+  estado: "agregado" | "eliminado" | "editado";
+  cantidad_solicitada: number;
+  cantidad_ingresada: number;
 };
 
 const OrdenCompraPage: React.FC = () => {
@@ -70,6 +72,9 @@ const OrdenCompraPage: React.FC = () => {
   const [ordenCompra, setOrdenCompra] = useState<string>("");
   // Estado para almacenar los detalles de la orden de compra
   const [detalles, setDetalles] = useState<DetalleOrdenCompra[]>([]);
+  const [detallesOriginales, setDetallesOriginales] = useState<
+    DetalleOrdenCompra[]
+  >([]);
   // Estado para el historial de cambios de productos
   const [historialCambiosProductos, setHistorialCambiosProductos] = useState<
     HistorialProducto[]
@@ -91,6 +96,7 @@ const OrdenCompraPage: React.FC = () => {
     useState(false);
   // Estado para agregar un nuevo producto a la orden de compra
   const [mostrarAgregarProducto, setMostrarAgregarProducto] = useState(false);
+  const [botonBuscar, setBotonBuscar] = useState(false);
   // Estado para la fecha de hoy
   const today = new Date();
   const [fetchOrdenCompra, { data, loading, error, refetch }] =
@@ -135,9 +141,9 @@ const OrdenCompraPage: React.FC = () => {
         setAlertMessage("Guía de entrada creada exitosamente.");
         setShowAlert(true);
         handleEnviarCorreoCambios();
-        // setTimeout(() => {
-        //   window.location.reload(); // Recargar la página
-        // }, 2000);
+        setTimeout(() => {
+          window.location.reload(); // Recargar la página
+        }, 2000);
       } else {
         setAlertType("error");
         setAlertMessage("Error al crear la guía de entrada.");
@@ -192,11 +198,13 @@ const OrdenCompraPage: React.FC = () => {
         setAlertMessage("No se encontró la orden de compra.");
         setShowAlert(true);
         setDetalles([]);
+        setDetallesOriginales([]);
       } else {
+        setDetallesOriginales(data.ordenCompra.productos);
         setDetalles(data.ordenCompra.productos);
         setFormData((prev) => ({
           ...prev,
-          numeroFolio: data.ordenCompra.ultimo_num_inter + 1,
+          numeroFolio: data.ordenCompra.ultimo_num_inter,
         }));
       }
     } catch (err) {
@@ -208,32 +216,57 @@ const OrdenCompraPage: React.FC = () => {
   };
 
   const handleEliminarProducto = (index: number) => {
-    const productoEliminado = detalles[index];
     const nuevaLista = [...detalles];
     nuevaLista.splice(index, 1);
     setDetalles(nuevaLista);
-
-    // Registrar en historial
-    setHistorialCambiosProductos((prev) => [
-      ...prev,
-      {
-        codigo_producto: productoEliminado.codigo,
-        nombre: productoEliminado.nombre,
-        estado: "eliminado",
-      },
-    ]);
   };
   const handleEditarDetalles = (
     index: number,
     campo: keyof DetalleOrdenCompra,
     valor: number
   ) => {
+    // Clona el array y el objeto a editar
     const nuevaLista: DetalleOrdenCompra[] = [...detalles];
-    nuevaLista[index][campo] = valor as never;
-    nuevaLista[index].valor_total =
-      nuevaLista[index].cantidad * nuevaLista[index].precio_unitario;
+    const detalleEditado = { ...nuevaLista[index] };
+
+    // Edita el campo
+    detalleEditado[campo] = valor as never;
+
+    // Recalcula el total
+    detalleEditado.valor_total =
+      detalleEditado.cantidad * detalleEditado.precio_unitario;
+
+    // Actualiza el array de detalles
+    nuevaLista[index] = detalleEditado;
     setDetalles(nuevaLista);
+
+    // Obtener el original desde la fuente inmutable
+    const detalleOriginal = detallesOriginales.find(
+      (d) => d.codigo === detalleEditado.codigo
+    );
+
+    setHistorialCambiosProductos((prev) => {
+      const filtrado = prev.filter(
+        (item) =>
+          !(
+            item.codigo_producto === detalleEditado.codigo &&
+            item.estado === "editado"
+          )
+      );
+
+      return [
+        ...filtrado,
+        {
+          codigo_producto: detalleEditado.codigo,
+          nombre: detalleEditado.nombre,
+          estado: "editado" as const,
+          cantidad_solicitada: detalleOriginal?.cantidad || 0,
+          cantidad_ingresada: detalleEditado.cantidad,
+        },
+      ];
+    });
   };
+
   const handleConfirmacionEliminar = (confirmacion: boolean) => {
     if (confirmacion) {
       handleEliminarProducto(indexEliminar);
@@ -257,17 +290,8 @@ const OrdenCompraPage: React.FC = () => {
     setShowConfirmacionCrearProducto(false);
     setIndexCrearProducto(-1);
   };
-  // 3. Modifica handleAgregarProductos para registrar los productos agregados
   const handleAgregarProductos = (nuevosProductos: DetalleOrdenCompra[]) => {
     setDetalles((prev) => [...prev, ...nuevosProductos]);
-    setHistorialCambiosProductos((prev) => [
-      ...prev,
-      ...nuevosProductos.map((prod) => ({
-        codigo_producto: prod.codigo,
-        nombre: prod.nombre,
-        estado: "agregado" as const,
-      })),
-    ]);
   };
   const handleCrearGuiaEntrada = async () => {
     if (detalles.length === 0) {
@@ -423,6 +447,8 @@ const OrdenCompraPage: React.FC = () => {
               codigo_producto: prod.codigo_producto,
               nombre: prod.nombre,
               estado: prod.estado,
+              cantidad_solicitada: prod.cantidad_solicitada,
+              cantidad_ingresada: prod.cantidad_ingresada,
             })),
           },
         },
@@ -444,8 +470,14 @@ const OrdenCompraPage: React.FC = () => {
   if (error)
     return (
       <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p>Error al cargar productos: {error.message}</p>
+        <div className="bg-white p-6 rounded shadow flex justify-between items-center">
+          <p>{error.message}</p>
+          <button
+            className="bg-gray-400 text-white font-semibold p-3 rounded hover:bg-gray-500 transition duration-300"
+            onClick={() => window.location.reload()}
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -500,7 +532,10 @@ const OrdenCompraPage: React.FC = () => {
           <button
             type="submit"
             className="bg-gray-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-gray-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
-            onClick={handleBuscarOrdenCompra}
+            onClick={() => {
+              handleBuscarOrdenCompra();
+              setBotonBuscar(true);
+            }}
           >
             Buscar
           </button>
@@ -693,10 +728,10 @@ const OrdenCompraPage: React.FC = () => {
                               <input
                                 name="cantidad"
                                 id="cantidad"
-                                min="1"
+                                min={1}
+                                placeholder={detalle.cantidad.toString()}
                                 type="number"
                                 className="w-full p-2 border border-gray-300 rounded-md"
-                                value={detalle.cantidad}
                                 onChange={(e) =>
                                   handleEditarDetalles(
                                     index,
@@ -712,8 +747,8 @@ const OrdenCompraPage: React.FC = () => {
                                 id="precio_unitario"
                                 type="number"
                                 min="0"
+                                placeholder={detalle.precio_unitario.toString()}
                                 className="w-full p-2 border border-gray-300 rounded-md"
-                                value={detalle.precio_unitario}
                                 onChange={(e) =>
                                   handleEditarDetalles(
                                     index,
@@ -848,13 +883,13 @@ const OrdenCompraPage: React.FC = () => {
               </div>
             </div>
           </div>
-        ) : (
+        ) : botonBuscar && ordenCompra.length !== 0 ? (
           <div className="mt-6 text-center">
             <p className="text-gray-500">
-              No hay productos sin guardar en la orden de compra.
+              No se encontraron productos para la orden de compra ingresada.
             </p>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

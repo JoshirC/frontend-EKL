@@ -5,7 +5,13 @@ import { useModalStore } from "@/store/modalStore";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: number, nombre: string, correo: string, rol: string) => void;
+  onSave: (
+    id: number,
+    rut: string,
+    nombre: string,
+    correo: string,
+    rol: string
+  ) => void;
   usuarioId?: number;
 }
 
@@ -18,7 +24,9 @@ const EditarUsuario: React.FC<ModalProps> = ({
   const [nombre, setNombre] = useState<string>("");
   const [correo, setCorreo] = useState<string>("");
   const [rol, setRol] = useState<string>("");
-  const { nombreUsuario, correoUsuario, rolUsuario } = useModalStore();
+  const [rut, setRut] = useState<string>("");
+  const { nombreUsuario, correoUsuario, rolUsuario, rutUsuario } =
+    useModalStore();
 
   useEffect(() => {
     if (isOpen) {
@@ -27,25 +35,27 @@ const EditarUsuario: React.FC<ModalProps> = ({
       setNombre(nombreUsuario || "");
       setCorreo(correoUsuario || "");
       setRol(rolUsuario || "");
+      setRut(rutUsuario || "");
     } else {
       document.body.style.overflow = "auto";
     }
     return () => {
       document.body.style.overflow = "auto";
     };
-  }, [isOpen, nombreUsuario, correoUsuario, rolUsuario]);
+  }, [isOpen, nombreUsuario, correoUsuario, rolUsuario, rutUsuario]);
 
   const handleClose = () => {
     setNombre("");
     setCorreo("");
     setRol("");
+    setRut("");
     onClose();
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (usuarioId) {
-      onSave(usuarioId, nombre, correo, rol);
+      onSave(usuarioId, rut, nombre, correo, rol);
       handleClose();
     }
   };
@@ -62,6 +72,13 @@ const EditarUsuario: React.FC<ModalProps> = ({
               Ingresa los nuevos datos del usuario.
             </h2>
             <form onSubmit={handleSubmit}>
+              <input
+                type="text"
+                value={rut}
+                onChange={(e) => setRut(e.target.value)}
+                className="block w-full p-2 border border-gray-300 rounded"
+                placeholder="RUT"
+              />
               <input
                 type="text"
                 value={nombre}

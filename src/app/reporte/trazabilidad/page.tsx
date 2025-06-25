@@ -1,7 +1,19 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { GET_LISTA_TRAZABILIDAD } from "@/graphql/query";
 import { useQuery } from "@apollo/client";
+import DropdownTrazabilidad from "@/components/trazabilidad/dropdownTrazabilidad";
+type Producto = {
+  id: number;
+  codigo: string;
+  nombre_producto: string;
+};
+
+type Usuario = {
+  id: number;
+  nombre: string;
+  rut: string;
+};
 
 type Trazabilidad = {
   id: number;
@@ -13,28 +25,65 @@ type Trazabilidad = {
   observaciones: string;
   codigo_proveedor: string;
   numero_factura: number;
-  usuario: Usuario;
   producto: Producto;
+  usuario: Usuario;
 };
-type Producto = {
+
+type EnvioDetalle = {
   id: number;
-  codigo: string;
-  nombre_producto: string;
-  familia: string;
-  unidad_medida: string;
-  cantidad: number;
-  cantidad_softland: number;
-  trazabilidad: boolean;
+  cantidad_enviada: number;
 };
-type Usuario = {
-  nombre: string;
+
+type EnviosDetalle = {
+  envioDetalle: EnvioDetalle;
+  centroCosto: string;
+  fecha: string;
 };
+
+type TrazabilidadConEnvios = {
+  trazabilidad: Trazabilidad;
+  enviosDetalle: EnviosDetalle[];
+};
+
 const TrazabilidadPage: React.FC = () => {
   const { loading, error, data } = useQuery(GET_LISTA_TRAZABILIDAD);
-  if (loading) return <p>Cargando...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-  if (!data || !data.listaTrazabilidad) return <p>No hay datos disponibles.</p>;
-  const trazabilidadList: Trazabilidad[] = data.listaTrazabilidad;
+  const [isDropdownOpen, setIsDropdownOpen] = useState<number | null>(null);
+
+  if (loading)
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Cargando trazabilidad...</p>
+        </div>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>{error.message}</p>
+        </div>
+      </div>
+    );
+  <div className="p-10">
+    <div className="bg-white p-6 rounded shadow">
+      <p>No hay datos de trazabilidad disponibles.</p>
+    </div>
+  </div>;
+  if (
+    !data ||
+    !data.trazabilidadesConEnvios ||
+    data.trazabilidadesConEnvios.length === 0
+  )
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>No hay datos de trazabilidad disponibles.</p>
+        </div>
+      </div>
+    );
+  const trazabilidadList: TrazabilidadConEnvios[] =
+    data.trazabilidadesConEnvios;
   return (
     <div className="p-4 sm:p-10">
       <div className="bg-white p-6 rounded shadow">
@@ -76,12 +125,17 @@ const TrazabilidadPage: React.FC = () => {
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Usuario
                 </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Envios
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {trazabilidadList.map((item) => {
                 // Convertir fechas a objetos Date
-                const fechaVencimiento = new Date(item.fecha_vencimiento);
+                const fechaVencimiento = new Date(
+                  item.trazabilidad.fecha_vencimiento
+                );
                 const hoy = new Date();
                 hoy.setHours(0, 0, 0, 0);
 
@@ -98,41 +152,71 @@ const TrazabilidadPage: React.FC = () => {
                 }
 
                 return (
-                  <tr key={item.id} className={rowClass}>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.id}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.producto.nombre_producto}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.cantidad_producto}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.numero_lote}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.fecha_elaboracion}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.fecha_vencimiento}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.temperatura}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.observaciones}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.codigo_proveedor}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.numero_factura}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {item.usuario.nombre}
-                    </td>
-                  </tr>
+                  <React.Fragment key={item.trazabilidad.id}>
+                    <tr className={rowClass}>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.id}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.producto.nombre_producto}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.cantidad_producto}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.numero_lote}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.fecha_elaboracion}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.fecha_vencimiento}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.temperatura}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.observaciones}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.codigo_proveedor}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.numero_factura}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.trazabilidad.usuario.nombre}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {item.enviosDetalle.length > 0 ? (
+                          <button
+                            className="bg-orange-400 hover:bg-orange-500 text-white font-semibold px-4 py-2 rounded transition duration-200 w-full"
+                            onClick={() =>
+                              setIsDropdownOpen(item.trazabilidad.id)
+                            }
+                          >
+                            Detalles
+                          </button>
+                        ) : (
+                          <p>Sin Registro</p>
+                        )}
+                      </td>
+                    </tr>
+                    {isDropdownOpen === item.trazabilidad.id && (
+                      <tr>
+                        <td
+                          colSpan={12}
+                          className="border-0 p-2 sm:p-4 bg-gray-100"
+                        >
+                          <DropdownTrazabilidad
+                            isOpen={isDropdownOpen === item.trazabilidad.id}
+                            onClose={() => setIsDropdownOpen(null)}
+                            enviosDetalle={item.enviosDetalle}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </tbody>

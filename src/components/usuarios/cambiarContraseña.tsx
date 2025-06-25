@@ -63,7 +63,7 @@ const CambiarContraseña: React.FC<CambiarContraseñaProps> = ({
 
     if (nuevaContraseña.length < 8) {
       setAlertType("error");
-      setAlertMessage("La contraseña debe tener al menos 6 caracteres");
+      setAlertMessage("La contraseña debe tener al menos 8 caracteres");
       setShowAlert(true);
       return;
     }

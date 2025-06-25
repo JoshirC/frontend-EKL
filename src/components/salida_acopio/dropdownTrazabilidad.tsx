@@ -77,7 +77,7 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
     return (
       <div className="p-10">
         <div className="bg-white p-6 rounded shadow">
-          <p>Cargando...</p>
+          <h1>Cargando...</h1>
         </div>
       </div>
     );
@@ -85,7 +85,7 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
   if (error) {
     return (
       <div className="bg-red-100 text-red-700 p-4 rounded flex justify-between items-center">
-        <span>Error: {error.message}</span>
+        <span>{error.message}</span>
         <button
           className="ml-4 text-red-700 font-bold text-lg hover:text-red-900"
           onClick={onClose}
@@ -117,6 +117,13 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
     }
     setLoadingState(true);
     try {
+      console.log(
+        "Trazabilidad enviada:",
+        item,
+        id_detalle_orden_acopio,
+        cantidadEnviada,
+        rutUsuario
+      );
       await createEnvioDetalleOrdenAcopio({
         variables: {
           id_detalle_orden_acopio,
@@ -126,6 +133,7 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
           id_trazabilidad: item.id,
         },
       });
+      console.log("Trazabilidad enviada:", item);
       await updateEstadoEnviado({
         variables: { id: id_detalle_orden_acopio },
       });
@@ -177,6 +185,9 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
               >
                 {/* Mostrar información del producto */}
                 <div className="flex flex-col gap-1 sm:gap-2">
+                  <p>
+                    <strong>ID Trazabilidad:</strong> {item.id}
+                  </p>
                   <p>
                     <strong>Número de Lote:</strong> {item.numero_lote}
                   </p>

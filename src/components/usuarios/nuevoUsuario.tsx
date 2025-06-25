@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { CREATE_USER } from "@/graphql/mutations";
 import Alert from "@/components/Alert";
+import { validarRut } from "@/utils/validarRut";
 
 interface ModalProps {
   isOpen: boolean;
@@ -27,6 +28,24 @@ const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (contrasena.length < 8) {
+      setAlertType("advertencia");
+      setAlertMessage("La contraseña debe tener al menos 8 caracteres.");
+      setShowAlert(true);
+      return;
+    }
+    if (!rut || !nombre || !contrasena || !rol) {
+      setAlertType("advertencia");
+      setAlertMessage("Por favor, completa todos los campos obligatorios.");
+      setShowAlert(true);
+      return;
+    }
+    if (!validarRut(rut)) {
+      setAlertType("advertencia");
+      setAlertMessage("El RUT debe ser sin puntos y con guión.");
+      setShowAlert(true);
+      return;
+    }
     try {
       const { data } = await createUser({
         variables: {
@@ -39,13 +58,18 @@ const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess }) => {
           },
         },
       });
-      if (data) {
+      if (data?.createUser) {
+        setRut("");
+        setNombre("");
+        setCorreo("");
+        setContrasena("");
+        setRol("");
         onClose();
         onSuccess?.();
       }
     } catch (err) {
       setAlertType("error");
-      setAlertMessage(error?.message || "Ocurrió un error al crear el usuario");
+      setAlertMessage(error?.message || "Error al crear el usuario.");
       setShowAlert(true);
     }
   };
@@ -115,18 +139,28 @@ const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess }) => {
                 <option>Adquisiciones</option>
                 <option>Jede Bodega</option>
                 <option>Bodeguero</option>
+                <option>Soporte</option>
               </select>
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-orange-400 text-white font-bold py-2 px-4 rounded hover:bg-orange-500 transition duration-300 w-full mt-4 disabled:opacity-50"
+                className={`font-bold py-2 px-4 rounded transition duration-300 w-full mt-4 ${
+                  loading
+                    ? "bg-gray-300 text-white cursor-not-allowed"
+                    : "bg-orange-400 text-white hover:bg-orange-500"
+                }`}
               >
-                {loading ? "Creando..." : "Crear Usuario"}
+                {loading ? "Cargando..." : "Crear Usuario"}
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600 transition duration-300 w-full mt-4"
+                className={`font-bold py-2 px-4 rounded transition duration-300 w-full mt-4 ${
+                  loading
+                    ? "bg-gray-300 text-white cursor-not-allowed"
+                    : "bg-gray-500 text-white hover:bg-gray-600"
+                }`}
+                disabled={loading}
               >
                 Cancelar
               </button>
