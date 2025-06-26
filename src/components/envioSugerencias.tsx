@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CORREO_DE_SUGERENCIAS } from "@/graphql/mutations";
 import { useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
@@ -47,6 +47,16 @@ const EnvioSugerencias: React.FC<ModalProps> = ({ isOpen, onClose }) => {
       },
     });
   };
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [isOpen]);
   if (!isOpen) return null;
 
   return (

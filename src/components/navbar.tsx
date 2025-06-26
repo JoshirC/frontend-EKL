@@ -98,7 +98,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sm: bg-gradient-to-r sm:from-white sm:bg-orange-400 bg-orange-400 shadow-md sticky top-0 z-50">
+    <header className="sm: bg-gradient-to-r sm:from-white sm:bg-orange-400 bg-orange-400 sticky top-0 z-50">
       <div className=" mx-auto px-4 sm:px-12">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
@@ -184,7 +184,7 @@ const Navbar = () => {
                   <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
                     <Link href="/adquisiciones/acopio">
                       <div
-                        className="block px-4 py-2 hover:bg-orange-200"
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
                         Ordenes de Acopio
@@ -192,7 +192,7 @@ const Navbar = () => {
                     </Link>
                     <Link href="/adquisiciones/productos">
                       <div
-                        className="block px-4 py-2 hover:bg-orange-200"
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
                         Productos
@@ -215,7 +215,7 @@ const Navbar = () => {
                 <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
                   <Link href="/entrada/orden_compra">
                     <div
-                      className="block px-4 py-2 hover:bg-orange-200"
+                      className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                       onClick={handleSelectOption}
                     >
                       Ingreso de Productos
@@ -224,7 +224,7 @@ const Navbar = () => {
                   {!["Bodeguero"].includes(rolUsuario ?? "") && (
                     <Link href="/entrada/revision">
                       <div
-                        className="block px-4 py-2 hover:bg-orange-200"
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
                         Revisión guia de Entrada
@@ -234,7 +234,7 @@ const Navbar = () => {
                   {!["Bodeguero"].includes(rolUsuario ?? "") && (
                     <Link href="/entrada/carga_softland">
                       <div
-                        className="block px-4 py-2 hover:bg-orange-200"
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
                         Carga Masiva Softland
@@ -257,7 +257,7 @@ const Navbar = () => {
                 <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
                   <Link href="/salida/acopio_productos">
                     <div
-                      className="block px-4 py-2 hover:bg-orange-200"
+                      className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                       onClick={handleSelectOption}
                     >
                       Acopio de Productos
@@ -267,7 +267,7 @@ const Navbar = () => {
                     <>
                       <Link href="/salida/revision">
                         <div
-                          className="block px-4 py-2 hover:bg-orange-200"
+                          className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                           onClick={handleSelectOption}
                         >
                           Revisión
@@ -275,7 +275,7 @@ const Navbar = () => {
                       </Link>
                       <Link href="/salida/carga_softland">
                         <div
-                          className="block px-4 py-2 hover:bg-orange-200"
+                          className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                           onClick={handleSelectOption}
                         >
                           Carga Softland
@@ -297,10 +297,10 @@ const Navbar = () => {
                   Reporte
                 </button>
                 {openReporte && (
-                  <div className="mt-10 w-35 bg-orange-400 text-l text-black shadow-lg rounded-md sm:absolute">
+                  <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
                     <Link href="/reporte/registro_acopio">
                       <div
-                        className="block px-4 py-2 hover:bg-orange-200"
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
                         Registro Acopio
@@ -308,7 +308,7 @@ const Navbar = () => {
                     </Link>
                     <Link href="/reporte/trazabilidad">
                       <div
-                        className="block px-4 py-2 hover:bg-orange-200"
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
                         Trazabilidad
@@ -341,7 +341,7 @@ const Navbar = () => {
                 </svg>
               </button>
               {openMenuUsuario && (
-                <div className="mt-12 w-35 right-0 bg-orange-400 text-l text-black shadow-lg rounded-md sm:absolute">
+                <div className="mt-12 w-35 right-0 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
                   <div
                     onClick={() => {
                       abrirModalCambiarContraseña();
