@@ -20,7 +20,7 @@ export default function Home() {
           Bienvenido a EKLIPSE
         </h1>
         <p className="sm:text-xl font-semibold sm:mb-12 text-lg">
-          Sistema de gestión de inventario y adquisiciones incorcorado con el
+          Sistema de gestión de inventario y adquisiciones en sintonía con el
           ERP Softland.
         </p>
       </div>

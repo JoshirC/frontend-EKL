@@ -527,18 +527,10 @@ export default function AcopioSalidaIdPage({
                           {/* Verificacion de la trazabilidad del producto */}
                           {detalle.producto.trazabilidad ? (
                             <button
-                              className={`bg-blue-400 w-full text-white font-semibold py-2 px-2 rounded transition duration-200
-    ${
-      desactivacionBoton
-        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
-        : "hover:bg-blue-500"
-    }
-  `}
+                              className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
                               onClick={() => {
                                 handleDropdownTrazabilidadClick(detalle.id);
-                                setDesactivacionBoton(true);
                               }}
-                              disabled={desactivacionBoton}
                             >
                               Trazabilidad
                             </button>
@@ -571,23 +563,17 @@ export default function AcopioSalidaIdPage({
                                       : 0,
                                     detalle.codigo_producto
                                   );
-                                  setDesactivacionBoton(true);
                                 }}
-                                disabled={
-                                  desactivacionBoton ||
-                                  loadingSave === detalle.id
-                                }
+                                disabled={loadingSave === detalle.id}
                                 className={`text-white font-semibold py-2 px-4 rounded transition duration-200
     ${
-      desactivacionBoton || loadingSave === detalle.id
+      loadingSave === detalle.id
         ? "bg-gray-400 cursor-not-allowed"
         : "bg-blue-400 hover:bg-blue-500"
     }
   `}
                               >
-                                {loadingSave === detalle.id
-                                  ? "Guardando..."
-                                  : "Guardar"}
+                                Guardar
                               </button>
                             </div>
                           )}
@@ -596,16 +582,15 @@ export default function AcopioSalidaIdPage({
                           <button
                             onClick={() => {
                               handleDropdownCambiarProductoClick(detalle.id);
-                              setDesactivacionBoton(true);
+                              setLoadingSave(detalle.id);
                             }}
                             className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200
     ${
-      desactivacionBoton
+      loadingSave === detalle.id
         ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
         : "bg-orange-400 hover:bg-orange-500"
     }
   `}
-                            disabled={desactivacionBoton}
                           >
                             Cambiar Producto
                           </button>
@@ -617,16 +602,16 @@ export default function AcopioSalidaIdPage({
                           <button
                             onClick={() => {
                               handleDropdownEnviosClick(detalle.id);
-                              setDesactivacionBoton(true);
+                              setLoadingSave(detalle.id);
                             }}
                             className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
     ${
-      desactivacionBoton
+      loadingSave === detalle.id
         ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
         : "bg-orange-400 hover:bg-orange-500"
     }
   `}
-                            disabled={desactivacionBoton}
+                            disabled={loadingSave === detalle.id}
                           >
                             Ver Envíos
                           </button>
@@ -641,18 +626,16 @@ export default function AcopioSalidaIdPage({
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
-                            className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
-    ${
-      desactivacionBoton
-        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
-        : "bg-orange-400 hover:bg-orange-500"
-    }
-  `}
+                            className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full ${
+                              loadingSave === detalle.id
+                                ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+                                : "bg-orange-400 hover:bg-orange-500"
+                            }`}
                             onClick={() => {
                               handleDropdownEnviosClick(detalle.id);
-                              setDesactivacionBoton(true);
+                              setLoadingSave(detalle.id);
                             }}
-                            disabled={desactivacionBoton}
+                            disabled={loadingSave === detalle.id}
                           >
                             Ver Envio
                           </button>
@@ -678,9 +661,14 @@ export default function AcopioSalidaIdPage({
                                   )
                                 }
                                 disabled={editLoading === detalle.id}
-                                className="bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
+                                className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full ${
+                                  loadingSave === detalle.id
+                                    ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+                                    : "bg-orange-400 hover:bg-orange-500"
+                                }
+  `}
                               >
-                                {editLoading === detalle.id ? "..." : "Guardar"}
+                                Guardar
                               </button>
                             </div>
                           ) : (
@@ -702,12 +690,12 @@ export default function AcopioSalidaIdPage({
                                   onClick={() => handleEditClick(detalle)}
                                   className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
     ${
-      desactivacionBoton
+      loadingSave === detalle.id
         ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
         : "bg-orange-400 hover:bg-orange-500"
     }
   `}
-                                  disabled={desactivacionBoton}
+                                  disabled={loadingSave === detalle.id}
                                 >
                                   Editar
                                 </button>
@@ -716,7 +704,7 @@ export default function AcopioSalidaIdPage({
                               <button
                                 className={`font-semibold py-2 px-4 rounded transition duration-200 w-full
                                   ${
-                                    desactivacionBoton
+                                    loadingSave === detalle.id
                                       ? "bg-gray-400 cursor-not-allowed text-white"
                                       : "bg-red-500 hover:bg-red-600 text-white"
                                   }
@@ -725,7 +713,7 @@ export default function AcopioSalidaIdPage({
                                   setShowConfirmacion(true);
                                   setIdEnvioEliminar(detalle.envios[0].id);
                                 }}
-                                disabled={desactivacionBoton}
+                                disabled={loadingSave === detalle.id}
                               >
                                 Anular
                               </button>
@@ -747,7 +735,7 @@ export default function AcopioSalidaIdPage({
                           isOpen={true}
                           onClose={() => {
                             setDropdownEnviosOpen(null);
-                            setDesactivacionBoton(false);
+                            setLoadingSave(null);
                           }}
                           onProcesoCompleto={stableRefetch}
                         />
@@ -768,7 +756,7 @@ export default function AcopioSalidaIdPage({
                           isOpen={true}
                           onClose={() => {
                             setDropdownCambiarProductoOpen(null);
-                            setDesactivacionBoton(false);
+                            setLoadingSave(null);
                           }}
                           onProductoEnviado={stableRefetch}
                         />
@@ -787,7 +775,7 @@ export default function AcopioSalidaIdPage({
                           isOpen={true}
                           onClose={() => {
                             setDropdownTrazabilidadOpen(null);
-                            setDesactivacionBoton(false);
+                            setLoadingSave(null);
                           }}
                           onTrazabilidadCompleta={stableRefetch}
                         />

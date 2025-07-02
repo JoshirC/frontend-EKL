@@ -253,3 +253,19 @@ export const CORREO_CAMBIOS_EN_ORDEN_COMPRA = gql`
     notificarCambiosEnOrden(input: $input)
   }
 `;
+// Mutaciones para Salida de Productos
+export const UPDATE_GUIA_SALIDA = gql`
+  mutation updateGuiaSalida($updateGuiaSalidaInput: UpdateGuiaSalidaInput!) {
+    updateGuiaSalida(updateGuiaSalidaInput: $updateGuiaSalidaInput) {
+      id
+      codigo_bodega
+      numero_folio
+      fecha_generacion
+      concepto_salida
+      codigo_cliente
+      codigo_centro_costo
+      usuario_creacion
+      valor_total
+    }
+  }
+`;

@@ -62,7 +62,7 @@ const CargaSoftlandPage: React.FC = () => {
       )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="text-xl sm:text-2xl font-semibold mb-4">
-          Listas de Acopio para cargar a Softland
+          Listas de Acopio
         </div>
         <div className="overflow-x-auto">
           <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
@@ -86,7 +86,7 @@ const CargaSoftlandPage: React.FC = () => {
               {ordenesAcopio.length === 0 && (
                 <tr>
                   <td colSpan={4} className="text-center">
-                    <ListaVacia mensaje="No hay ordenes de Acopio listas para subir a Softland." />
+                    <ListaVacia mensaje="No hay ordenes de Acopio con Guias de Salida para Revisar." />
                   </td>
                 </tr>
               )}

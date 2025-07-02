@@ -169,31 +169,72 @@ export const GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO = gql`
   query guiasDeSalidaPorOrdenAcopio($ordenAcopioId: Float!) {
     guiasDeSalidaPorOrdenAcopio(ordenAcopioId: $ordenAcopioId) {
       id
-      fechaCreacion
-      codigo
+      fecha_generacion
     }
   }
 `;
-export const GET_GUIA_DE_SALIDA = gql`
-  query guiaDeSalida($id: Float!) {
-    guiaDeSalida(id: $id) {
+export const GET_GUIA_SALIDA_CON_FOLIO = gql`
+  query obtenerGuiaSalidaConFolio($id: Float!) {
+    obtenerGuiaSalidaConFolio(id: $id) {
+      guiaSalida {
+        id
+        codigo_bodega
+        numero_folio
+        fecha_generacion
+        concepto_salida
+        codigo_cliente
+        codigo_centro_costo
+        usuario_creacion
+        valor_total
+        envios {
+          id
+          cantidad_enviada
+          codigo_producto_enviado
+          producto {
+            nombre_producto
+            codigo
+            familia
+            unidad_medida
+            precio_unitario
+          }
+        }
+      }
+      ultimoFolio
+    }
+  }
+`;
+export const GET_GUIAS_DE_SALIDA_SOFTLAND = gql`
+  query {
+    guiasDeSalidaSoftland {
       id
-      fechaCreacion
-      codigo
+      codigo_bodega
+      numero_folio
+      fecha_generacion
+      concepto_salida
+      codigo_cliente
+      codigo_centro_costo
+      usuario_creacion
+      valor_total
+      orden {
+        id
+        centroCosto
+        estado
+      }
       envios {
         id
-        codigo_producto_enviado
         cantidad_enviada
+        codigo_producto_enviado
         producto {
+          id
           nombre_producto
-          codigo
           familia
           unidad_medida
+          precio_unitario
         }
       }
     }
   }
-`;
+`; 
 // Query para Productos
 export const GET_PRODUCTOS = gql`
   query {

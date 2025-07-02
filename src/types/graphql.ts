@@ -17,3 +17,15 @@ export interface LoginResponse {
     user: User;
   };
 } 
+
+export type Producto = {
+  id: number;
+  codigo: string;
+  nombre_producto: string;
+  familia: string;
+  unidad_medida: string;
+  precio_unitario?: number;
+  cantidad: number;
+  cantidad_softland: number;
+  trazabilidad: boolean;
+}
