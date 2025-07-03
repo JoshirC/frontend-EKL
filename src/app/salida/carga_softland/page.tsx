@@ -38,20 +38,75 @@ const CargaSoftlandPage: React.FC = () => {
   const exportarAExcel = () => {
     const datos = guias.flatMap((guia) =>
       guia.envios.map((envio) => ({
-        "N° Folio": guia.numero_folio,
-        "Fecha Generación": guia.fecha_generacion,
-        "Concepto Salida": guia.concepto_salida,
-        "Código Cliente": guia.codigo_cliente,
-        "Centro Costo": guia.codigo_centro_costo,
-        "Código Producto": envio.codigo_producto_enviado,
-        "Nombre Producto": envio.producto.nombre_producto,
-        "Cantidad Enviada": envio.cantidad_enviada,
+        "1": guia.codigo_bodega,
+        "2": guia.numero_folio,
+        "3": guia.fecha_generacion,
+        "4": guia.concepto_salida,
+        "5": "",
+        "6": guia.codigo_cliente,
+        "7": guia.codigo_centro_costo,
+        "8": "",
+        "9": "",
+        "10": "",
+        "11": "",
+        "12": "",
+        "13": "",
+        "14": "",
+        "15": "",
+        "16": "",
+        "17": "",
+        "18": "",
+        "19": "",
+        "20": "",
+        "21": "",
+        "22": "",
+        "23": "",
+        "24": "",
+        "25": "",
+        "26": "",
+        "27": "",
+        "28": "",
+        "29": "",
+        "30": "",
+        "31": "",
+        "32": "",
+        "33": "",
+        "34": "",
+        "35": "",
+        "36": "",
+        "37": guia.valor_total?.toFixed(2) ?? "0.00",
+        "38": envio.codigo_producto_enviado,
+        "39": envio.producto.nombre_producto,
+        "40": envio.producto.unidad_medida,
+        "41": envio.cantidad_enviada,
+        "42": envio.producto.precio_unitario?.toFixed(2) ?? "0.00",
+        "43": "",
+        "44": "",
+        "45": "",
+        "46": "",
+        "47": "",
+        "48": "",
+        "49": "",
+        "50": "",
+        "51": "",
+        "52": "",
+        "53": "",
+        "54": "",
+        "55": "",
+        "56": "",
+        "57": "",
+        "58": "",
       }))
     );
     const worksheet = XLSX.utils.json_to_sheet(datos);
     const workbook = XLSX.utils.book_new();
+    const fecha = new Date();
+    const dia = String(fecha.getDate()).padStart(2, "0");
+    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+    const anio = fecha.getFullYear();
+    const fechaActual = `${dia}-${mes}-${anio}`;
     XLSX.utils.book_append_sheet(workbook, worksheet, "Guias de Salida");
-    XLSX.writeFile(workbook, "carga-masiva-guia-salida.xlsx");
+    XLSX.writeFile(workbook, `carga-masiva-guia-salida-${fechaActual}.xlsx`);
 
     guias.forEach((guia) => {
       handleCambiarEstado(guia.orden.id.toString());

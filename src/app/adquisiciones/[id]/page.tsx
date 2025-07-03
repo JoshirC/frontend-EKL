@@ -30,7 +30,6 @@ export default function AcopioIdPage({
 }) {
   const { id: id_acopio } = React.use(params);
   const id_acopio_num = parseInt(id_acopio);
-  const { estadoOrdenAcopio } = useAdquisicionStore();
 
   // Estado de la alerta
   const [showAlert, setShowAlert] = useState(false);
@@ -148,24 +147,23 @@ export default function AcopioIdPage({
           <div className="text-xl sm:text-2xl font-semibold">
             Detalles de Acopio N°{id_acopio}
           </div>
-          {estadoOrdenAcopio && ["Revision"].includes(estadoOrdenAcopio) && (
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button
-                className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto"
-                onClick={handleConfirmarAcopio}
-              >
-                Confirmar Acopio
-              </button>
-              <button
-                className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto"
-                onClick={() => {
-                  setShowConfirmacion(true);
-                }}
-              >
-                Cancelar Acopio
-              </button>
-            </div>
-          )}
+
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <button
+              className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto"
+              onClick={handleConfirmarAcopio}
+            >
+              Confirmar Acopio
+            </button>
+            <button
+              className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto"
+              onClick={() => {
+                setShowConfirmacion(true);
+              }}
+            >
+              Cancelar Acopio
+            </button>
+          </div>
         </div>
         {detalles.length === 0 ? (
           <p className="mt-4">No se encontraron detalles para este acopio</p>
