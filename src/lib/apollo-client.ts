@@ -2,8 +2,9 @@ import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import Cookies from 'js-cookie';
 
+console.log("GRAPHQL_API:", process.env.NEXT_PUBLIC_GRAPHQL_API);
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4080/graphql', // Reemplaza con tu URL de GraphQL
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_API,
   credentials: 'include',
   headers: {
     'Content-Type': 'application/json',

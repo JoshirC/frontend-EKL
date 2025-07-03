@@ -14,6 +14,7 @@ const restrictedRoutes = {
     '/salida/revision',
     '/salida/carga_softland',
     '/reporte/registro_acopio',
+    'reporte/trazabilidad',
   ],
   jefeBodega: [
     '/usuarios',

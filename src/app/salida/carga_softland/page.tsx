@@ -53,7 +53,9 @@ const CargaSoftlandPage: React.FC = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Guias de Salida");
     XLSX.writeFile(workbook, "carga-masiva-guia-salida.xlsx");
 
-    handleCambiarEstado(guias[0].orden.id.toString());
+    guias.forEach((guia) => {
+      handleCambiarEstado(guia.orden.id.toString());
+    });
     setBotonCargando(false);
   };
   const [showAlert, setShowAlert] = useState(false);

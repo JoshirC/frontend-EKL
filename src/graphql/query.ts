@@ -142,11 +142,6 @@ export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
           unidad_medida
         }
       }
-      guiaSalida {
-        id
-        codigo
-        fechaCreacion
-      }
       usuario {
         id
         nombre
@@ -159,6 +154,9 @@ export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
         codigo
         familia
         unidad_medida
+      }
+      guiaSalida {
+        numero_folio
       }
     }
   }
