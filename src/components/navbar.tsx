@@ -278,14 +278,6 @@ const Navbar = () => {
                           className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          Guia Salida
-                        </div>
-                      </Link>
-                      <Link href="/salida/subida_softland">
-                        <div
-                          className="block px-4 py-2 hover:bg-orange-200 rounded-md"
-                          onClick={handleSelectOption}
-                        >
                           Carga Masiva Softland
                         </div>
                       </Link>
@@ -496,14 +488,6 @@ const Navbar = () => {
                           </div>
                         </Link>
                         <Link href="/salida/carga_softland">
-                          <div
-                            className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                            onClick={handleSelectOption}
-                          >
-                            ▶ Guia Salida
-                          </div>
-                        </Link>
-                        <Link href="/salida/subida_softland">
                           <div
                             className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                             onClick={handleSelectOption}

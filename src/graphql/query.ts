@@ -169,7 +169,6 @@ export const GET_GUIAS_DE_SALIDA_POR_ORDEN_ACOPIO = gql`
   query guiasDeSalidaPorOrdenAcopio($ordenAcopioId: Float!) {
     guiasDeSalidaPorOrdenAcopio(ordenAcopioId: $ordenAcopioId) {
       id
-      fecha_generacion
     }
   }
 `;
