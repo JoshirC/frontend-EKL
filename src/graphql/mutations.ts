@@ -103,6 +103,24 @@ export const REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
   }
 `;
 
+export const CREATE_MULTIPLE_ENVIOS_DETALLE = gql`
+  mutation CreateManyEnvios($input: CreateMultipleEnviosInput!) {
+    createManyEnvios(input: $input) {
+      creados {
+        id
+        cantidad_enviada
+        codigo_producto_enviado
+      }
+      fallidos {
+        id_detalle_orden_acopio
+        codigo_producto_enviado
+        motivo
+      }
+    }
+  }
+`;
+
+
 // Mutaciones para Detalle de Orden de Acopio
 
 export const UPDATE_ESTADO_DETALLE_ACOPIO = gql`
@@ -254,18 +272,14 @@ export const CORREO_CAMBIOS_EN_ORDEN_COMPRA = gql`
   }
 `;
 // Mutaciones para Salida de Productos
-export const UPDATE_GUIA_SALIDA = gql`
-  mutation updateGuiaSalida($updateGuiaSalidaInput: UpdateGuiaSalidaInput!) {
-    updateGuiaSalida(updateGuiaSalidaInput: $updateGuiaSalidaInput) {
+export const ACTUALIZAR_GUIAS_POR_ORDEN = gql`
+  mutation actualizarGuiasPorOrden($input: UpdateGuiaSalidaInput!) {
+    actualizarGuiasPorOrden(input: $input) {
       id
       codigo_bodega
-      numero_folio
       fecha_generacion
       concepto_salida
       codigo_cliente
-      codigo_centro_costo
-      usuario_creacion
-      valor_total
     }
   }
 `;

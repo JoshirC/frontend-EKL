@@ -7,7 +7,7 @@ import ApolloWrapper from "@/components/ApolloWrapper";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bodega EKL",
+  title: "EKLIPSE - Bodega",
   description: "Sistema de gestión de bodega",
 };
 

@@ -11,7 +11,6 @@ interface DropdownCargaSoftlandProps {
 
 type SalidaAcopio = {
   id: number;
-  fecha_generacion: string;
 };
 
 const DropdownCargaSoftland: React.FC<DropdownCargaSoftlandProps> = ({

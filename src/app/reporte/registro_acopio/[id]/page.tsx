@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import { GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN } from "@/graphql/query";
 import { useQuery } from "@apollo/client";
 import Alert from "@/components/Alert";
@@ -32,7 +32,9 @@ type Envio = {
   producto: Producto;
   codigo_producto_enviado: string;
   cantidad_enviada: number;
-  guiaSalida: null | any;
+  guiaSalida?: {
+    numero_folio: string;
+  };
 };
 
 export default function RegistroAcopioIdPage({
@@ -65,12 +67,16 @@ export default function RegistroAcopioIdPage({
   }
 
   if (error) {
-    setAlertType("error");
-    setAlertMessage(error.message);
-    setShowAlert(true);
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>Error al cargar los detalles del acopio: {error.message}</p>
+        </div>
+      </div>
+    );
   }
 
-  const detalleEnvio: Envio[] = data.envioDetalleOrdenAcopioByIdOrden;
+  const detalleEnvio: Envio[] = data?.envioDetalleOrdenAcopioByIdOrden ?? [];
 
   return (
     <div className="p-4 sm:p-10">
@@ -113,10 +119,13 @@ export default function RegistroAcopioIdPage({
                   Nombre Producto Enviado
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Cantidad Enviada
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Encargado de Envio
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Cantidad Enviada
+                  Guia Salida
                 </th>
               </tr>
             </thead>
@@ -159,6 +168,13 @@ export default function RegistroAcopioIdPage({
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.cantidad_enviada}{" "}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.guiaSalida ? (
+                        detalle.guiaSalida.numero_folio
+                      ) : (
+                        <span className="text-gray-500">N/A</span>
+                      )}
                     </td>
                   </tr>
                 );

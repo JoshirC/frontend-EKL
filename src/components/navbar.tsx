@@ -99,7 +99,7 @@ const Navbar = () => {
 
   return (
     <header className="sm: bg-gradient-to-r sm:from-white sm:bg-orange-400 bg-orange-400 sticky top-0 z-50">
-      <div className=" mx-auto px-4 sm:px-12">
+      <div className=" mx-auto px-4 sm:px-8 lg:px-6">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
@@ -278,14 +278,6 @@ const Navbar = () => {
                           className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          Guia Salida
-                        </div>
-                      </Link>
-                      <Link href="/salida/subida_softland">
-                        <div
-                          className="block px-4 py-2 hover:bg-orange-200 rounded-md"
-                          onClick={handleSelectOption}
-                        >
                           Carga Masiva Softland
                         </div>
                       </Link>
@@ -330,23 +322,10 @@ const Navbar = () => {
             {/* Datos Usuario */}
             <div className="relative flex justify-center">
               <button
-                className="w-8 h-8 lg:w-10 lg:h-10 bg-black text-orange-400 rounded-full flex items-center justify-center hover:bg-white hover:text-orange-400 transition duration-300"
+                className="bg-black text-orange-400 rounded-lg flex items-center justify-center hover:bg-white hover:text-orange-400 transition duration-300 px-4 py-2 font-semibold"
                 onClick={handleOpenMenuUsuario}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-4 h-4 lg:w-6 lg:h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 9A3.75 3.75 0 1112 5.25 3.75 3.75 0 0115.75 9zM4.5 19.5a8.25 8.25 0 0115 0"
-                  />
-                </svg>
+                {nombreUsuario?.split(" ")[0]}
               </button>
               {openMenuUsuario && (
                 <div className="mt-12 w-35 right-0 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
@@ -500,14 +479,6 @@ const Navbar = () => {
                             className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                             onClick={handleSelectOption}
                           >
-                            ▶ Guia Salida
-                          </div>
-                        </Link>
-                        <Link href="/salida/subida_softland">
-                          <div
-                            className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                            onClick={handleSelectOption}
-                          >
                             ▶ Carga Masiva Softland
                           </div>
                         </Link>
@@ -555,7 +526,7 @@ const Navbar = () => {
                   onClick={handleOpenMenuUsuario}
                   className="block w-full text-left px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                 >
-                  Mi Cuenta
+                  {nombreUsuario?.split(" ")[0]}
                 </button>
                 {openMenuUsuario && (
                   <div className="pl-4">

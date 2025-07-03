@@ -5,12 +5,14 @@ import { useQuery, useMutation } from "@apollo/client";
 import DropdownCambioProducto from "@/components/salida_acopio/DropdownCambioProducto";
 import DropdownEnviosDetalleOrdenAcopio from "@/components/salida_acopio/dropdownEnviosDetalleOrdenAcopio";
 import DropdownTrazabilidad from "@/components/salida_acopio/dropdownTrazabilidad";
+import FormularioGuiaSalida from "@/components/salida_acopio/formularioGuiaSalida";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
   UPDATE_ESTADO_DETALLE_ACOPIO,
   UPDATE_ESTADO_ORDEN_ACOPIO,
   UPDATE_CANTIDAD_ENVIO_DETALLE,
   REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO,
+  CREATE_MULTIPLE_ENVIOS_DETALLE,
 } from "@/graphql/mutations";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
@@ -43,6 +45,14 @@ type DetalleOrdenAcopio = {
   enviado: boolean;
   producto: Producto;
   envios: Envio[];
+};
+type CreateMultipleEnviosResponse = {
+  creados: { id: number }[];
+  fallidos: {
+    id_detalle_orden_acopio: number;
+    codigo_producto_enviado: string;
+    motivo: string;
+  }[];
 };
 
 export default function AcopioSalidaIdPage({
@@ -81,6 +91,7 @@ export default function AcopioSalidaIdPage({
   const [loadingSave, setLoadingSave] = useState<number | null>(null);
   const [currentFamily, setCurrentFamily] = useState<string | null>(null);
   const [familyGroups, setFamilyGroups] = useState<string[]>([]);
+  const [openModalGuia, setOpenModalGuia] = useState(false);
 
   // Query para obtener datos
   const { loading, error, data, refetch } = useQuery(GET_ORDEN_ACOPIO, {
@@ -130,6 +141,52 @@ export default function AcopioSalidaIdPage({
   };
 
   // Mutaciones
+
+  const [createManyEnvios] = useMutation(CREATE_MULTIPLE_ENVIOS_DETALLE, {
+    onCompleted: (data) => {
+      const response = data?.createManyEnvios;
+      const creados = Array.isArray(response?.creados) ? response.creados : [];
+      const fallidos = Array.isArray(response?.fallidos)
+        ? response.fallidos
+        : [];
+
+      if (fallidos.length > 0) {
+        const mensajes = fallidos
+          .map(
+            (f: {
+              codigo_producto_enviado: string;
+              id_detalle_orden_acopio: string;
+              motivo: string;
+            }) => {
+              const codigo = f?.codigo_producto_enviado ?? "Desconocido";
+              const motivo = f?.motivo ?? "Motivo no especificado";
+              return `• ${codigo}: ${motivo}`;
+            }
+          )
+          .join("\n");
+
+        setAlertType("advertencia");
+        setAlertMessage(
+          `Algunos productos no fueron enviados correctamente: ${mensajes}`
+        );
+        setShowAlert(true);
+      }
+
+      if (creados.length > 0 && fallidos.length === 0) {
+        setAlertType("exitoso");
+        setAlertMessage("Todos los productos fueron enviados correctamente");
+        setShowAlert(true);
+      }
+
+      stableRefetch();
+    },
+    onError: (error) => {
+      setAlertType("error");
+      setAlertMessage("Error general al enviar productos: " + error.message);
+      setShowAlert(true);
+    },
+  });
+
   const [createEnvioDetalleOrdenAcopio] = useMutation(
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
     {
@@ -193,21 +250,47 @@ export default function AcopioSalidaIdPage({
       },
     }
   );
-
-  const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
-    onCompleted: () => window.history.back(),
-    onError: (error) => {
-      setAlertType("error");
-      setAlertMessage(
-        "Error al actualizar el estado de la orden de acopio: " + error.message
-      );
-      setShowAlert(true);
-    },
-  });
-
   // Handlers
   const handleCambioCantidad = (id: number, valor: number) => {
     setCantidadesTemporales((prev) => ({ ...prev, [id]: valor }));
+  };
+  const handleCrearEnviosMasivos = async () => {
+    const productosFiltrados = currentItems
+      .filter(
+        (d) =>
+          !d.producto.trazabilidad &&
+          cantidadesTemporales[d.id] !== undefined &&
+          cantidadesTemporales[d.id] !== null
+      )
+      .map((d) => ({
+        id_detalle_orden_acopio: d.id,
+        cantidad_enviada: Number(cantidadesTemporales[d.id]),
+        codigo_producto_enviado: d.codigo_producto,
+      }));
+
+    if (productosFiltrados.length === 0) {
+      setAlertType("advertencia");
+      setAlertMessage("Debe ingresar cantidad para al menos un producto.");
+      setShowAlert(true);
+      return;
+    }
+
+    setDesactivacionBoton(true);
+
+    try {
+      await createManyEnvios({
+        variables: {
+          input: {
+            usuario_rut: rutUsuario,
+            productos: productosFiltrados,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error en envío masivo:", error);
+    } finally {
+      setDesactivacionBoton(false);
+    }
   };
 
   const handleCrearEnvioDetalle = async (
@@ -343,10 +426,6 @@ export default function AcopioSalidaIdPage({
       dropdownCambiarProductoOpen === id ? null : id
     );
   };
-
-  const handleCambioEstadoAcopio = (estado: string) => {
-    updateEstadoOrdenAcopio({ variables: { id: id_acopio_num, estado } });
-  };
   const handleEliminarEnvio = async (id: number) => {
     if (id) {
       try {
@@ -413,23 +492,11 @@ export default function AcopioSalidaIdPage({
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         {data.ordenAcopio.estado === "Confirmacion" &&
         rolUsuario != "Bodeguero" ? (
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-            <div className="text-xl sm:text-2xl font-semibold">
-              Confirmación de Acopio N°{id_acopio}
+          <div>
+            <div className="flex w-full">
+              <FormularioGuiaSalida id_orden={data.ordenAcopio.id} />
             </div>
-            <button
-              className={`bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200
-    ${
-      desactivacionBoton
-        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
-        : "hover:bg-orange-500"
-    }
-  `}
-              onClick={() => handleCambioEstadoAcopio("Subir")}
-              disabled={desactivacionBoton}
-            >
-              Confirmar Acopio
-            </button>
+            <h2 className="text-xl font-semibold">Detalles Orden de Acopio</h2>
           </div>
         ) : (
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
@@ -524,7 +591,6 @@ export default function AcopioSalidaIdPage({
                     {detalle.envios.length === 0 ? (
                       <>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          {/* Verificacion de la trazabilidad del producto */}
                           {detalle.producto.trazabilidad ? (
                             <button
                               className="bg-blue-400 hover:bg-blue-500 w-full text-white font-semibold py-2 px-2 rounded transition duration-200"
@@ -535,17 +601,23 @@ export default function AcopioSalidaIdPage({
                               Trazabilidad
                             </button>
                           ) : (
-                            <div className="flex items-center justify-between space-x-2">
+                            <div className="flex items-center">
                               <input
                                 type="number"
-                                value={cantidadesTemporales[detalle.id] || ""}
+                                value={
+                                  cantidadesTemporales[detalle.id] !== undefined
+                                    ? cantidadesTemporales[detalle.id]
+                                    : ""
+                                }
                                 placeholder={
                                   detalle.producto.cantidad?.toString() || "0"
                                 }
                                 onChange={(e) =>
                                   handleCambioCantidad(
                                     detalle.id,
-                                    Number(e.target.value) || 0
+                                    e.target.value === ""
+                                      ? 0
+                                      : Number(e.target.value)
                                   )
                                 }
                                 min={0}
@@ -553,31 +625,16 @@ export default function AcopioSalidaIdPage({
                                 className="w-full border border-gray-300 rounded p-1"
                                 disabled={desactivacionBoton}
                               />
-                              <button
-                                onClick={() => {
-                                  handleCrearEnvioDetalle(
-                                    detalle.id,
-                                    cantidadesTemporales[detalle.id] !==
-                                      undefined
-                                      ? cantidadesTemporales[detalle.id]
-                                      : 0,
-                                    detalle.codigo_producto
-                                  );
-                                }}
-                                disabled={loadingSave === detalle.id}
-                                className={`text-white font-semibold py-2 px-4 rounded transition duration-200
-    ${
-      loadingSave === detalle.id
-        ? "bg-gray-400 cursor-not-allowed"
-        : "bg-blue-400 hover:bg-blue-500"
-    }
-  `}
-                              >
-                                Guardar
-                              </button>
+                              {cantidadesTemporales[detalle.id] !==
+                                undefined && (
+                                <span className="ml-2 text-red-500 font-semibold">
+                                  {detalle.producto.cantidad?.toString() || "0"}
+                                </span>
+                              )}
                             </div>
                           )}
                         </td>
+
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
                             onClick={() => {
@@ -786,6 +843,19 @@ export default function AcopioSalidaIdPage({
               ))}
             </tbody>
           </table>
+          <div className="flex justify-end mt-6">
+            <button
+              className={`bg-blue-400 text-white font-semibold py-2 px-6 rounded transition duration-200 ${
+                desactivacionBoton
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "hover:bg-blue-500"
+              }`}
+              onClick={handleCrearEnviosMasivos}
+              disabled={desactivacionBoton}
+            >
+              Enviar Productos
+            </button>
+          </div>
 
           {/* Paginación por familia */}
           <div className="flex flex-col sm:flex-row justify-end items-center mt-6 pb-4 gap-4">
