@@ -240,7 +240,27 @@ const OrdenCompraPage: React.FC = () => {
     nuevaLista[index] = detalleEditado;
     setDetalles(nuevaLista);
 
-    // Obtener el original desde la fuente inmutable
+    // 🔁 Actualizar cantidad en trazabilidad si existe
+    const existeTrazabilidad = trazabilidadProductos.find(
+      (t) => t.codigoProducto === detalleEditado.codigo
+    );
+    if (existeTrazabilidad && campo === "cantidad") {
+      setTrazabilidadProductos((prev) =>
+        prev.map((t) =>
+          t.codigoProducto === detalleEditado.codigo
+            ? {
+                ...t,
+                datos: {
+                  ...t.datos,
+                  cantidad_producto: valor,
+                },
+              }
+            : t
+        )
+      );
+    }
+
+    // Actualizar historial de cambios
     const detalleOriginal = detallesOriginales.find(
       (d) => d.codigo === detalleEditado.codigo
     );
@@ -694,7 +714,7 @@ const OrdenCompraPage: React.FC = () => {
                       Nombre Producto
                     </th>
                     <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                      Cantidad
+                      Cantidad Unitaria
                     </th>
                     <th className="border border-gray-300 px-2 sm:px-4 py-2">
                       Precio Unitario
@@ -831,15 +851,24 @@ const OrdenCompraPage: React.FC = () => {
                                 {indexEditar == index ? "Guardar" : "Editar"}
                               </button>
                             )}
-                            <button
-                              className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-red-400 hover:bg-red-500 "
-                              onClick={() => {
-                                setShowConfirmacionEliminar(true);
-                                setIndexEliminar(index);
-                              }}
-                            >
-                              Eliminar
-                            </button>
+                            {indexEditar == index ? (
+                              <button
+                                className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-gray-400 hover:bg-gray-500"
+                                onClick={() => setIndexEditar(-1)}
+                              >
+                                Cancelar
+                              </button>
+                            ) : (
+                              <button
+                                className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-red-400 hover:bg-red-500 "
+                                onClick={() => {
+                                  setShowConfirmacionEliminar(true);
+                                  setIndexEliminar(index);
+                                }}
+                              >
+                                Eliminar
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

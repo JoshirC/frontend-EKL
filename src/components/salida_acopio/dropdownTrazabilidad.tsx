@@ -174,62 +174,70 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
       </div>
       <div className="">
         {trazabilidad.length > 0 ? (
-          trazabilidad.map((item) => {
-            const fueEnviado = enviados.includes(item.id);
-            return (
-              <div
-                key={item.id}
-                className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg mt-4 gap-2 sm:gap-4 border-gray-200 hover:bg-gray-50 ${
-                  fueEnviado ? "bg-gray-100 border-gray-500" : ""
-                }`}
-              >
-                {/* Mostrar información del producto */}
-                <div className="flex flex-col gap-1 sm:gap-2">
-                  <p>
-                    <strong>ID Trazabilidad:</strong> {item.id}
-                  </p>
-                  <p>
-                    <strong>Número de Lote:</strong> {item.numero_lote}
-                  </p>
-                  <p>
-                    <strong>Cantidad Producto:</strong> {item.cantidad_producto}
-                  </p>
-                  <p>
-                    <strong>Fecha Vencimiento:</strong> {item.fecha_vencimiento}
-                  </p>
+          [...trazabilidad]
+            .sort(
+              (a, b) =>
+                new Date(a.fecha_vencimiento).getTime() -
+                new Date(b.fecha_vencimiento).getTime()
+            )
+            .map((item) => {
+              const fueEnviado = enviados.includes(item.id);
+              return (
+                <div
+                  key={item.id}
+                  className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg mt-4 gap-2 sm:gap-4 border-gray-200 hover:bg-gray-50 ${
+                    fueEnviado ? "bg-gray-100 border-gray-500" : ""
+                  }`}
+                >
+                  {/* Mostrar información del producto */}
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <p>
+                      <strong>ID Trazabilidad:</strong> {item.id}
+                    </p>
+                    <p>
+                      <strong>Número de Lote:</strong> {item.numero_lote}
+                    </p>
+                    <p>
+                      <strong>Cantidad Producto:</strong>{" "}
+                      {item.cantidad_producto}
+                    </p>
+                    <p>
+                      <strong>Fecha Vencimiento:</strong>{" "}
+                      {item.fecha_vencimiento}
+                    </p>
+                  </div>
+                  {/* Botones e Input */}
+                  {!fueEnviado ? (
+                    <div className="flex flex-col justify-end  sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                      <input
+                        type="number"
+                        min="1"
+                        value={cantidades[item.id] || ""}
+                        className="w-20  border border-gray-300 rounded p-2 text-sm sm:text-base"
+                        placeholder={item.cantidad_producto.toString()}
+                        onChange={(e) =>
+                          handleCambioCantidad(item.id, Number(e.target.value))
+                        }
+                        disabled={loadingState}
+                      />
+                      <button
+                        className={`bg-blue-500 text-white font-semibold px-4 py-2 rounded w-full sm:w-auto ${
+                          loadingState ? "opacity-50" : "hover:bg-blue-600"
+                        } transition duration-200`}
+                        onClick={() => handleEnviar(item)}
+                        disabled={loadingState}
+                      >
+                        {loadingState ? "Enviando..." : "Guardar"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 text-sm sm:text-base">
+                      Producto ya enviado
+                    </div>
+                  )}
                 </div>
-                {/* Botones e Input */}
-                {!fueEnviado ? (
-                  <div className="flex flex-col justify-end  sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                    <input
-                      type="number"
-                      min="1"
-                      value={cantidades[item.id] || ""}
-                      className="w-20  border border-gray-300 rounded p-2 text-sm sm:text-base"
-                      placeholder={item.cantidad_producto.toString()}
-                      onChange={(e) =>
-                        handleCambioCantidad(item.id, Number(e.target.value))
-                      }
-                      disabled={loadingState}
-                    />
-                    <button
-                      className={`bg-blue-500 text-white font-semibold px-4 py-2 rounded w-full sm:w-auto ${
-                        loadingState ? "opacity-50" : "hover:bg-blue-600"
-                      } transition duration-200`}
-                      onClick={() => handleEnviar(item)}
-                      disabled={loadingState}
-                    >
-                      {loadingState ? "Enviando..." : "Guardar"}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="text-gray-500 text-sm sm:text-base">
-                    Producto ya enviado
-                  </div>
-                )}
-              </div>
-            );
-          })
+              );
+            })
         ) : (
           <p>No hay trazabilidad disponible para este producto.</p>
         )}
