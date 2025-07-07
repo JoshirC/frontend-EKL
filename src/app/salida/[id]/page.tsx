@@ -143,43 +143,8 @@ export default function AcopioSalidaIdPage({
   // Mutaciones
 
   const [createManyEnvios] = useMutation(CREATE_MULTIPLE_ENVIOS_DETALLE, {
-    onCompleted: (data) => {
-      const response = data?.createManyEnvios;
-      const creados = Array.isArray(response?.creados) ? response.creados : [];
-      const fallidos = Array.isArray(response?.fallidos)
-        ? response.fallidos
-        : [];
-
-      if (fallidos.length > 0) {
-        const mensajes = fallidos
-          .map(
-            (f: {
-              codigo_producto_enviado: string;
-              id_detalle_orden_acopio: string;
-              motivo: string;
-            }) => {
-              const codigo = f?.codigo_producto_enviado ?? "Desconocido";
-              const motivo = f?.motivo ?? "Motivo no especificado";
-              return `• ${codigo}: ${motivo}`;
-            }
-          )
-          .join("\n");
-
-        setAlertType("advertencia");
-        setAlertMessage(
-          `Algunos productos no fueron enviados correctamente: ${mensajes}`
-        );
-        setShowAlert(true);
-      }
-
-      if (creados.length > 0 && fallidos.length === 0) {
-        setAlertType("exitoso");
-        setAlertMessage("Todos los productos fueron enviados correctamente");
-        setShowAlert(true);
-      }
-
-      stableRefetch();
-    },
+    onCompleted: (data) =>
+      handleEnvioMasivoCompleted(data, () => setCantidadesTemporales({})),
     onError: (error) => {
       setAlertType("error");
       setAlertMessage("Error general al enviar productos: " + error.message);
@@ -291,6 +256,39 @@ export default function AcopioSalidaIdPage({
     } finally {
       setDesactivacionBoton(false);
     }
+  };
+  const handleEnvioMasivoCompleted = (
+    data: { createManyEnvios: CreateMultipleEnviosResponse },
+    resetCantidades: () => void
+  ) => {
+    const response = data?.createManyEnvios;
+    const creados = Array.isArray(response?.creados) ? response.creados : [];
+    const fallidos = Array.isArray(response?.fallidos) ? response.fallidos : [];
+
+    if (fallidos.length > 0) {
+      const mensajes = fallidos
+        .map((f) => {
+          const codigo = f?.codigo_producto_enviado ?? "Desconocido";
+          const motivo = f?.motivo ?? "Motivo no especificado";
+          return `• ${codigo}: ${motivo}`;
+        })
+        .join("\n");
+
+      setAlertType("advertencia");
+      setAlertMessage(
+        `Algunos productos no fueron enviados correctamente: ${mensajes}`
+      );
+      setShowAlert(true);
+    }
+
+    if (creados.length > 0 && fallidos.length === 0) {
+      setAlertType("exitoso");
+      setAlertMessage("Todos los productos fueron enviados correctamente");
+      setShowAlert(true);
+      resetCantidades(); // Aquí limpias cantidades temporales
+    }
+
+    stableRefetch();
   };
 
   const handleCrearEnvioDetalle = async (
