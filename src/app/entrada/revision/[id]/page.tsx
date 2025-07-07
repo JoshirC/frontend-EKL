@@ -1,7 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { GET_GUIA_ENTRADA_BY_ID } from "@/graphql/query";
-import { UPDATE_GUIA_ENTRADA } from "@/graphql/mutations";
+import {
+  UPDATE_GUIA_ENTRADA,
+  UPDATE_GUIA_ENTRADA_DETALLE_CANTIDAD_Y_PRECIO,
+} from "@/graphql/mutations";
 import { useQuery, useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
 import { formatDateToDDMMYYYY } from "@/utils/dataUtils";
@@ -69,7 +72,12 @@ export default function GuiaEntradaIdPage({
   const [errors, setErrors] = useState<FormErrors>({});
   const [isFormValid, setIsFormValid] = useState(false);
 
-  const { loading, error, data } = useQuery(GET_GUIA_ENTRADA_BY_ID, {
+  const [indexEditar, setIndexEditar] = useState<number | null>(null);
+  const [editedDetalles, setEditedDetalles] = useState<
+    Record<number, Partial<GuiaEntradaDetalle>>
+  >({});
+
+  const { loading, error, data, refetch } = useQuery(GET_GUIA_ENTRADA_BY_ID, {
     variables: { id: id_num },
   });
 
@@ -89,6 +97,22 @@ export default function GuiaEntradaIdPage({
       setAlertMessage(`Error al confirmar guía de entrada: ${error.message}`);
     },
   });
+  const [updateDetalleCantidadYPrecio] = useMutation(
+    UPDATE_GUIA_ENTRADA_DETALLE_CANTIDAD_Y_PRECIO,
+    {
+      onCompleted: () => {
+        setShowAlert(true);
+        setAlertType("exitoso");
+        setAlertMessage("Producto actualizados correctamente");
+        refetch();
+      },
+      onError: (error) => {
+        setShowAlert(true);
+        setAlertType("error");
+        setAlertMessage(`Error al actualizar el detalle: ${error.message}`);
+      },
+    }
+  );
   useEffect(() => {
     if (data?.guiaEntrada) {
       const guia = data.guiaEntrada;
@@ -165,6 +189,38 @@ export default function GuiaEntradaIdPage({
       updateGuiaEntrada({
         variables: { updateGuiaEntradaInput: updatedGuiaEntrada },
       });
+    }
+  };
+  const handleEditarDetalle = (
+    idDetalle: number,
+    cantidad: number,
+    precio: number
+  ) => {
+    if (cantidad <= 0 || precio <= 0) {
+      setShowAlert(true);
+      setAlertType("advertencia");
+      setAlertMessage("Cantidad y precio deben ser mayores a 0");
+      return;
+    }
+    try {
+      updateDetalleCantidadYPrecio({
+        variables: {
+          id_guia_entrada_detalle: idDetalle,
+          cantidad: Math.round(cantidad),
+          precio: Math.round(precio),
+        },
+      });
+      setEditedDetalles((prev) => {
+        const copy = { ...prev };
+        delete copy[idDetalle];
+        return copy;
+      });
+
+      setIndexEditar(null);
+    } catch (error) {
+      setShowAlert(true);
+      setAlertType("error");
+      setAlertMessage(`Error al guardar cambios: ${error}`);
     }
   };
 
@@ -410,37 +466,136 @@ export default function GuiaEntradaIdPage({
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Total
                 </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody>
-              {guiaEntrada.guiaEntradaDetalle?.map((detalle) => (
-                <tr key={detalle.id}>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.producto.codigo}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.producto.familia}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.producto.nombre_producto}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {detalle.cantidad_ingresada}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    $ {detalle.precio_unitario}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    ${" "}
-                    {(
-                      detalle.cantidad_ingresada * detalle.precio_unitario
-                    ).toLocaleString("es-CL", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}
-                  </td>
-                </tr>
-              ))}
+              {guiaEntrada.guiaEntradaDetalle?.map((detalle) => {
+                const isEditing = indexEditar === detalle.id;
+                const edited = editedDetalles[detalle.id] || {};
+
+                return (
+                  <tr key={detalle.id}>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.producto.codigo}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.producto.familia}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {detalle.producto.nombre_producto}
+                    </td>
+
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          min="0"
+                          className="p-2 w-full border rounded"
+                          value={
+                            edited.cantidad_ingresada ??
+                            detalle.cantidad_ingresada
+                          }
+                          onChange={(e) =>
+                            setEditedDetalles((prev) => ({
+                              ...prev,
+                              [detalle.id]: {
+                                ...prev[detalle.id],
+                                cantidad_ingresada: parseFloat(e.target.value),
+                              },
+                            }))
+                          }
+                        />
+                      ) : (
+                        detalle.cantidad_ingresada
+                      )}
+                    </td>
+
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          min="0"
+                          className="p-2 w-full border rounded"
+                          value={
+                            edited.precio_unitario ?? detalle.precio_unitario
+                          }
+                          onChange={(e) =>
+                            setEditedDetalles((prev) => ({
+                              ...prev,
+                              [detalle.id]: {
+                                ...prev[detalle.id],
+                                precio_unitario: parseFloat(e.target.value),
+                              },
+                            }))
+                          }
+                        />
+                      ) : (
+                        `$ ${detalle.precio_unitario}`
+                      )}
+                    </td>
+
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      $
+                      {(
+                        (edited.cantidad_ingresada ??
+                          detalle.cantidad_ingresada) *
+                        (edited.precio_unitario ?? detalle.precio_unitario)
+                      ).toLocaleString("es-CL", {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                    </td>
+
+                    <td className="border border-gray-300 px-2 sm:px-4 sm:py-2">
+                      <div className="flex flex-row gap-2">
+                        {isEditing ? (
+                          <>
+                            <button
+                              className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-blue-400 hover:bg-blue-500"
+                              onClick={() => {
+                                handleEditarDetalle(
+                                  detalle.id,
+                                  edited.cantidad_ingresada ??
+                                    detalle.cantidad_ingresada,
+                                  edited.precio_unitario ??
+                                    detalle.precio_unitario
+                                );
+                              }}
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-red-400 hover:bg-red-500"
+                              onClick={() => {
+                                setIndexEditar(null);
+                                setEditedDetalles((prev) => {
+                                  const copy = { ...prev };
+                                  delete copy[detalle.id];
+                                  return copy;
+                                });
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap bg-blue-400 hover:bg-blue-500"
+                              onClick={() => setIndexEditar(detalle.id)}
+                            >
+                              Editar
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

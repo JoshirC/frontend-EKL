@@ -88,14 +88,14 @@ export default function Login() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-orange-400 via-orange-300 to-yellow-200 py-4 px-12">
-      <div className="bg-white shadow-md rounded-lg py-6 sm:py-18 px-4 sm:px-6 sm:w-1/4">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-orange-400 via-orange-300 to-yellow-200 py-4 px-4 sm:px-6 md:px-12">
+      <div className="bg-white shadow-md rounded-lg py-6 sm:py-12 md:py-18 px-4 sm:px-6 w-full sm:w-3/4 md:w-1/2 lg:w-1/3 xl:w-1/4 max-w-md">
         {/* Columna Formulario */}
-        <div className="col-span-1 flex flex-col justify-center mx-4 sm:mx-8">
+        <div className="col-span-1 flex flex-col justify-center mx-2 sm:mx-4 md:mx-8">
           <h1 className="text-2xl sm:text-3xl text-center font-bold text-gray-700">
             ¡Bienvenido!
           </h1>
-          <p className="text-sm text-center text-gray-600 mt-2">
+          <p className="text-sm sm:text-base text-center text-gray-600 mt-2">
             Ingrese sus credenciales para el acceso al sistema.
           </p>
           {showAlert && (
@@ -133,7 +133,7 @@ export default function Login() {
               <input
                 type={mostrarContrasena ? "text" : "password"}
                 placeholder="Ingrese su contraseña"
-                className="w-full px-3 py-2 text-sm sm:text-base focus:outline-none"
+                className="w-full px-3 py-2 text-sm sm:text-base focus:outline-none pr-12"
                 value={contrasena}
                 onChange={(e) => setContrasena(e.target.value)}
                 disabled={loading}
@@ -141,14 +141,14 @@ export default function Login() {
               />
               <button
                 type="button"
-                className="absolute right-3 text-sm text-gray-300 hover:text-orange-500"
+                className="absolute right-3 text-sm text-gray-300 hover:text-orange-500 p-1"
                 onClick={() => setMostrarContrasena(!mostrarContrasena)}
               >
                 {mostrarContrasena ? (
                   <>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="inline w-5 h-5 mr-1"
+                      className="inline w-5 h-5 sm:w-6 sm:h-6 mr-1"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -171,7 +171,7 @@ export default function Login() {
                   <>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="inline w-5 h-5 mr-1"
+                      className="inline w-5 h-5 sm:w-6 sm:h-6 mr-1"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

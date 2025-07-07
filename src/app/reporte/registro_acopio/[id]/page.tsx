@@ -164,10 +164,10 @@ export default function RegistroAcopioIdPage({
                       {detalle.producto.nombre_producto}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.usuario.nombre}
+                      {detalle.cantidad_enviada}{" "}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.cantidad_enviada}{" "}
+                      {detalle.usuario.nombre}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.guiaSalida ? (

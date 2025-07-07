@@ -8,7 +8,6 @@ type EnvioDetalle = {
 type EnviosDetalle = {
   envioDetalle: EnvioDetalle;
   centroCosto: string;
-  fecha: string;
 };
 interface DropdownTrazabilidadProps {
   isOpen: boolean;
@@ -48,10 +47,6 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
               <p>
                 <strong>Cantidad Enviada:</strong>{" "}
                 {envio.envioDetalle.cantidad_enviada}
-              </p>
-              <p>
-                <strong>Fecha:</strong>{" "}
-                {new Date(envio.fecha).toLocaleDateString()}
               </p>
             </div>
           </div>

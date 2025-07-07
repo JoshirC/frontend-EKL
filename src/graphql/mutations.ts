@@ -231,6 +231,23 @@ export const UPDATE_ESTADO_GUIA_ENTRADAS = gql`
     }
   }
 `;
+// Mutaciones para guia entrada con detalle
+
+// Mutación para editar cantidad y precio en detalle de guía de entrada
+export const UPDATE_GUIA_ENTRADA_DETALLE_CANTIDAD_Y_PRECIO = gql`
+  mutation editarCantidadYPrecio($id_guia_entrada_detalle: Int!, $cantidad: Int!, $precio: Float!) {
+    editarCantidadYPrecio(id_guia_entrada_detalle: $id_guia_entrada_detalle, cantidad: $cantidad, precio: $precio) {
+      cantidad_ingresada
+      precio_unitario
+      producto {
+        codigo
+        nombre_producto
+        cantidad
+      }
+    }
+  }
+`;
+
 // Mutaciones para Trazabilidad
 export const CREATE_TRAZABILIDAD = gql`
   mutation createTrazabilidad($createTrazabilidadInput: [CreateTrazabilidadInput!]!) {
