@@ -1,9 +1,11 @@
 "use client";
-import Link from "next/link";
 
 export default function Unauthorized() {
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div
+      className="fixed inset-0 bg-gray-100 flex items-center justify-center overflow-hidden"
+      style={{ minHeight: "100vh" }}
+    >
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
         <div className="mb-6">
           <svg
@@ -25,13 +27,17 @@ export default function Unauthorized() {
           Acceso No Autorizado
         </h1>
         <p className="text-gray-600 mb-6">
-          Lo sentimos, no tienes permisos para acceder a esta página.
+          Lo sentimos, no tienes permisos para acceder a esta página de la
+          aplicación.
         </p>
-        <Link href="/">
-          <div className="inline-block bg-orange-400 text-white px-6 py-2 rounded-md hover:bg-orange-500 transition duration-300">
-            Volver al Inicio
-          </div>
-        </Link>
+        <button
+          className="bg-orange-400 text-white font-semibold px-3 sm:px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
+          onClick={() => {
+            window.location.href = "/"; // Redirige a la página de inicio
+          }}
+        >
+          Volver al Inicio
+        </button>
       </div>
     </div>
   );

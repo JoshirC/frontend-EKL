@@ -211,6 +211,7 @@ export const GET_GUIAS_DE_SALIDA_SOFTLAND = gql`
       codigo_cliente
       codigo_centro_costo
       usuario_creacion
+      codigo_lugar_despacho
       valor_total
       orden {
         id

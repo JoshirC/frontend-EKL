@@ -13,6 +13,7 @@ type FormErrors = {
   concepto?: string;
   codigoCliente?: string;
   codigoCentroCosto?: string;
+  codigo_lugar_despacho?: string;
 };
 
 const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
@@ -23,6 +24,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
     concepto: "",
     codigoCliente: "",
     codigoCentroCosto: "",
+    codigo_lugar_despacho: "",
   });
   // Componente para mostrar la alerta
   const [showAlert, setShowAlert] = useState(false);
@@ -47,8 +49,12 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
     if (!formData.codigoCliente || formData.codigoCliente.trim() === "") {
       errors.codigoCliente = "El código del cliente es requerido.";
     }
-    if (!formData.codigoCentroCosto || formData.codigoCentroCosto === "") {
-      errors.codigoCentroCosto = "El código del centro de costo es requerido.";
+    if (
+      !formData.codigo_lugar_despacho ||
+      formData.codigo_lugar_despacho === ""
+    ) {
+      errors.codigo_lugar_despacho =
+        "El código del lugar de despacho es requerido.";
     }
     setErrors(errors);
     setIsFormValid(Object.keys(errors).length === 0);
@@ -108,7 +114,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
           codigo_bodega: formData.codigoBodega,
           concepto: formData.concepto,
           codigo_cliente: formData.codigoCliente,
-          codigo_centro_costo: formData.codigoCentroCosto,
+          codigo_lugar_despacho: formData.codigo_lugar_despacho,
         },
       },
     });
@@ -187,26 +193,6 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
                 htmlFor="codigoCentroCosto"
                 className="block text-sm font-medium text-gray-700 mb-3"
               >
-                Código Centro de Costo *
-              </label>
-              <input
-                id="codigoCentroCosto"
-                name="codigoCentroCosto"
-                type="string"
-                className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.codigoCentroCosto
-                    ? "border-red-500"
-                    : "border-gray-300"
-                }`}
-                onChange={handleChange}
-                value={formData.codigoCentroCosto}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="codigoCentroCosto"
-                className="block text-sm font-medium text-gray-700 mb-3"
-              >
                 Código de Cliente *
               </label>
               <input
@@ -218,6 +204,26 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
                 }`}
                 onChange={handleChange}
                 value={formData.codigoCliente}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="codigo_lugar_despacho"
+                className="block text-sm font-medium text-gray-700 mb-3"
+              >
+                Código Lugar de Despacho *
+              </label>
+              <input
+                id="codigo_lugar_despacho"
+                name="codigo_lugar_despacho"
+                type="string"
+                className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.codigo_lugar_despacho
+                    ? "border-red-500"
+                    : "border-gray-300"
+                }`}
+                onChange={handleChange}
+                value={formData.codigo_lugar_despacho}
               />
             </div>
           </div>

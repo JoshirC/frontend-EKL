@@ -26,6 +26,7 @@ export default function Login() {
   const [login, { loading }] = useMutation<LoginResponse>(LOGIN_MUTATION, {
     onCompleted: (data) => {
       Cookies.set("token", data.login.access_token, { expires: 7 });
+      Cookies.set("rol", data.login.user.rol, { expires: 7 });
       setToken(data.login.access_token);
       setRutUsuario(data.login.user.rut);
       setRolUsuario(data.login.user.rol);

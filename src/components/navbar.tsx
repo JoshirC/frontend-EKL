@@ -204,76 +204,36 @@ const Navbar = () => {
             )}
 
             {/* Entrada */}
-            <div className="relative flex justify-center">
-              <button
-                onClick={handleOpenEntrada}
-                className="text-black font-semibold hover:text-white transition duration-300"
-              >
-                Entrada
-              </button>
-              {openEntrada && (
-                <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
-                  <Link href="/entrada/orden_compra">
-                    <div
-                      className="block px-4 py-2 hover:bg-orange-200 rounded-md"
-                      onClick={handleSelectOption}
-                    >
-                      Ingreso de Productos
-                    </div>
-                  </Link>
-                  {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                    <Link href="/entrada/revision">
+            {!["Adquisiciones"].includes(rolUsuario ?? "") && (
+              <div className="relative flex justify-center">
+                <button
+                  onClick={handleOpenEntrada}
+                  className="text-black font-semibold hover:text-white transition duration-300"
+                >
+                  Entrada
+                </button>
+                {openEntrada && (
+                  <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
+                    <Link href="/entrada/orden_compra">
                       <div
                         className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
-                        Revisión guia de Entrada
+                        Ingreso de Productos
                       </div>
                     </Link>
-                  )}
-                  {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                    <Link href="/entrada/carga_softland">
-                      <div
-                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
-                        onClick={handleSelectOption}
-                      >
-                        Carga Masiva Softland
-                      </div>
-                    </Link>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Salida */}
-            <div className="relative flex justify-center">
-              <button
-                onClick={handleOpenSalida}
-                className="text-black font-semibold hover:text-white transition duration-300"
-              >
-                Salida
-              </button>
-              {openSalida && (
-                <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
-                  <Link href="/salida/acopio_productos">
-                    <div
-                      className="block px-4 py-2 hover:bg-orange-200 rounded-md"
-                      onClick={handleSelectOption}
-                    >
-                      Acopio de Productos
-                    </div>
-                  </Link>
-                  {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                    <>
-                      <Link href="/salida/revision">
+                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                      <Link href="/entrada/revision">
                         <div
                           className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          Revisión
+                          Revisión guia de Entrada
                         </div>
                       </Link>
-                      <Link href="/salida/carga_softland">
+                    )}
+                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                      <Link href="/entrada/carga_softland">
                         <div
                           className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                           onClick={handleSelectOption}
@@ -281,11 +241,55 @@ const Navbar = () => {
                           Carga Masiva Softland
                         </div>
                       </Link>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Salida */}
+            {!["Adquisiciones"].includes(rolUsuario ?? "") && (
+              <div className="relative flex justify-center">
+                <button
+                  onClick={handleOpenSalida}
+                  className="text-black font-semibold hover:text-white transition duration-300"
+                >
+                  Salida
+                </button>
+                {openSalida && (
+                  <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
+                    <Link href="/salida/acopio_productos">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                        onClick={handleSelectOption}
+                      >
+                        Acopio de Productos
+                      </div>
+                    </Link>
+                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                      <>
+                        <Link href="/salida/revision">
+                          <div
+                            className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                            onClick={handleSelectOption}
+                          >
+                            Revisión
+                          </div>
+                        </Link>
+                        <Link href="/salida/carga_softland">
+                          <div
+                            className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                            onClick={handleSelectOption}
+                          >
+                            Carga Masiva Softland
+                          </div>
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Reporte */}
             {!["Jefe Bodega", "Bodeguero"].includes(rolUsuario ?? "") && (
@@ -405,76 +409,36 @@ const Navbar = () => {
               )}
 
               {/* Entrada */}
-              <div>
-                <button
-                  onClick={handleOpenEntrada}
-                  className="block w-full text-left px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                >
-                  Entrada
-                </button>
-                {openEntrada && (
-                  <div className="pl-4">
-                    <Link href="/entrada/orden_compra">
-                      <div
-                        className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                        onClick={handleSelectOption}
-                      >
-                        ▶ Ingreso de Productos
-                      </div>
-                    </Link>
-                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                      <Link href="/entrada/revision">
-                        <div
-                          className="block px-4 py-2 text-black font-medium hover:bg-orange-300 rounded-md"
-                          onClick={handleSelectOption}
-                        >
-                          ▶ Revisión guia de Entrada
-                        </div>
-                      </Link>
-                    )}
-                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                      <Link href="/entrada/carga_softland">
+              {!["Adquisiciones"].includes(rolUsuario ?? "") && (
+                <div>
+                  <button
+                    onClick={handleOpenEntrada}
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                  >
+                    Entrada
+                  </button>
+                  {openEntrada && (
+                    <div className="pl-4">
+                      <Link href="/entrada/orden_compra">
                         <div
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          ▶ Carga Masiva Softland
+                          ▶ Ingreso de Productos
                         </div>
                       </Link>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Salida */}
-              <div>
-                <button
-                  onClick={handleOpenSalida}
-                  className="block w-full text-left px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                >
-                  Salida
-                </button>
-                {openSalida && (
-                  <div className="pl-4">
-                    <Link href="/salida/acopio_productos">
-                      <div
-                        className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
-                        onClick={handleSelectOption}
-                      >
-                        ▶ Acopio de Productos
-                      </div>
-                    </Link>
-                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                      <>
-                        <Link href="/salida/revision">
+                      {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                        <Link href="/entrada/revision">
                           <div
-                            className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                            className="block px-4 py-2 text-black font-medium hover:bg-orange-300 rounded-md"
                             onClick={handleSelectOption}
                           >
-                            ▶ Revisión
+                            ▶ Revisión guia de Entrada
                           </div>
                         </Link>
-                        <Link href="/salida/carga_softland">
+                      )}
+                      {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                        <Link href="/entrada/carga_softland">
                           <div
                             className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                             onClick={handleSelectOption}
@@ -482,11 +446,55 @@ const Navbar = () => {
                             ▶ Carga Masiva Softland
                           </div>
                         </Link>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Salida */}
+              {!["Adquisiciones"].includes(rolUsuario ?? "") && (
+                <div>
+                  <button
+                    onClick={handleOpenSalida}
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                  >
+                    Salida
+                  </button>
+                  {openSalida && (
+                    <div className="pl-4">
+                      <Link href="/salida/acopio_productos">
+                        <div
+                          className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          ▶ Acopio de Productos
+                        </div>
+                      </Link>
+                      {!["Bodeguero"].includes(rolUsuario ?? "") && (
+                        <>
+                          <Link href="/salida/revision">
+                            <div
+                              className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                              onClick={handleSelectOption}
+                            >
+                              ▶ Revisión
+                            </div>
+                          </Link>
+                          <Link href="/salida/carga_softland">
+                            <div
+                              className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                              onClick={handleSelectOption}
+                            >
+                              ▶ Carga Masiva Softland
+                            </div>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Reporte */}
               {!["Jefe Bodega", "Bodeguero"].includes(rolUsuario ?? "") && (

@@ -15,6 +15,7 @@ type GuiaSalida = {
   codigo_cliente: string;
   codigo_centro_costo: string;
   usuario_creacion: string;
+  codigo_lugar_despacho: string;
   valor_total: number;
   orden: {
     id: number;
@@ -34,69 +35,35 @@ type GuiaSalida = {
     };
   }[];
 };
+
 const CargaSoftlandPage: React.FC = () => {
+  function crearFilaExcel(
+    campos: Partial<Record<string, string | number>>
+  ): Record<string, string | number> {
+    const fila: Record<string, string | number> = {};
+    for (let i = 1; i <= 141; i++) {
+      const key = i.toString();
+      fila[key] = campos[key] ?? ""; // Si está definido en campos, se usa, si no, queda vacío
+    }
+    return fila;
+  }
   const exportarAExcel = () => {
     const datos = guias.flatMap((guia) =>
-      guia.envios.map((envio) => ({
-        "1": guia.codigo_bodega,
-        "2": guia.numero_folio,
-        "3": guia.fecha_generacion,
-        "4": guia.concepto_salida,
-        "5": "",
-        "6": guia.codigo_cliente,
-        "7": guia.codigo_centro_costo,
-        "8": "",
-        "9": "",
-        "10": "",
-        "11": "",
-        "12": "",
-        "13": "",
-        "14": "",
-        "15": "",
-        "16": "",
-        "17": "",
-        "18": "",
-        "19": "",
-        "20": "",
-        "21": "",
-        "22": "",
-        "23": "",
-        "24": "",
-        "25": "",
-        "26": "",
-        "27": "",
-        "28": "",
-        "29": "",
-        "30": "",
-        "31": "",
-        "32": "",
-        "33": "",
-        "34": "",
-        "35": "",
-        "36": "",
-        "37": guia.valor_total?.toFixed(2) ?? "0.00",
-        "38": envio.codigo_producto_enviado,
-        "39": envio.producto.nombre_producto,
-        "40": envio.producto.unidad_medida,
-        "41": envio.cantidad_enviada,
-        "42": envio.producto.precio_unitario?.toFixed(2) ?? "0.00",
-        "43": "",
-        "44": "",
-        "45": "",
-        "46": "",
-        "47": "",
-        "48": "",
-        "49": "",
-        "50": "",
-        "51": "",
-        "52": "",
-        "53": "",
-        "54": "",
-        "55": "",
-        "56": "",
-        "57": "",
-        "58": "",
-      }))
+      guia.envios.map((envio) =>
+        crearFilaExcel({
+          "1": "'" + guia.codigo_bodega,
+          "2": guia.numero_folio,
+          "3": "'S",
+          "4": "'T",
+          "5": "'" + guia.fecha_generacion.replace(/\//g, "-"),
+          "6": "'" + guia.concepto_salida,
+          "8": "'" + guia.codigo_cliente,
+          "27": "'" + guia.codigo_lugar_despacho,
+          "60": "'" + envio.codigo_producto_enviado,
+          "64": envio.cantidad_enviada,
+          "82": "'N",
+        })
+      )
     );
     const worksheet = XLSX.utils.json_to_sheet(datos);
     const workbook = XLSX.utils.book_new();
