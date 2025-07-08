@@ -13,7 +13,6 @@ type FormErrors = {
   concepto?: string;
   codigoCliente?: string;
   codigoCentroCosto?: string;
-  codigo_lugar_despacho?: string;
 };
 
 const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
@@ -24,7 +23,6 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
     concepto: "",
     codigoCliente: "",
     codigoCentroCosto: "",
-    codigo_lugar_despacho: "",
   });
   // Componente para mostrar la alerta
   const [showAlert, setShowAlert] = useState(false);
@@ -50,11 +48,10 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
       errors.codigoCliente = "El código del cliente es requerido.";
     }
     if (
-      !formData.codigo_lugar_despacho ||
-      formData.codigo_lugar_despacho === ""
+      !formData.codigoCentroCosto ||
+      formData.codigoCentroCosto.trim() === ""
     ) {
-      errors.codigo_lugar_despacho =
-        "El código del lugar de despacho es requerido.";
+      errors.codigoCentroCosto = "El código del centro de costo es requerido.";
     }
     setErrors(errors);
     setIsFormValid(Object.keys(errors).length === 0);
@@ -114,7 +111,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
           codigo_bodega: formData.codigoBodega,
           concepto: formData.concepto,
           codigo_cliente: formData.codigoCliente,
-          codigo_lugar_despacho: formData.codigo_lugar_despacho,
+          codigo_centro_costo: formData.codigoCentroCosto,
         },
       },
     });
@@ -208,22 +205,22 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
             </div>
             <div>
               <label
-                htmlFor="codigo_lugar_despacho"
+                htmlFor="codigoCentroCosto"
                 className="block text-sm font-medium text-gray-700 mb-3"
               >
-                Código Lugar de Despacho *
+                Código Centro Costo *
               </label>
               <input
-                id="codigo_lugar_despacho"
-                name="codigo_lugar_despacho"
-                type="string"
+                id="codigoCentroCosto"
+                name="codigoCentroCosto"
+                type="text"
                 className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.codigo_lugar_despacho
+                  errors.codigoCentroCosto
                     ? "border-red-500"
                     : "border-gray-300"
                 }`}
                 onChange={handleChange}
-                value={formData.codigo_lugar_despacho}
+                value={formData.codigoCentroCosto}
               />
             </div>
           </div>

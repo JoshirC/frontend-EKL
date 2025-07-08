@@ -31,41 +31,35 @@ type GuiaEntrada = {
   guiaEntradaDetalle: GuiaEntradaDetalle[];
 };
 const CargaSoftlandPage: React.FC = () => {
+  function crearFilaExcel(
+    campos: Partial<Record<string, string | number>>
+  ): Record<string, string | number> {
+    const fila: Record<string, string | number> = {};
+    for (let i = 1; i <= 31; i++) {
+      const key = i.toString();
+      fila[key] = campos[key] ?? ""; // Si está definido en campos, se usa, si no, queda vacío
+    }
+    return fila;
+  }
   const exportarAExcel = () => {
     const datos = guiasEntrada.flatMap((guia) =>
-      guia.guiaEntradaDetalle.map((detalle) => ({
-        "1": guia.codigo_bodega,
-        "2": guia.numero_folio,
-        "3": guia.fecha_generacion,
-        "4": "02",
-        "5": "",
-        "6": guia.codigo_proveedor,
-        "7": guia.codigo_centro_costo,
-        "8": "",
-        "9": "",
-        "10": "",
-        "11": guia.numero_factura,
-        "12": "",
-        "13": guia.fecha_factura,
-        "14": "",
-        "15": "",
-        "16": guia.numero_orden_compra,
-        "17": "",
-        "18": "",
-        "19": "",
-        "20": "",
-        "21": detalle.producto?.codigo ?? "N/A",
-        "22": detalle.producto?.nombre_producto ?? "N/A",
-        "23": detalle.cantidad_ingresada,
-        "24": detalle.precio_unitario?.toFixed(2) ?? "0.00",
-        "25": "",
-        "26": "",
-        "27": "",
-        "28": "",
-        "29": "",
-        "30": "",
-        "31": "",
-      }))
+      guia.guiaEntradaDetalle.map((detalle) =>
+        crearFilaExcel({
+          "1": guia.codigo_bodega,
+          "2": guia.numero_folio,
+          "3": guia.fecha_generacion.replace(/\//g, "-"),
+          "4": "02",
+          "6": guia.codigo_proveedor,
+          "7": guia.codigo_centro_costo,
+          "11": guia.numero_factura,
+          "13": guia.fecha_factura.replace(/\//g, "-"),
+          "16": guia.numero_orden_compra,
+          "21": detalle.producto?.codigo ?? "N/A",
+          "22": detalle.producto?.nombre_producto ?? "N/A",
+          "23": detalle.cantidad_ingresada,
+          "24": detalle.precio_unitario ?? "0.00",
+        })
+      )
     );
 
     const worksheet = XLSX.utils.json_to_sheet(datos);
