@@ -100,7 +100,7 @@ const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess }) => {
                 value={rut}
                 placeholder="Rut"
                 className="block w-full mt-4 p-2 border border-gray-300 rounded"
-                onChange={(e) => setRut(e.target.value)}
+                onChange={(e) => setRut(e.target.value.toLocaleUpperCase())}
                 required
               />
               <input

@@ -279,6 +279,7 @@ export default function AcopioSalidaIdPage({
         `Algunos productos no fueron enviados correctamente: ${mensajes}`
       );
       setShowAlert(true);
+      resetCantidades();
     }
 
     if (creados.length > 0 && fallidos.length === 0) {

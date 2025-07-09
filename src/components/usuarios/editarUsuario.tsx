@@ -75,7 +75,7 @@ const EditarUsuario: React.FC<ModalProps> = ({
               <input
                 type="text"
                 value={rut}
-                onChange={(e) => setRut(e.target.value)}
+                onChange={(e) => setRut(e.target.value.toLocaleUpperCase())}
                 className="block w-full p-2 border border-gray-300 rounded"
                 placeholder="RUT"
               />

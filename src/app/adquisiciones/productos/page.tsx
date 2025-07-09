@@ -117,6 +117,7 @@ const ProductosPage: React.FC = () => {
     {
       onCompleted: () => {
         setShowCargando(false);
+        setBotonCargando(false);
         refetch();
         setAlertType("exitoso");
         setAlertMessage("Productos de Softland actualizados correctamente");
