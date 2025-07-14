@@ -3,6 +3,7 @@ import React, { useState, useEffect, use } from "react";
 import { ACTUALIZAR_GUIAS_POR_ORDEN } from "@/graphql/mutations";
 import { useMutation } from "@apollo/client";
 import Alert from "@/components/Alert";
+import Cargando from "@/components/cargando";
 
 interface FormularioGuiaSalidaProps {
   id_orden: number;
@@ -33,6 +34,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
   const [errors, setErrors] = useState<FormErrors>({});
   const [cerrarModal, setCerrarModal] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
+  const [showCargando, setShowCargando] = useState(false);
 
   // Estado de la confirmacion
   const [loadingButtom, setLoadinButtom] = useState(false);
@@ -55,6 +57,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
   };
   const [updateGuiaSalida] = useMutation(ACTUALIZAR_GUIAS_POR_ORDEN, {
     onCompleted: () => {
+      setShowCargando(false);
       setAlertType("exitoso");
       setAlertMessage("Guía de salida actualizada correctamente.");
       setShowAlert(true);
@@ -64,6 +67,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
       }, 2000);
     },
     onError: (error) => {
+      setShowCargando(false);
       setAlertType("error");
       setAlertMessage(
         `Error al actualizar la guía de salida: ${error.message}`
@@ -119,6 +123,13 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
   }, [formData]);
   return (
     <div className="w-full">
+      {showCargando && (
+        <Cargando
+          isOpen={showCargando}
+          mensaje={"Generando guias de salida..."}
+          onClose={() => setShowCargando(false)}
+        />
+      )}
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-xl font-semibold">Formulario Orden Acopio</h2>
         <button
@@ -130,7 +141,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
           disabled={!isFormValid || loadingButtom}
           onClick={() => {
             handleConfirmacion();
-            setLoadinButtom(true);
+            setShowCargando(true);
           }}
         >
           Confirmar Orden de Acopio

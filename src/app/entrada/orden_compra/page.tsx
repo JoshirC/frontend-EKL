@@ -12,6 +12,7 @@ import Confirmacion from "@/components/confirmacion";
 import AgregarProductoOC from "@/components/entrada_productos/agregarProductoOC";
 import DropdownTrazabilidad from "@/components/entrada_productos/dropdownTrazabilidad";
 import { formatDateToDDMMYYYY } from "@/utils/dataUtils";
+import Cargando from "@/components/cargando";
 
 // 1. Estado para almacenar la trazabilidad de productos
 type TrazabilidadProducto = {
@@ -116,6 +117,7 @@ const OrdenCompraPage: React.FC = () => {
     numeroFactura: 0,
     fechaFactura: "",
   });
+  const [showCargando, setShowCargando] = useState(false);
   const [trazabilidadProductos, setTrazabilidadProductos] = useState<
     TrazabilidadProducto[]
   >([]);
@@ -138,6 +140,7 @@ const OrdenCompraPage: React.FC = () => {
   const [createGuiaEntrada] = useMutation(CREATE_GUIA_ENTRADA_WITH_DETAILS, {
     onCompleted: (data) => {
       if (data.createGuiaEntradaWithDetails) {
+        setShowCargando(false);
         setAlertType("exitoso");
         setAlertMessage("Guía de entrada creada exitosamente.");
         setShowAlert(true);
@@ -146,6 +149,7 @@ const OrdenCompraPage: React.FC = () => {
           window.location.reload();
         }, 2000);
       } else {
+        setShowCargando(false);
         setAlertType("error");
         setAlertMessage("Error al crear la guía de entrada.");
         setShowAlert(true);
@@ -153,6 +157,7 @@ const OrdenCompraPage: React.FC = () => {
       }
     },
     onError: (error) => {
+      setShowCargando(false);
       setAlertType("error");
       setAlertMessage(`Error: ${error.message}`);
       setShowAlert(true);
@@ -161,6 +166,7 @@ const OrdenCompraPage: React.FC = () => {
   const [createProductoSoftland] = useMutation(CREATE_PRODUCTO_SOFTLAND, {
     onCompleted: (data) => {
       if (data.createProductoSoftland) {
+        setShowCargando(false);
         setAlertType("exitoso");
         setAlertMessage("Producto creado exitosamente.");
         setShowAlert(true);
@@ -174,12 +180,14 @@ const OrdenCompraPage: React.FC = () => {
           }
         });
       } else {
+        setShowCargando(false);
         setAlertType("error");
         setAlertMessage("Error al crear el producto.");
         setShowAlert(true);
       }
     },
     onError: (error) => {
+      setShowCargando(false);
       setAlertType("error");
       setAlertMessage(`Error: ${error.message}`);
       setShowAlert(true);
@@ -539,6 +547,13 @@ const OrdenCompraPage: React.FC = () => {
           onAgregar={handleAgregarProductos}
         />
       )}
+      {showCargando && (
+        <Cargando
+          isOpen={showCargando}
+          mensaje={"Generando guía de entrada..."}
+          onClose={() => setShowCargando(false)}
+        />
+      )}
       {/* Contenedor principal */}
       <div className="bg-white shadow rounded p-6">
         {/* Titulo */}
@@ -582,7 +597,7 @@ const OrdenCompraPage: React.FC = () => {
                     type="submit"
                     onClick={() => {
                       handleCrearGuiaEntrada();
-                      setBotonCaragar(true);
+                      setShowCargando(true);
                     }}
                   >
                     {botonCargar ? "Ingresando" : "Generar Guía de Entrada"}

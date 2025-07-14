@@ -301,7 +301,7 @@ export default function GuiaEntradaIdPage({
               type="button"
               disabled={botonCargando}
             >
-              Lista de guías
+              Volver
             </button>
           </div>
         </div>
