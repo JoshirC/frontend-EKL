@@ -67,7 +67,7 @@ export const EDIT_PASSWORD_USER = gql`
 // Mutaciones para Envío de Detalle de Orden de Acopio
 
 export const UPDATE_CANTIDAD_ENVIO_DETALLE = gql`
-  mutation updateCantidadEnvioDetalleOrdenAcopio($id: Int!, $cantidad: Int!) {
+  mutation updateCantidadEnvioDetalleOrdenAcopio($id: Int!, $cantidad: Float!) {
     updateCantidadEnvioDetalleOrdenAcopio(id: $id, cantidad: $cantidad) {
       id
       codigo_producto_enviado
@@ -78,7 +78,7 @@ export const UPDATE_CANTIDAD_ENVIO_DETALLE = gql`
 export const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
   mutation createEnvioDetalleOrdenAcopio(
     $id_detalle_orden_acopio: Int!
-    $cantidad_enviada: Int!
+    $cantidad_enviada: Float!
     $codigo_producto_enviado: String!
     $usuario_rut: String!
     $id_trazabilidad: Int
@@ -219,15 +219,6 @@ export const UPDATE_ESTADO_GUIA_ENTRADAS = gql`
   mutation updateEstadoGuiaEntrada($listId: [Int!]!, $estado: String!) {
     updateEstadoGuiaEntrada(listId: $listId, estado: $estado) {
       id
-      codigo_bodega
-      numero_folio
-      fecha_generacion
-      codigo_proveedor
-      codigo_centro_costo
-      numero_factura
-      fecha_factura
-      numero_orden_compra
-      estado
     }
   }
 `;
@@ -235,7 +226,7 @@ export const UPDATE_ESTADO_GUIA_ENTRADAS = gql`
 
 // Mutación para editar cantidad y precio en detalle de guía de entrada
 export const UPDATE_GUIA_ENTRADA_DETALLE_CANTIDAD_Y_PRECIO = gql`
-  mutation editarCantidadYPrecio($id_guia_entrada_detalle: Int!, $cantidad: Int!, $precio: Float!) {
+  mutation editarCantidadYPrecio($id_guia_entrada_detalle: Int!, $cantidad: Float!, $precio: Float!) {
     editarCantidadYPrecio(id_guia_entrada_detalle: $id_guia_entrada_detalle, cantidad: $cantidad, precio: $precio) {
       cantidad_ingresada
       precio_unitario
@@ -296,7 +287,7 @@ export const ACTUALIZAR_GUIAS_POR_ORDEN = gql`
       codigo_bodega
       fecha_generacion
       concepto_salida
-      codigo_cliente
+      descripcion
     }
   }
 `;

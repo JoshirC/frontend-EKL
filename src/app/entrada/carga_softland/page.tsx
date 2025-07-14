@@ -23,7 +23,7 @@ type GuiaEntrada = {
   numero_folio: number;
   fecha_generacion: string;
   codigo_proveedor: string;
-  codigo_centro_costo: string;
+  observacion: string;
   numero_factura: number;
   fecha_factura: string;
   numero_orden_compra: string;
@@ -35,29 +35,40 @@ const CargaSoftlandPage: React.FC = () => {
     campos: Partial<Record<string, string | number>>
   ): Record<string, string | number> {
     const fila: Record<string, string | number> = {};
+
     for (let i = 1; i <= 31; i++) {
-      const key = i.toString();
-      fila[key] = campos[key] ?? ""; // Si está definido en campos, se usa, si no, queda vacío
+      const keyCompleta = Object.keys(campos).find((k) =>
+        k.startsWith(`${i}.`)
+      );
+
+      if (keyCompleta) {
+        fila[keyCompleta] = campos[keyCompleta] ?? "";
+      } else {
+        fila[`${i}.`] = "";
+      }
     }
+
     return fila;
   }
   const exportarAExcel = () => {
     const datos = guiasEntrada.flatMap((guia) =>
       guia.guiaEntradaDetalle.map((detalle) =>
         crearFilaExcel({
-          "1": guia.codigo_bodega,
-          "2": guia.numero_folio,
-          "3": guia.fecha_generacion.replace(/\//g, "-"),
-          "4": "02",
-          "6": guia.codigo_proveedor,
-          "7": guia.codigo_centro_costo,
-          "11": guia.numero_factura,
-          "13": guia.fecha_factura.replace(/\//g, "-"),
-          "16": guia.numero_orden_compra,
-          "21": detalle.producto?.codigo ?? "N/A",
-          "22": detalle.producto?.nombre_producto ?? "N/A",
-          "23": detalle.cantidad_ingresada,
-          "24": detalle.precio_unitario ?? "0.00",
+          "1. Codigo Bodega": guia.codigo_bodega,
+          "2. Folio": guia.numero_folio,
+          "3. Fecha": guia.fecha_generacion.replace(/\//g, "-"),
+          "4. Concepto": "02",
+          "5. Descripcion": guia.observacion || "N/A",
+          "6. Codigo Proveedor": guia.codigo_proveedor,
+          "11. Numero Factura": guia.numero_factura,
+          "13. Fecha Factura": guia.fecha_factura.replace(/\//g, "-"),
+          "16. Numero Orden Compra": guia.numero_orden_compra,
+          "21. Codigo Producto": detalle.producto?.codigo ?? "N/A",
+          "22. Descripcion Producto":
+            detalle.producto?.nombre_producto ?? "N/A",
+          "23. Cantidad Ingresada": detalle.cantidad_ingresada,
+          "24. Precio Unitario": detalle.precio_unitario ?? "0.00",
+          "31. Tipo Factura": 33,
         })
       )
     );
@@ -70,8 +81,8 @@ const CargaSoftlandPage: React.FC = () => {
     const dia = String(fecha.getDate()).padStart(2, "0");
     const mes = String(fecha.getMonth() + 1).padStart(2, "0");
     const anio = fecha.getFullYear();
-    const fechaActual = `${dia}-${mes}-${anio}`;
-    XLSX.writeFile(workbook, `carga-masiva-guia-entrada-${fechaActual}.xlsx`);
+    const fechaActual = `${dia}_${mes}_${anio}`;
+    XLSX.writeFile(workbook, `carga_masiva_guia_entrada_${fechaActual}.xlsx`);
     const listaIds = guiasEntrada.map((guia) => guia.id);
     handleActualizarEstado(listaIds, "Cargada");
   };
@@ -103,7 +114,9 @@ const CargaSoftlandPage: React.FC = () => {
       }, 3000); // Ocultar alerta después de 3 segundos
     } catch (error) {
       console.error("Error al actualizar el estado:", error);
-      alert("Error al actualizar el estado");
+      setShowAlert(true);
+      setAlertType("error");
+      setAlertMessage("Error al actualizar el estado de las guías de entrada.");
     }
   };
   if (loading)
@@ -171,6 +184,9 @@ const CargaSoftlandPage: React.FC = () => {
                   N° Factura
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Descripción
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Código Bodega
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -199,6 +215,9 @@ const CargaSoftlandPage: React.FC = () => {
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {guia.numero_factura}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {guia.observacion || "N/A"}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {guia.codigo_bodega}

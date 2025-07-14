@@ -21,6 +21,7 @@ type Producto = {
   unidad_medida: string;
   cantidad: number;
   cantidad_softland: number;
+  precio_unitario: number;
   trazabilidad: boolean;
 };
 
@@ -401,6 +402,9 @@ const ProductosPage: React.FC = () => {
                   Unidad Medida
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Precio Unitario
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Cantidad
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -426,6 +430,9 @@ const ProductosPage: React.FC = () => {
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {producto.unidad_medida}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      $ {producto.precio_unitario}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {producto.cantidad}

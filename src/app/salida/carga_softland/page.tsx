@@ -12,9 +12,8 @@ type GuiaSalida = {
   numero_folio: number;
   fecha_generacion: string;
   concepto_salida: string;
-  codigo_cliente: string;
   codigo_centro_costo: string;
-  usuario_creacion: string;
+  descripcion: string;
   codigo_lugar_despacho: string;
   valor_total: number;
   orden: {
@@ -41,30 +40,38 @@ const CargaSoftlandPage: React.FC = () => {
     campos: Partial<Record<string, string | number>>
   ): Record<string, string | number> {
     const fila: Record<string, string | number> = {};
+
     for (let i = 1; i <= 58; i++) {
-      const key = i.toString();
-      fila[key] = campos[key] ?? ""; // Si está definido en campos, se usa, si no, queda vacío
+      const keyCompleta = Object.keys(campos).find((k) =>
+        k.startsWith(`${i}.`)
+      );
+
+      if (keyCompleta) {
+        fila[keyCompleta] = campos[keyCompleta] ?? "";
+      } else {
+        fila[`${i}.`] = "";
+      }
     }
+
     return fila;
   }
   const exportarAExcel = () => {
     const datos = guias.flatMap((guia) =>
-      guia.envios.map((envio) =>
-        crearFilaExcel({
-          "1": guia.codigo_bodega,
-          "2": guia.numero_folio,
-          "3": guia.fecha_generacion.replace(/\//g, "-"),
-          "4": guia.concepto_salida,
-          "6": guia.codigo_cliente,
-          "7": guia.codigo_centro_costo,
-          "37": guia.valor_total,
-          "38": envio.codigo_producto_enviado,
-          "39": envio.producto.nombre_producto,
-          "40": envio.producto.unidad_medida,
-          "41": envio.cantidad_enviada,
-          "42": envio.producto.precio_unitario,
-        })
-      )
+      guia.envios
+        .filter((envio) => envio.cantidad_enviada > 0)
+        .map((envio) =>
+          crearFilaExcel({
+            "1. Codigo Bodega": guia.codigo_bodega,
+            "2. Folio": guia.numero_folio,
+            "3. Fecha": guia.fecha_generacion.replace(/\//g, "-"),
+            "4. Concepto": guia.concepto_salida,
+            "5. Descripcion": guia.descripcion || "N/A",
+            "7. Codigo Centro Costo": guia.codigo_centro_costo,
+            "38. Codigo Producto": envio.codigo_producto_enviado,
+            "39. Descripcion Producto": envio.producto.nombre_producto,
+            "41. Cantidad Despachada": envio.cantidad_enviada,
+          })
+        )
     );
     const worksheet = XLSX.utils.json_to_sheet(datos);
     const workbook = XLSX.utils.book_new();
@@ -72,9 +79,9 @@ const CargaSoftlandPage: React.FC = () => {
     const dia = String(fecha.getDate()).padStart(2, "0");
     const mes = String(fecha.getMonth() + 1).padStart(2, "0");
     const anio = fecha.getFullYear();
-    const fechaActual = `${dia}-${mes}-${anio}`;
+    const fechaActual = `${dia}_${mes}_${anio}`;
     XLSX.utils.book_append_sheet(workbook, worksheet, "Guias de Salida");
-    XLSX.writeFile(workbook, `carga-masiva-guia-salida-${fechaActual}.xlsx`);
+    XLSX.writeFile(workbook, `carga_masiva_guia_salida_${fechaActual}.xlsx`);
 
     guias.forEach((guia) => {
       handleCambiarEstado(guia.orden.id.toString());
@@ -182,13 +189,10 @@ const CargaSoftlandPage: React.FC = () => {
                   Concepto Salida
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Código Cliente
+                  Descripción
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Centro Costo
-                </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Usuario Creación
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Código Producto
@@ -203,37 +207,36 @@ const CargaSoftlandPage: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {guias.flatMap((guia) =>
-                guia.envios.map((envio) => (
-                  <tr key={`${guia.id}-${envio.id}`}>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {guia.numero_folio}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {guia.fecha_generacion}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {guia.concepto_salida}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {guia.codigo_cliente}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {guia.codigo_centro_costo}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {guia.usuario_creacion}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {envio.codigo_producto_enviado}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {envio.producto.nombre_producto}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {envio.cantidad_enviada}
-                    </td>
-                  </tr>
-                ))
+                guia.envios
+                  .filter((envio) => envio.cantidad_enviada > 0)
+                  .map((envio) => (
+                    <tr key={`${guia.id}-${envio.id}`}>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {guia.numero_folio}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {guia.fecha_generacion}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {guia.concepto_salida}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {guia.descripcion}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {guia.codigo_centro_costo}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {envio.codigo_producto_enviado}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {envio.producto.nombre_producto}
+                      </td>
+                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        {envio.cantidad_enviada}
+                      </td>
+                    </tr>
+                  ))
               )}
             </tbody>
           </table>

@@ -359,6 +359,7 @@ export default function AcopioSalidaIdPage({
     envioId: number,
     cantidad_enviada: number
   ) => {
+    cantidad_enviada = parseFloat(Number(cantidad_enviada).toFixed(2));
     const detalle = currentItems.find((d) => d.id === detalleId);
     const cantidadSolicitada = detalle?.producto.cantidad ?? 0;
     if (!editValue || isNaN(Number(editValue))) {

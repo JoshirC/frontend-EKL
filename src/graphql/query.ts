@@ -179,7 +179,7 @@ export const GET_GUIA_SALIDA_CON_FOLIO = gql`
         numero_folio
         fecha_generacion
         concepto_salida
-        codigo_cliente
+        descripcion
         codigo_centro_costo
         usuario_creacion
         valor_total
@@ -208,7 +208,7 @@ export const GET_GUIAS_DE_SALIDA_SOFTLAND = gql`
       numero_folio
       fecha_generacion
       concepto_salida
-      codigo_cliente
+      descripcion
       codigo_centro_costo
       usuario_creacion
       codigo_lugar_despacho
@@ -245,6 +245,7 @@ export const GET_PRODUCTOS = gql`
       cantidad
       cantidad_softland
       trazabilidad
+      precio_unitario
     }
   }
 `;
@@ -295,7 +296,7 @@ export const GET_GUIA_ENTRADA_BY_ESTADO = gql`
       estado
       fecha_generacion
       codigo_proveedor
-      codigo_centro_costo
+      observacion
       numero_factura
       fecha_factura
       numero_orden_compra
@@ -319,7 +320,7 @@ export const GET_GUIA_ENTRADA_BY_ID = gql`
       numero_folio
       fecha_generacion
       codigo_proveedor
-      codigo_centro_costo
+      observacion
       numero_factura
       fecha_factura
       numero_orden_compra

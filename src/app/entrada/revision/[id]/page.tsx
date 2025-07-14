@@ -29,6 +29,7 @@ type GuiaEntrada = {
   fecha_generacion: string;
   codigo_proveedor: string;
   codigo_centro_costo: string;
+  observacion: string;
   numero_factura: number;
   fecha_factura: string;
   numero_orden_compra: string;
@@ -58,7 +59,7 @@ export default function GuiaEntradaIdPage({
     codigoBodega: "",
     numeroFolio: 0,
     codigoProveedor: "",
-    codigoCentroCosto: "",
+    observacion: "",
     numeroFactura: 0,
     fechaFactura: "",
   });
@@ -120,7 +121,7 @@ export default function GuiaEntradaIdPage({
         codigoBodega: guia.codigo_bodega || "",
         numeroFolio: guia.numero_folio || 0,
         codigoProveedor: guia.codigo_proveedor || "",
-        codigoCentroCosto: guia.codigo_centro_costo || "",
+        observacion: guia.observacion || "",
         numeroFactura: guia.numero_factura || 0,
         fechaFactura: guia.fecha_factura || "",
       });
@@ -140,7 +141,7 @@ export default function GuiaEntradaIdPage({
         name.includes("numero") ||
         name.includes("Folio") ||
         name.includes("Factura")
-          ? parseInt(value) || 0
+          ? parseFloat(value) || 0
           : value,
     }));
   };
@@ -161,8 +162,6 @@ export default function GuiaEntradaIdPage({
       newErrors.numeroFolio = "Número de folio debe ser mayor a 0";
     if (formData.codigoProveedor === "N/A" || !formData.codigoProveedor)
       newErrors.codigoProveedor = "Proveedor es requerido";
-    if (formData.codigoCentroCosto === "N/A" || !formData.codigoCentroCosto)
-      newErrors.codigoCentroCosto = "Centro de costo es requerido";
     if (formData.numeroFactura <= 0)
       newErrors.numeroFactura = "Número de factura debe ser mayor a 0";
     if (formData.fechaFactura === "N/A" || !formData.fechaFactura)
@@ -180,7 +179,7 @@ export default function GuiaEntradaIdPage({
         codigo_bodega: formData.codigoBodega,
         numero_folio: formData.numeroFolio,
         codigo_proveedor: formData.codigoProveedor,
-        codigo_centro_costo: formData.codigoCentroCosto,
+        observacion: formData.observacion,
         numero_factura: formData.numeroFactura,
         fecha_factura: formData.fechaFactura,
         estado: "Subir",
@@ -196,6 +195,9 @@ export default function GuiaEntradaIdPage({
     cantidad: number,
     precio: number
   ) => {
+    cantidad = parseFloat(Number(cantidad).toFixed(2));
+    precio = parseFloat(Number(precio).toFixed(2));
+    // Validar que cantidad y precio sean mayores a 0
     if (cantidad <= 0 || precio <= 0) {
       setShowAlert(true);
       setAlertType("advertencia");
@@ -206,8 +208,8 @@ export default function GuiaEntradaIdPage({
       updateDetalleCantidadYPrecio({
         variables: {
           id_guia_entrada_detalle: idDetalle,
-          cantidad: Math.round(cantidad),
-          precio: Math.round(precio),
+          cantidad: cantidad,
+          precio: precio,
         },
       });
       setEditedDetalles((prev) => {
@@ -362,19 +364,16 @@ export default function GuiaEntradaIdPage({
                   htmlFor="codigoCentroCosto"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Código Centro de Costo *
+                  Observación
                 </label>
                 <input
-                  id="codigoCentroCosto"
-                  name="codigoCentroCosto"
+                  id="observacion"
+                  name="observacion"
                   type="text"
-                  className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.codigoCentroCosto
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  }`}
+                  className="p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                      border-gray-300"
                   onChange={handleChange}
-                  value={formData.codigoCentroCosto}
+                  value={formData.observacion}
                 />
               </div>
             </div>
@@ -492,7 +491,7 @@ export default function GuiaEntradaIdPage({
                       {isEditing ? (
                         <input
                           type="number"
-                          min="0"
+                          step="0.01"
                           className="p-2 w-full border rounded"
                           value={
                             edited.cantidad_ingresada ??
@@ -517,10 +516,12 @@ export default function GuiaEntradaIdPage({
                       {isEditing ? (
                         <input
                           type="number"
-                          min="0"
+                          step="0.01"
                           className="p-2 w-full border rounded"
                           value={
-                            edited.precio_unitario ?? detalle.precio_unitario
+                            edited.precio_unitario !== undefined
+                              ? edited.precio_unitario
+                              : detalle.precio_unitario ?? ""
                           }
                           onChange={(e) =>
                             setEditedDetalles((prev) => ({

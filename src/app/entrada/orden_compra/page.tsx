@@ -75,6 +75,7 @@ const OrdenCompraPage: React.FC = () => {
   const [detallesOriginales, setDetallesOriginales] = useState<
     DetalleOrdenCompra[]
   >([]);
+  const [botonCargar, setBotonCaragar] = useState(false);
   // Estado para el historial de cambios de productos
   const [historialCambiosProductos, setHistorialCambiosProductos] = useState<
     HistorialProducto[]
@@ -111,7 +112,7 @@ const OrdenCompraPage: React.FC = () => {
     codigoBodega: "",
     numeroFolio: 0,
     codigoProveedor: "",
-    codigoCentroCosto: "",
+    observacion: "",
     numeroFactura: 0,
     fechaFactura: "",
   });
@@ -142,12 +143,13 @@ const OrdenCompraPage: React.FC = () => {
         setShowAlert(true);
         handleEnviarCorreoCambios();
         setTimeout(() => {
-          window.location.reload(); // Recargar la página
+          window.location.reload();
         }, 2000);
       } else {
         setAlertType("error");
         setAlertMessage("Error al crear la guía de entrada.");
         setShowAlert(true);
+        setBotonCaragar(false);
       }
     },
     onError: (error) => {
@@ -166,7 +168,9 @@ const OrdenCompraPage: React.FC = () => {
           variables: { codigo_orden_compra: ordenCompra },
         }).then((result) => {
           if (result.data?.ordenCompra) {
-            setDetalles(result.data.ordenCompra);
+            const nuevosDetalles = result.data.ordenCompra.productos;
+            setDetalles(nuevosDetalles);
+            setDetallesOriginales(nuevosDetalles); // actualiza también los originales
           }
         });
       } else {
@@ -351,11 +355,12 @@ const OrdenCompraPage: React.FC = () => {
       codigo_bodega: formData.codigoBodega,
       numero_folio: formData.numeroFolio,
       codigo_proveedor: formData.codigoProveedor,
-      codigo_centro_costo: formData.codigoCentroCosto,
+      observacion: formData.observacion || "",
       numero_factura: formData.numeroFactura,
       fecha_factura: formData.fechaFactura,
       trazabilidad: dataTrazabilidad,
     };
+    console.log("Datos de la guía de entrada:", guiaEntradaData);
     createGuiaEntrada({
       variables: { createGuiaEntradaInput: guiaEntradaData },
     });
@@ -395,25 +400,23 @@ const OrdenCompraPage: React.FC = () => {
       newErrors.numeroFolio = "Número de folio debe ser mayor a 0";
     if (formData.codigoProveedor === "" || !formData.codigoProveedor)
       newErrors.codigoProveedor = "Proveedor es requerido";
-    if (formData.codigoCentroCosto === "" || !formData.codigoCentroCosto)
-      newErrors.codigoCentroCosto = "Centro de costo es requerido";
     if (formData.numeroFactura <= 0)
       newErrors.numeroFactura = "Número de factura debe ser mayor a 0";
     if (formData.fechaFactura === "" || !formData.fechaFactura)
       newErrors.fechaFactura = "Fecha de factura es requerida";
 
     // Validación adicional: todos los productos deben existir
-    const hayProductoNull = detalles.some(
-      (detalle) => detalle.producto === null
-    );
+    const hayProductoNull = Array.isArray(detalles)
+      ? detalles.some((detalle) => detalle.producto === null)
+      : false;
     if (hayProductoNull) {
       newErrors.producto = "Todos los productos deben existir en la DB";
     }
 
     // Validación de trazabilidad
-    const productosConTrazabilidad = detalles.filter(
-      (detalle) => detalle.producto?.trazabilidad
-    );
+    const productosConTrazabilidad = Array.isArray(detalles)
+      ? detalles.filter((detalle) => detalle.producto?.trazabilidad)
+      : [];
     const codigosTrazabilidad = trazabilidadProductos.map(
       (t) => t.codigoProducto
     );
@@ -575,11 +578,14 @@ const OrdenCompraPage: React.FC = () => {
                         ? "bg-orange-400 hover:bg-orange-500 text-white cursor-pointer"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
-                    disabled={!isFormValid}
+                    disabled={!isFormValid || botonCargar}
                     type="submit"
-                    onClick={handleCrearGuiaEntrada}
+                    onClick={() => {
+                      handleCrearGuiaEntrada();
+                      setBotonCaragar(true);
+                    }}
                   >
-                    Generar Guía de Entrada
+                    {botonCargar ? "Ingresando" : "Generar Guía de Entrada"}
                   </button>
                 </div>
                 {/* Primera fila de campos */}
@@ -600,7 +606,7 @@ const OrdenCompraPage: React.FC = () => {
                       htmlFor="codigoProveedor"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      RUT Proveedor *
+                      Código Proveedor *
                     </label>
                     <input
                       id="codigoProveedor"
@@ -614,20 +620,19 @@ const OrdenCompraPage: React.FC = () => {
                       onChange={handleChange}
                     />
                   </div>
-
                   <div>
                     <label
-                      htmlFor="codigoCentroCosto"
+                      htmlFor="codigoBodega"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Código Centro de Costo *
+                      Código de Bodega *
                     </label>
                     <input
-                      id="codigoCentroCosto"
-                      name="codigoCentroCosto"
+                      id="codigoBodega"
+                      name="codigoBodega"
                       type="text"
                       className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.codigoCentroCosto
+                        errors.codigoBodega
                           ? "border-red-500"
                           : "border-gray-300"
                       }`}
@@ -680,20 +685,16 @@ const OrdenCompraPage: React.FC = () => {
                   </div>
                   <div>
                     <label
-                      htmlFor="codigoBodega"
+                      htmlFor="observacion"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Código de Bodega *
+                      Observación
                     </label>
                     <input
-                      id="codigoBodega"
-                      name="codigoBodega"
+                      id="observacion"
+                      name="observacion"
                       type="text"
-                      className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.codigoBodega
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
+                      className="p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                       onChange={handleChange}
                     />
                   </div>
@@ -748,7 +749,8 @@ const OrdenCompraPage: React.FC = () => {
                               <input
                                 name="cantidad"
                                 id="cantidad"
-                                min={1}
+                                min="1"
+                                step="any"
                                 placeholder={detalle.cantidad.toString()}
                                 type="number"
                                 className="w-full p-2 border border-gray-300 rounded-md"
@@ -756,7 +758,7 @@ const OrdenCompraPage: React.FC = () => {
                                   handleEditarDetalles(
                                     index,
                                     "cantidad",
-                                    parseInt(e.target.value)
+                                    parseFloat(e.target.value)
                                   )
                                 }
                               />
@@ -766,14 +768,15 @@ const OrdenCompraPage: React.FC = () => {
                                 name="precio_unitario"
                                 id="precio_unitario"
                                 type="number"
-                                min="0"
+                                min="1"
+                                step="any"
                                 placeholder={detalle.precio_unitario.toString()}
                                 className="w-full p-2 border border-gray-300 rounded-md"
                                 onChange={(e) =>
                                   handleEditarDetalles(
                                     index,
                                     "precio_unitario",
-                                    parseInt(e.target.value)
+                                    parseFloat(e.target.value)
                                   )
                                 }
                               />
@@ -790,7 +793,7 @@ const OrdenCompraPage: React.FC = () => {
                           </>
                         )}
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          $ {detalle.valor_total}
+                          $ {detalle.valor_total.toFixed(2)}
                         </td>
                         {/* Validación si el producto debe tener trazabilidad */}
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">

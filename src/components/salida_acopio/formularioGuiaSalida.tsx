@@ -11,7 +11,7 @@ interface FormularioGuiaSalidaProps {
 type FormErrors = {
   codigoBodega?: string;
   concepto?: string;
-  codigoCliente?: string;
+  descripcion?: string;
   codigoCentroCosto?: string;
 };
 
@@ -21,7 +21,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
   const [formData, setFormData] = useState<FormErrors>({
     codigoBodega: "",
     concepto: "",
-    codigoCliente: "",
+    descripcion: "",
     codigoCentroCosto: "",
   });
   // Componente para mostrar la alerta
@@ -43,9 +43,6 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
     }
     if (!formData.concepto || formData.concepto.trim() === "") {
       errors.concepto = "El concepto es requerido.";
-    }
-    if (!formData.codigoCliente || formData.codigoCliente.trim() === "") {
-      errors.codigoCliente = "El código del cliente es requerido.";
     }
     if (
       !formData.codigoCentroCosto ||
@@ -110,7 +107,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
           id_orden_acopio: id_orden,
           codigo_bodega: formData.codigoBodega,
           concepto: formData.concepto,
-          codigo_cliente: formData.codigoCliente,
+          descripcion: formData.descripcion,
           codigo_centro_costo: formData.codigoCentroCosto,
         },
       },
@@ -185,24 +182,7 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
                 value={formData.concepto}
               />
             </div>
-            <div>
-              <label
-                htmlFor="codigoCentroCosto"
-                className="block text-sm font-medium text-gray-700 mb-3"
-              >
-                Código de Cliente *
-              </label>
-              <input
-                id="codigoCliente"
-                name="codigoCliente"
-                type="string"
-                className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.codigoCliente ? "border-red-500" : "border-gray-300"
-                }`}
-                onChange={handleChange}
-                value={formData.codigoCliente}
-              />
-            </div>
+
             <div>
               <label
                 htmlFor="codigoCentroCosto"
@@ -221,6 +201,22 @@ const FormularioGuiaSalida: React.FC<FormularioGuiaSalidaProps> = ({
                 }`}
                 onChange={handleChange}
                 value={formData.codigoCentroCosto}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="codigoCentroCosto"
+                className="block text-sm font-medium text-gray-700 mb-3"
+              >
+                Descripción
+              </label>
+              <input
+                id="descripcion"
+                name="descripcion"
+                type="string"
+                className="p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500  border-gray-300"
+                onChange={handleChange}
+                value={formData.descripcion || ""}
               />
             </div>
           </div>
