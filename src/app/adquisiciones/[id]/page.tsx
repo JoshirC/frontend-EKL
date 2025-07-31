@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { useAdquisicionStore } from "@/store/adquisicionStore";
 import Alert from "@/components/Alert";
+import FamilyPagination from "@/components/FamilyPagination";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import {
   UPDATE_ESTADO_ORDEN_ACOPIO,
@@ -41,9 +41,40 @@ export default function AcopioIdPage({
   // Estado de la confirmacion
   const [showConfirmacion, setShowConfirmacion] = useState(false);
 
+  // Estados para filtros
+  const [currentFamily, setCurrentFamily] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredDetalles, setFilteredDetalles] = useState<
+    DetalleOrdenAcopio[]
+  >([]);
+
   const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
   });
+
+  // Efecto para filtrar los detalles
+  useEffect(() => {
+    if (data?.ordenAcopio?.detalles) {
+      const filtered = data.ordenAcopio.detalles.filter(
+        (detalle: DetalleOrdenAcopio) => {
+          const matchesSearch =
+            detalle.codigo_producto
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            detalle.producto.nombre_producto
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase());
+
+          const matchesFamily =
+            !currentFamily || detalle.producto.familia === currentFamily;
+
+          return matchesSearch && matchesFamily;
+        }
+      );
+
+      setFilteredDetalles(filtered);
+    }
+  }, [data, searchTerm, currentFamily]);
   const [eliminarOrdenAcopio] = useMutation(ELIMINAR_ORDEN_ACOPIO, {
     onCompleted: () => {
       setAlertType("exitoso");
@@ -122,7 +153,31 @@ export default function AcopioIdPage({
     );
   }
 
+  if (!data?.ordenAcopio?.detalles) {
+    return (
+      <div className="p-10">
+        <div className="bg-white p-6 rounded shadow">
+          <p>No se encontraron datos del acopio</p>
+        </div>
+      </div>
+    );
+  }
+
   const { detalles } = data.ordenAcopio;
+
+  // Extraer familias únicas de los detalles
+  const familyGroups: string[] =
+    detalles.length > 0
+      ? (
+          Array.from(
+            new Set(
+              detalles
+                .map((detalle: DetalleOrdenAcopio) => detalle.producto?.familia)
+                .filter(Boolean)
+            )
+          ) as string[]
+        ).sort()
+      : [];
 
   return (
     <div className="p-4 sm:p-10">
@@ -165,7 +220,43 @@ export default function AcopioIdPage({
             </button>
           </div>
         </div>
-        {detalles.length === 0 ? (
+
+        {/* Controles de filtro */}
+        {detalles.length > 0 && (
+          <>
+            <div className="flex flex-col sm:flex-row justify-start items-center mt-4 pb-4 gap-4">
+              <FamilyPagination
+                familyGroups={familyGroups}
+                currentFamily={currentFamily}
+                onFamilyChange={setCurrentFamily}
+                disabled={loading}
+                showAllOption={true}
+                allOptionText="Todas las familias"
+              />
+              {/* Barra de Busqueda */}
+              <input
+                type="text"
+                placeholder="Buscar por código o nombre del producto..."
+                className="w-full p-4 my-4 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* Información de resultados */}
+            <div className="mb-4 text-sm text-gray-600">
+              Mostrando {filteredDetalles.length} de {detalles.length} productos
+              {currentFamily && ` en la familia "${currentFamily}"`}
+              {searchTerm && ` que coinciden con "${searchTerm}"`}
+            </div>
+          </>
+        )}
+
+        {filteredDetalles.length === 0 && detalles.length > 0 ? (
+          <p className="mt-4 text-center text-gray-500">
+            No se encontraron productos que coincidan con los filtros aplicados
+          </p>
+        ) : detalles.length === 0 ? (
           <p className="mt-4">No se encontraron detalles para este acopio</p>
         ) : (
           <div className="overflow-x-auto">
@@ -190,7 +281,7 @@ export default function AcopioIdPage({
                 </tr>
               </thead>
               <tbody>
-                {detalles.map((detalle: DetalleOrdenAcopio) => (
+                {filteredDetalles.map((detalle: DetalleOrdenAcopio) => (
                   <tr key={detalle.id}>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.producto.familia}

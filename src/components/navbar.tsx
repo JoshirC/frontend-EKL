@@ -187,7 +187,7 @@ const Navbar = () => {
                         className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
-                        Ordenes de Acopio
+                        Solicitud de Abastecimiento
                       </div>
                     </Link>
                     <Link href="/adquisiciones/productos">

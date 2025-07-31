@@ -145,6 +145,17 @@ export const ELIMINAR_ORDEN_ACOPIO = gql`
     removeOrdenAcopio(id: $id)
   }
 `;
+export const ELIMINAR_LISTA_ORDEN_ACOPIO = gql`
+  mutation RemoveMultipleOrders($orderIds: [Float!]!) {
+  removeMultipleOrdenAcopio(ids: $orderIds)
+  }
+`;
+export const EDITAR_LISTA_ORDEN_ACOPIO = gql`
+  mutation EditMultipleOrderStatus($orderIds: [Float!]!, $newStatus: String!) {
+    editMultipleStatusOrdenAcopio(ids: $orderIds, estado: $newStatus)
+  }
+`;
+
 // Mutaciones para Guia de Salida
 export const ELIMINAR_GUIA_SALIDA = gql`
   mutation eliminarGuiaSalida($id: Float!) {

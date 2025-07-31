@@ -12,6 +12,7 @@ import {
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
 import Cargando from "@/components/cargando";
+import FamilyPagination from "@/components/FamilyPagination";
 import { useJwtStore } from "@/store/jwtStore";
 type Producto = {
   id: number;
@@ -297,84 +298,13 @@ const ProductosPage: React.FC = () => {
         </div>
         {/* Paginacion por familia */}
         <div className="flex flex-col sm:flex-row justify-start items-center mt-2 pb-4 gap-4">
-          <div className="flex items-center gap-2 sm:w-auto w-full">
-            <button
-              onClick={() => {
-                const currentIndex = familyGroups.indexOf(currentFamily || "");
-                if (currentIndex > 0)
-                  setCurrentFamily(familyGroups[currentIndex - 1]);
-              }}
-              disabled={
-                !currentFamily ||
-                familyGroups.indexOf(currentFamily) === 0 ||
-                botonCargando
-              }
-              className={`p-3 rounded font-semibold text-sm sm:text-base ${
-                !currentFamily || familyGroups.indexOf(currentFamily) === 0
-                  ? "bg-gray-200 cursor-not-allowed"
-                  : "bg-orange-500 hover:bg-orange-600 text-white"
-              }`}
-            >
-              Anterior
-            </button>
-
-            <div className="flex-1 overflow-x-hidden">
-              <div className="flex space-x-2 justify-center">
-                {familyGroups
-                  .slice(
-                    Math.max(
-                      0,
-                      Math.min(
-                        familyGroups.indexOf(currentFamily || "") - 2,
-                        familyGroups.length - 5
-                      )
-                    ),
-                    Math.min(
-                      familyGroups.indexOf(currentFamily || "") + 3,
-                      familyGroups.length
-                    )
-                  )
-                  .map((family) => (
-                    <button
-                      key={family}
-                      onClick={() => setCurrentFamily(family)}
-                      className={`p-3 rounded text-sm sm:text-base font-semibold min-w-max whitespace-nowrap ${
-                        currentFamily === family
-                          ? "bg-gray-400 text-white"
-                          : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                      }`}
-                      disabled={botonCargando}
-                    >
-                      <span className="max-w-[100px] sm:max-w-[150px] truncate">
-                        {family}
-                      </span>
-                    </button>
-                  ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                const currentIndex = familyGroups.indexOf(currentFamily || "");
-                if (currentIndex < familyGroups.length - 1)
-                  setCurrentFamily(familyGroups[currentIndex + 1]);
-              }}
-              disabled={
-                !currentFamily ||
-                familyGroups.indexOf(currentFamily) ===
-                  familyGroups.length - 1 ||
-                botonCargando
-              }
-              className={`p-3 rounded font-semibold text-sm sm:text-base ${
-                !currentFamily ||
-                familyGroups.indexOf(currentFamily) === familyGroups.length - 1
-                  ? "bg-gray-200 cursor-not-allowed"
-                  : "bg-orange-500 hover:bg-orange-600 text-white"
-              }`}
-            >
-              Siguiente
-            </button>
-          </div>
+          <FamilyPagination
+            familyGroups={familyGroups}
+            currentFamily={currentFamily}
+            onFamilyChange={setCurrentFamily}
+            disabled={botonCargando}
+            showAllOption={false}
+          />
           {/* Barra de Busqueda */}
           <input
             type="text"
