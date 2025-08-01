@@ -19,7 +19,7 @@ const GuiasEntradaPage: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { loading, error, data } = useQuery(GET_GUIA_ENTRADA_BY_ESTADO, {
-    variables: { estado: "Ingresado" },
+    variables: { estado: "Cargada" },
   });
 
   // Cerrar dropdown al hacer clic fuera
