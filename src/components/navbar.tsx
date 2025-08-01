@@ -176,9 +176,24 @@ const Navbar = () => {
               <div className="relative flex justify-center">
                 <button
                   onClick={handleOpenAdquisiciones}
-                  className="text-black font-semibold hover:text-gray-100 transition duration-300"
+                  className="text-black font-semibold hover:text-gray-100 transition duration-300 flex items-center gap-1"
                 >
                   Adquisiciones
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      openAdquisiciones ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </button>
                 {openAdquisiciones && (
                   <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
@@ -198,6 +213,14 @@ const Navbar = () => {
                         Productos
                       </div>
                     </Link>
+                    <Link href="/adquisiciones/guias_entrada">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                        onClick={handleSelectOption}
+                      >
+                        Guías de Entrada
+                      </div>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -208,9 +231,24 @@ const Navbar = () => {
               <div className="relative flex justify-center">
                 <button
                   onClick={handleOpenEntrada}
-                  className="text-black font-semibold hover:text-white transition duration-300"
+                  className="text-black font-semibold hover:text-gray-100 transition duration-300 flex items-center gap-1"
                 >
                   Entrada
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      openEntrada ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </button>
                 {openEntrada && (
                   <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
@@ -252,9 +290,24 @@ const Navbar = () => {
               <div className="relative flex justify-center">
                 <button
                   onClick={handleOpenSalida}
-                  className="text-black font-semibold hover:text-white transition duration-300"
+                  className="text-black font-semibold hover:text-gray-100 transition duration-300 flex items-center gap-1"
                 >
                   Salida
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      openSalida ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </button>
                 {openSalida && (
                   <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
@@ -296,9 +349,24 @@ const Navbar = () => {
               <div className="relative flex justify-center">
                 <button
                   onClick={handleOpenReporte}
-                  className="text-black font-semibold hover:text-white transition duration-300"
+                  className="text-black font-semibold hover:text-gray-100 transition duration-300 flex items-center gap-1"
                 >
                   Reporte
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      openReporte ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </button>
                 {openReporte && (
                   <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
@@ -326,10 +394,26 @@ const Navbar = () => {
             {/* Datos Usuario */}
             <div className="relative flex justify-center">
               <button
-                className="bg-black text-orange-400 rounded-lg flex items-center justify-center hover:bg-white hover:text-orange-400 transition duration-300 px-4 py-2 font-semibold"
+                className="bg-black text-orange-400 rounded-lg flex items-center justify-center hover:bg-white hover:text-orange-400 transition duration-300 px-4 py-2 font-semibold gap-2"
                 onClick={handleOpenMenuUsuario}
               >
                 {nombreUsuario?.split(" ")[0]}
+                {/* Dropdown Icon */}
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    openMenuUsuario ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
               </button>
               {openMenuUsuario && (
                 <div className="mt-12 w-35 right-0 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">

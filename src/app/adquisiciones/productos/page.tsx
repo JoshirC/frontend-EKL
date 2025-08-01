@@ -303,7 +303,7 @@ const ProductosPage: React.FC = () => {
             currentFamily={currentFamily}
             onFamilyChange={setCurrentFamily}
             disabled={botonCargando}
-            showAllOption={false}
+            showAllOption={true}
           />
           {/* Barra de Busqueda */}
           <input

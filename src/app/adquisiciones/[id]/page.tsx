@@ -8,6 +8,8 @@ import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import {
   UPDATE_ESTADO_ORDEN_ACOPIO,
   ELIMINAR_ORDEN_ACOPIO,
+  EDITAR_CANTIDAD_DETALLE_ORDEN_ACOPIO,
+  ELIMINAR_PRODUCTO_DETALLE_ORDEN_ACOPIO,
 } from "@/graphql/mutations";
 import Confirmacion from "@/components/confirmacion";
 type Producto = {
@@ -40,6 +42,9 @@ export default function AcopioIdPage({
 
   // Estado de la confirmacion
   const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [confirmacionMensaje, setConfirmacionMensaje] = useState("");
+  const [confirmacionTitulo, setConfirmacionTitulo] = useState("");
+  const [funcion, setFuncion] = useState("");
 
   // Estados para filtros
   const [currentFamily, setCurrentFamily] = useState<string | null>(null);
@@ -48,7 +53,12 @@ export default function AcopioIdPage({
     DetalleOrdenAcopio[]
   >([]);
 
-  const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
+  // Estados para edición en línea
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingCantidad, setEditingCantidad] = useState<number>(0);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const { loading, error, data, refetch } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
   });
 
@@ -105,6 +115,41 @@ export default function AcopioIdPage({
       setShowAlert(true);
     },
   });
+  const [editarCantidadDetalleOrdenAcopio] = useMutation(
+    EDITAR_CANTIDAD_DETALLE_ORDEN_ACOPIO,
+    {
+      onCompleted: () => {
+        setAlertType("exitoso");
+        setAlertMessage("La cantidad se ha actualizado correctamente");
+        setShowAlert(true);
+        setEditingId(null);
+        setEditingCantidad(0);
+        refetch();
+      },
+      onError: (mutationError) => {
+        setAlertType("error");
+        setAlertMessage(mutationError.message);
+        setShowAlert(true);
+      },
+    }
+  );
+  const [eliminarProductoDetalleOrdenAcopio] = useMutation(
+    ELIMINAR_PRODUCTO_DETALLE_ORDEN_ACOPIO,
+    {
+      onCompleted: () => {
+        setAlertType("exitoso");
+        setAlertMessage("El producto se ha eliminado correctamente");
+        setShowAlert(true);
+        setDeleteId(null);
+        refetch();
+      },
+      onError: (mutationError) => {
+        setAlertType("error");
+        setAlertMessage(mutationError.message);
+        setShowAlert(true);
+      },
+    }
+  );
   const handleConfirmarAcopio = () => {
     updateEstadoOrdenAcopio({
       variables: {
@@ -128,9 +173,50 @@ export default function AcopioIdPage({
   };
   const handleConfirmacion = (confirmado: boolean) => {
     if (confirmado) {
-      handleEliminarOrdenAcopio();
+      if (funcion === "eliminarSolicitud") {
+        handleEliminarOrdenAcopio();
+      }
+      if (funcion === "eliminarProducto") {
+        handleEliminarProducto();
+      }
     }
     setShowConfirmacion(false);
+  };
+  const handleEditarProducto = (detalle: DetalleOrdenAcopio) => {
+    setEditingId(detalle.id);
+    setEditingCantidad(detalle.cantidad);
+  };
+
+  const handleGuardarCantidad = (detalle: DetalleOrdenAcopio) => {
+    if (editingCantidad <= 0) {
+      setShowAlert(true);
+      setAlertType("advertencia");
+      setAlertMessage("La cantidad debe ser mayor a cero.");
+      return;
+    }
+    editarCantidadDetalleOrdenAcopio({
+      variables: {
+        id: detalle.id,
+        cantidad: editingCantidad,
+      },
+    });
+    setEditingId(null);
+    setEditingCantidad(0);
+  };
+
+  const handleCancelarEdicion = () => {
+    setEditingId(null);
+    setEditingCantidad(0);
+  };
+
+  const handleEliminarProducto = () => {
+    if (deleteId === null) return;
+
+    eliminarProductoDetalleOrdenAcopio({
+      variables: {
+        id: deleteId,
+      },
+    });
   };
 
   if (loading) {
@@ -191,8 +277,8 @@ export default function AcopioIdPage({
       {showConfirmacion && (
         <Confirmacion
           isOpen={showConfirmacion}
-          titulo="Eliminar Orden de Acopio"
-          mensaje={`¿Estás seguro de que deseas eliminar la orden de Acopio?`}
+          titulo={confirmacionTitulo}
+          mensaje={confirmacionMensaje}
           onClose={() => setShowConfirmacion(false)}
           onConfirm={handleConfirmacion}
         />
@@ -200,7 +286,7 @@ export default function AcopioIdPage({
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">
-            Detalles de Acopio N°{id_acopio}
+            Detalles de Solicitud Abastecimiento N°{id_acopio}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -208,15 +294,20 @@ export default function AcopioIdPage({
               className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto"
               onClick={handleConfirmarAcopio}
             >
-              Confirmar Acopio
+              Confirmar Solicitud
             </button>
             <button
               className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto"
               onClick={() => {
                 setShowConfirmacion(true);
+                setConfirmacionTitulo("Eliminar Solicitud");
+                setConfirmacionMensaje(
+                  "¿Estás seguro de que deseas eliminar esta solicitud?"
+                );
+                setFuncion("eliminarSolicitud");
               }}
             >
-              Cancelar Acopio
+              Cancelar Solicitud
             </button>
           </div>
         </div>
@@ -241,13 +332,6 @@ export default function AcopioIdPage({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-            </div>
-
-            {/* Información de resultados */}
-            <div className="mb-4 text-sm text-gray-600">
-              Mostrando {filteredDetalles.length} de {detalles.length} productos
-              {currentFamily && ` en la familia "${currentFamily}"`}
-              {searchTerm && ` que coinciden con "${searchTerm}"`}
             </div>
           </>
         )}
@@ -278,6 +362,9 @@ export default function AcopioIdPage({
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
                     Cantidad
                   </th>
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -296,7 +383,64 @@ export default function AcopioIdPage({
                       {detalle.producto.unidad_medida}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.cantidad}
+                      {editingId === detalle.id ? (
+                        <input
+                          type="number"
+                          value={editingCantidad}
+                          onChange={(e) =>
+                            setEditingCantidad(Number(e.target.value))
+                          }
+                          className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          min="0"
+                          step="1"
+                        />
+                      ) : (
+                        detalle.cantidad
+                      )}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        {editingId === detalle.id ? (
+                          <>
+                            <button
+                              className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition duration-200 w-full"
+                              onClick={() => handleGuardarCantidad(detalle)}
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition duration-200 w-full"
+                              onClick={handleCancelarEdicion}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="bg-orange-400 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded transition duration-200 w-full"
+                              onClick={() => handleEditarProducto(detalle)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-200 w-full"
+                              onClick={() => {
+                                handleEliminarProducto();
+                                setDeleteId(detalle.id);
+                                setShowConfirmacion(true);
+                                setConfirmacionTitulo("Eliminar Producto");
+                                setConfirmacionMensaje(
+                                  "¿Estás seguro de que deseas eliminar este producto?"
+                                );
+                                setFuncion("eliminarProducto");
+                              }}
+                            >
+                              Eliminar
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

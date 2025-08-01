@@ -179,12 +179,6 @@ const AcopioPage: React.FC = () => {
           <div className="space-x-2">
             <button
               className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto"
-              onClick={abrirModalNuevaOrdenAcopio}
-            >
-              Nueva Solicitud de Abastecimiento
-            </button>
-            <button
-              className="bg-blue-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-blue-500 transition duration-300 w-full sm:w-auto"
               onClick={() => {
                 setShowConfirmacion(true);
                 setTituloConfirmacion("Confirmar Solicitudes");
@@ -197,7 +191,7 @@ const AcopioPage: React.FC = () => {
               Confirmar Solicitudes
             </button>
             <button
-              className="bg-red-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-500 transition duration-300 w-full sm:w-auto"
+              className="bg-red-500 text-white font-semibold p-3 sm:p-4 rounded hover:bg-red-600 transition duration-300 w-full sm:w-auto"
               onClick={() => {
                 setShowConfirmacion(true);
                 setTituloConfirmacion("Eliminar Solicitudes");
@@ -208,6 +202,12 @@ const AcopioPage: React.FC = () => {
               }}
             >
               Cancelar Solicitudes
+            </button>
+            <button
+              className="bg-gray-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-gray-500 transition duration-300 w-full sm:w-auto"
+              onClick={abrirModalNuevaOrdenAcopio}
+            >
+              Nueva Solicitud
             </button>
           </div>
         </div>

@@ -302,3 +302,16 @@ export const ACTUALIZAR_GUIAS_POR_ORDEN = gql`
     }
   }
 `;
+// Mutaciones para detalle orden de acopio
+export const EDITAR_CANTIDAD_DETALLE_ORDEN_ACOPIO = gql`
+  mutation updateDetalleProducto($id: Int!, $cantidad: Float!) {
+    updateDetalleProducto(id: $id, cantidad: $cantidad){
+      id
+    }
+}
+`;
+export const ELIMINAR_PRODUCTO_DETALLE_ORDEN_ACOPIO = gql`
+  mutation deleteDetalleOrdenAcopio($id: Int!) {
+    deleteDetalleOrdenAcopio(id: $id)
+  }
+`;
