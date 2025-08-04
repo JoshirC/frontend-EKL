@@ -17,3 +17,19 @@ body {
   color:  var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Ocultar barra de scroll para componente FamilyPagination */
+.family-pagination-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+  }
+  
+  .scrollbar-none::-webkit-scrollbar {
+    display: none; /* WebKit */
+  }
+}

@@ -41,7 +41,7 @@ const CargaSoftlandPage: React.FC = () => {
   ): Record<string, string | number> {
     const fila: Record<string, string | number> = {};
 
-    for (let i = 1; i <= 58; i++) {
+    for (let i = 1; i <= 153; i++) {
       const keyCompleta = Object.keys(campos).find((k) =>
         k.startsWith(`${i}.`)
       );
@@ -63,13 +63,18 @@ const CargaSoftlandPage: React.FC = () => {
           crearFilaExcel({
             "1. Codigo Bodega": guia.codigo_bodega,
             "2. Folio": guia.numero_folio,
-            "3. Fecha": guia.fecha_generacion.replace(/\//g, "-"),
-            "4. Concepto": guia.concepto_salida,
-            "5. Descripcion": guia.descripcion || "N/A",
-            "7. Codigo Centro Costo": guia.codigo_centro_costo,
-            "38. Codigo Producto": envio.codigo_producto_enviado,
-            "39. Descripcion Producto": envio.producto.nombre_producto,
-            "41. Cantidad Despachada": envio.cantidad_enviada,
+            "3. Tipo Documento": "S",
+            "4. Sub Tipo Documento": "T",
+            "5. Fecha": guia.fecha_generacion.replace(/\//g, "-"),
+            "6. Concepto de Salida": guia.concepto_salida,
+            "7. Observacion": guia.descripcion || "N/A",
+            //"8. Codigo Cliente": "",
+            "15. Codigo Centro Costo": guia.codigo_centro_costo,
+            "27. Codigo Lugar Despacho": guia.codigo_lugar_despacho,
+            "60. Codigo Producto": envio.codigo_producto_enviado,
+            "62. Descripcion Producto": envio.producto.nombre_producto,
+            "64. Cantidad Despachada": envio.cantidad_enviada,
+            "82. Conserva Folio Asignado DTE": "S",
           })
         )
     );

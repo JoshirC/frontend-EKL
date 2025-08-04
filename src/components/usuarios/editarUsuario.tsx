@@ -105,6 +105,7 @@ const EditarUsuario: React.FC<ModalProps> = ({
                 <option>Adquisiciones</option>
                 <option>Jefe Bodega</option>
                 <option>Bodeguero</option>
+                <option>Soporte</option>
               </select>
               <button
                 type="submit"
