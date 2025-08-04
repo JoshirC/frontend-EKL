@@ -70,7 +70,6 @@ const CargaSoftlandPage: React.FC = () => {
             "7. Observacion": guia.descripcion || "N/A",
             //"8. Codigo Cliente": "",
             "15. Codigo Centro Costo": guia.codigo_centro_costo,
-            "27. Codigo Lugar Despacho": guia.codigo_lugar_despacho,
             "60. Codigo Producto": envio.codigo_producto_enviado,
             "62. Descripcion Producto": envio.producto.nombre_producto,
             "64. Cantidad Despachada": envio.cantidad_enviada,
