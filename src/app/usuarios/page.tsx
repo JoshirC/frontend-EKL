@@ -243,11 +243,9 @@ const UsuariosPage: React.FC = () => {
                   <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
                     Rol
                   </th>
-                  {rolUsuario === "Soporte" && (
-                    <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                      Acciones
-                    </th>
-                  )}
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -272,37 +270,35 @@ const UsuariosPage: React.FC = () => {
                     <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
                       {usuario.rol}
                     </td>
-                    {rolUsuario === "Soporte" && (
-                      <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                        <div className="flex flex-col sm:flex-row lg:space-x-2 lg:w-full gap-2">
-                          <button
-                            className="bg-amber-400 text-white font-semibold p-2 rounded hover:bg-amber-500 transition duration-300 text-sm sm:text-base w-full"
-                            onClick={() => abrirModalEditarUsuario(usuario)}
-                          >
-                            Editar
-                          </button>
-                          <button
-                            className="bg-orange-400 text-white font-semibold p-2 rounded hover:bg-orange-500 transition duration-300 text-sm sm:text-base w-full"
-                            onClick={() => {
-                              abrirModalCambiarContraseña();
-                              setRutUsuario(usuario.rut);
-                              setNombreUsuario(usuario.nombre);
-                            }}
-                          >
-                            Cambiar Contraseña
-                          </button>
-                          <button
-                            className="bg-red-500 text-white font-semibold p-2 rounded hover:bg-red-600 transition duration-300 text-sm sm:text-base w-full"
-                            onClick={() => {
-                              setShowConfirmacion(true);
-                              setUsuarioSeleccionado(usuario);
-                            }}
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </td>
-                    )}
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      <div className="flex flex-col sm:flex-row lg:space-x-2 lg:w-full gap-2">
+                        <button
+                          className="bg-amber-400 text-white font-semibold p-2 rounded hover:bg-amber-500 transition duration-300 text-sm sm:text-base w-full"
+                          onClick={() => abrirModalEditarUsuario(usuario)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="bg-orange-400 text-white font-semibold p-2 rounded hover:bg-orange-500 transition duration-300 text-sm sm:text-base w-full"
+                          onClick={() => {
+                            abrirModalCambiarContraseña();
+                            setRutUsuario(usuario.rut);
+                            setNombreUsuario(usuario.nombre);
+                          }}
+                        >
+                          Cambiar Contraseña
+                        </button>
+                        <button
+                          className="bg-red-500 text-white font-semibold p-2 rounded hover:bg-red-600 transition duration-300 text-sm sm:text-base w-full"
+                          onClick={() => {
+                            setShowConfirmacion(true);
+                            setUsuarioSeleccionado(usuario);
+                          }}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
