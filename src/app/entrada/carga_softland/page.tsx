@@ -127,14 +127,18 @@ const CargaSoftlandPage: React.FC = () => {
         </div>
       </div>
     );
-  if (error)
+  if (error) {
     return (
       <div className="p-10">
         <div className="bg-white p-6 rounded shadow">
-          <p>{error.message}</p>
+          <p>
+            Error al cargar guías de entrada, descripción del error:{" "}
+            {error.message}
+          </p>
         </div>
       </div>
     );
+  }
 
   const guiasEntrada: GuiaEntrada[] = data?.guiaEntradaByEstado || [];
   return (
@@ -154,20 +158,32 @@ const CargaSoftlandPage: React.FC = () => {
           <h1 className="text-2xl font-semibold mb-4">
             Carga Softland Guias de Entrada
           </h1>
-          <button
-            className={`${
-              botonCargando
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-orange-400 hover:bg-orange-500"
-            } text-white font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap`}
-            onClick={() => {
-              exportarAExcel();
-              setBotonCargando(true);
-            }}
-            disabled={botonCargando}
-          >
-            Exportar a Excel
-          </button>
+          {/* Botones de acción */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <button
+              className={`${
+                botonCargando
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-orange-400 hover:bg-orange-500"
+              } text-white font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap`}
+              onClick={() => {
+                exportarAExcel();
+                setBotonCargando(true);
+              }}
+              disabled={botonCargando}
+            >
+              Descargar a Excel
+            </button>
+            <button
+              className={`${
+                botonCargando
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-400 hover:bg-blue-500"
+              } text-white font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap ml-0 sm:ml-4 mt-4 sm:mt-0`}
+            >
+              Enviar Excel por Correo
+            </button>
+          </div>
         </div>
         {/* Tabla de datos */}
         <div className="overflow-x-auto mt-6">

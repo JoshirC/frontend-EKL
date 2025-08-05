@@ -49,6 +49,7 @@ type Producto = {
 type OrdenCompra = {
   productos: DetalleOrdenCompra[];
   ultimo_num_inter: number;
+  rut_proveedor: string;
 };
 type FormErrors = {
   codigoBodega?: string;
@@ -110,7 +111,7 @@ const OrdenCompraPage: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isFormValid, setIsFormValid] = useState(false);
   const [formData, setFormData] = useState({
-    codigoBodega: "",
+    codigoBodega: "01",
     numeroFolio: 0,
     codigoProveedor: "",
     observacion: "",
@@ -121,6 +122,10 @@ const OrdenCompraPage: React.FC = () => {
   const [trazabilidadProductos, setTrazabilidadProductos] = useState<
     TrazabilidadProducto[]
   >([]);
+  // Estado para controlar productos marcados como revisados
+  const [productosRevisados, setProductosRevisados] = useState<Set<string>>(
+    new Set()
+  );
   const [correoCambios] = useMutation(CORREO_CAMBIOS_EN_ORDEN_COMPRA, {
     onCompleted: (data) => {
       if (data.notificarCambiosEnOrden) {
@@ -217,6 +222,7 @@ const OrdenCompraPage: React.FC = () => {
         setFormData((prev) => ({
           ...prev,
           numeroFolio: data.ordenCompra.ultimo_num_inter,
+          codigoProveedor: data.ordenCompra.rut_proveedor,
         }));
       }
     } catch (err) {
@@ -332,6 +338,37 @@ const OrdenCompraPage: React.FC = () => {
       setShowAlert(true);
       return;
     }
+
+    // Validación adicional: todos los productos deben existir
+    const hayProductoNull = Array.isArray(detalles)
+      ? detalles.some((detalle) => detalle.producto === null)
+      : false;
+    if (hayProductoNull) {
+      setAlertType("error");
+      setAlertMessage("Todos los productos deben existir en la DB");
+      setShowAlert(true);
+      return;
+    }
+
+    // Validación de trazabilidad
+    const productosConTrazabilidad = Array.isArray(detalles)
+      ? detalles.filter((detalle) => detalle.producto?.trazabilidad)
+      : [];
+    const codigosTrazabilidad = trazabilidadProductos.map(
+      (t) => t.codigoProducto
+    );
+    const faltanTrazabilidad = productosConTrazabilidad.some(
+      (detalle) => !codigosTrazabilidad.includes(detalle.codigo)
+    );
+    if (faltanTrazabilidad) {
+      setAlertType("error");
+      setAlertMessage(
+        "Todos los productos con trazabilidad deben tener datos registrados"
+      );
+      setShowAlert(true);
+      return;
+    }
+
     const fecha_generacion = `${today.getDate().toString().padStart(2, "0")}/${(
       today.getMonth() + 1
     )
@@ -402,40 +439,13 @@ const OrdenCompraPage: React.FC = () => {
   const validateForm = () => {
     const newErrors: FormErrors = {};
 
+    // Solo validar campos realmente obligatorios para generar la guía
     if (!formData.codigoBodega || formData.codigoBodega === "")
       newErrors.codigoBodega = "Código de bodega es requerido";
-    if (formData.numeroFolio <= 0)
-      newErrors.numeroFolio = "Número de folio debe ser mayor a 0";
-    if (formData.codigoProveedor === "" || !formData.codigoProveedor)
-      newErrors.codigoProveedor = "Proveedor es requerido";
     if (formData.numeroFactura <= 0)
       newErrors.numeroFactura = "Número de factura debe ser mayor a 0";
     if (formData.fechaFactura === "" || !formData.fechaFactura)
       newErrors.fechaFactura = "Fecha de factura es requerida";
-
-    // Validación adicional: todos los productos deben existir
-    const hayProductoNull = Array.isArray(detalles)
-      ? detalles.some((detalle) => detalle.producto === null)
-      : false;
-    if (hayProductoNull) {
-      newErrors.producto = "Todos los productos deben existir en la DB";
-    }
-
-    // Validación de trazabilidad
-    const productosConTrazabilidad = Array.isArray(detalles)
-      ? detalles.filter((detalle) => detalle.producto?.trazabilidad)
-      : [];
-    const codigosTrazabilidad = trazabilidadProductos.map(
-      (t) => t.codigoProducto
-    );
-    const faltanTrazabilidad = productosConTrazabilidad.some(
-      (detalle) => !codigosTrazabilidad.includes(detalle.codigo)
-    );
-    if (faltanTrazabilidad) {
-      newErrors.producto =
-        (newErrors.producto ? newErrors.producto + " y " : "") +
-        "Todos los productos con trazabilidad deben tener datos registrados";
-    }
 
     setErrors(newErrors);
     setIsFormValid(Object.keys(newErrors).length === 0);
@@ -464,6 +474,19 @@ const OrdenCompraPage: React.FC = () => {
     setShowDropdownTrazabilidad(false);
     setIdTrazabilidad(null);
   };
+
+  const handleToggleRevisado = (codigoProducto: string) => {
+    setProductosRevisados((prev) => {
+      const nuevosRevisados = new Set(prev);
+      if (nuevosRevisados.has(codigoProducto)) {
+        nuevosRevisados.delete(codigoProducto);
+      } else {
+        nuevosRevisados.add(codigoProducto);
+      }
+      return nuevosRevisados;
+    });
+  };
+
   const handleEnviarCorreoCambios = async () => {
     if (historialCambiosProductos.length === 0) {
       return;
@@ -623,17 +646,9 @@ const OrdenCompraPage: React.FC = () => {
                     >
                       Código Proveedor *
                     </label>
-                    <input
-                      id="codigoProveedor"
-                      name="codigoProveedor"
-                      type="text"
-                      className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.codigoProveedor
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      onChange={handleChange}
-                    />
+                    <div className="p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300">
+                      {formData.codigoProveedor}
+                    </div>
                   </div>
                   <div>
                     <label
@@ -646,6 +661,7 @@ const OrdenCompraPage: React.FC = () => {
                       id="codigoBodega"
                       name="codigoBodega"
                       type="text"
+                      placeholder={formData.codigoBodega}
                       className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                         errors.codigoBodega
                           ? "border-red-500"
@@ -742,6 +758,9 @@ const OrdenCompraPage: React.FC = () => {
                       Trazabilidad
                     </th>
                     <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                      Estado
+                    </th>
+                    <th className="border border-gray-300 px-2 sm:px-4 py-2">
                       Acciones
                     </th>
                   </tr>
@@ -785,7 +804,13 @@ const OrdenCompraPage: React.FC = () => {
                                 type="number"
                                 min="1"
                                 step="any"
-                                placeholder={detalle.precio_unitario.toString()}
+                                placeholder={detalle.precio_unitario.toLocaleString(
+                                  "es-CL",
+                                  {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }
+                                )}
                                 className="w-full p-2 border border-gray-300 rounded-md"
                                 onChange={(e) =>
                                   handleEditarDetalles(
@@ -803,12 +828,20 @@ const OrdenCompraPage: React.FC = () => {
                               {detalle.cantidad}
                             </td>
                             <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                              $ {detalle.precio_unitario}
+                              ${" "}
+                              {detalle.precio_unitario.toLocaleString("es-CL", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
                             </td>
                           </>
                         )}
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          $ {detalle.valor_total.toFixed(2)}
+                          ${" "}
+                          {detalle.valor_total.toLocaleString("es-CL", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </td>
                         {/* Validación si el producto debe tener trazabilidad */}
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -839,6 +872,42 @@ const OrdenCompraPage: React.FC = () => {
                           ) : (
                             <span className="text-sm"></span>
                           )}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          <div className="flex items-center justify-center">
+                            <button
+                              onClick={() =>
+                                handleToggleRevisado(detalle.codigo)
+                              }
+                              className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                            >
+                              {productosRevisados.has(detalle.codigo) ? (
+                                <>
+                                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                    <svg
+                                      className="w-4 h-4 text-white"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M5 13l4 4L19 7"
+                                      />
+                                    </svg>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-gray-400">
+                                    <div className="w-3 h-3 rounded-full"></div>
+                                  </div>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <div className="flex flex-row gap-2 justify-center">

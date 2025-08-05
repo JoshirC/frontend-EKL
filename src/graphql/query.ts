@@ -283,6 +283,7 @@ export const GET_ORDEN_COMPRA = gql`
         }
       }
       ultimo_num_inter
+      rut_proveedor
     }
   }
 `;
