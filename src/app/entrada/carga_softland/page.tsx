@@ -1,7 +1,10 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { GET_GUIA_ENTRADA_BY_ESTADO } from "@/graphql/query";
-import { UPDATE_ESTADO_GUIA_ENTRADAS } from "@/graphql/mutations";
+import {
+  UPDATE_ESTADO_GUIA_ENTRADAS,
+  ENVIAR_CORREO_GUIA_ENTRADA,
+} from "@/graphql/mutations";
 import { useQuery, useMutation } from "@apollo/client";
 import * as XLSX from "xlsx";
 import Alert from "@/components/Alert";
@@ -101,6 +104,20 @@ const CargaSoftlandPage: React.FC = () => {
       { query: GET_GUIA_ENTRADA_BY_ESTADO, variables: { estado: "Subir" } },
     ],
   });
+  const [enviarExcelGuias] = useMutation(ENVIAR_CORREO_GUIA_ENTRADA, {
+    onCompleted: () => {
+      handleActualizarEstado(
+        guiasEntrada.map((guia) => guia.id),
+        "Cargada"
+      );
+    },
+    onError: (error) => {
+      console.error("Error al enviar el correo:", error);
+      setShowAlert(true);
+      setAlertType("error");
+      setAlertMessage("Error al enviar el correo con las guías de entrada.");
+    },
+  });
   const handleActualizarEstado = async (listId: number[], estado: string) => {
     try {
       await updateEstadoGuiaEntrada({
@@ -109,6 +126,7 @@ const CargaSoftlandPage: React.FC = () => {
       setShowAlert(true);
       setAlertType("exitoso");
       setAlertMessage("Archivo Generado exitosamente");
+      setBotonCargando(false);
       setTimeout(() => {
         window.location.reload();
       }, 3000); // Ocultar alerta después de 3 segundos
@@ -118,6 +136,14 @@ const CargaSoftlandPage: React.FC = () => {
       setAlertType("error");
       setAlertMessage("Error al actualizar el estado de las guías de entrada.");
     }
+  };
+  const handleEnviarExcel = () => {
+    setBotonCargando(true);
+    enviarExcelGuias({
+      variables: {
+        guias: guiasEntrada.map((guia) => guia.id),
+      },
+    });
   };
   if (loading)
     return (
@@ -159,7 +185,7 @@ const CargaSoftlandPage: React.FC = () => {
             Carga Softland Guias de Entrada
           </h1>
           {/* Botones de acción */}
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row w-full sm:w-auto">
             <button
               className={`${
                 botonCargando
@@ -180,6 +206,10 @@ const CargaSoftlandPage: React.FC = () => {
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-400 hover:bg-blue-500"
               } text-white font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap ml-0 sm:ml-4 mt-4 sm:mt-0`}
+              onClick={() => {
+                handleEnviarExcel();
+                setBotonCargando(true);
+              }}
             >
               Enviar Excel por Correo
             </button>
