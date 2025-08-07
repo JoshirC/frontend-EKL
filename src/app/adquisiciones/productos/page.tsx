@@ -29,7 +29,7 @@ type Producto = {
 const ProductosPage: React.FC = () => {
   const { loading, error, data, refetch } = useQuery(GET_PRODUCTOS);
   const { nombreUsuario } = useJwtStore();
-  const [currentFamily, setCurrentFamily] = useState<string | null>(null);
+  const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<Producto[]>([]);
   const [showAlert, setShowAlert] = useState(false);
@@ -147,7 +147,8 @@ const ProductosPage: React.FC = () => {
               .includes(searchTerm.toLowerCase());
 
           const matchesFamily =
-            !currentFamily || producto.familia === currentFamily;
+            selectedFamilies.length === 0 ||
+            selectedFamilies.includes(producto.familia);
 
           return matchesSearch && matchesFamily;
         })
@@ -160,7 +161,7 @@ const ProductosPage: React.FC = () => {
 
       setFilteredProducts(filtered);
     }
-  }, [data, searchTerm, currentFamily]);
+  }, [data, searchTerm, selectedFamilies]);
 
   if (loading)
     return (
@@ -296,22 +297,18 @@ const ProductosPage: React.FC = () => {
             </button>
           </div>
         </div>
-        {/* Paginacion por familia */}
-        <div className="flex flex-col sm:flex-row justify-start items-center mt-2 pb-4 gap-4">
+        {/* Filtros */}
+        <div className="mt-4 pb-4">
           <FamilyPagination
             familyGroups={familyGroups}
-            currentFamily={currentFamily}
-            onFamilyChange={setCurrentFamily}
+            selectedFamilies={selectedFamilies}
+            onFamilyChange={setSelectedFamilies}
             disabled={botonCargando}
-            showAllOption={true}
-          />
-          {/* Barra de Busqueda */}
-          <input
-            type="text"
-            placeholder="Buscar por código, descripción..."
-            className="w-full p-4 my-4 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Filtrar por familias..."
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Buscar por código o descripción..."
+            showSearch={true}
           />
         </div>
         {/* Tabla de Productos */}

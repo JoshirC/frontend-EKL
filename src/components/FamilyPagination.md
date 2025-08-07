@@ -1,21 +1,17 @@
-# Componente FamilyPagination
+# Componente FamilyFilter
 
-Este componente proporciona una paginación reutilizable para filtrar elementos por familia, completamente optimizado para dispositivos móviles y tablets.
+Este componente proporciona un filtro desplegable multiselectivo para filtrar elementos por familias, completamente optimizado para dispositivos móviles y tablets.
 
 ## Características
 
-- **Navegación por familias**: Botones "Anterior" y "Siguiente" para navegar entre familias
-- **Vista deslizante**: Muestra un número adaptativo de familias según el dispositivo (2 en móvil, 3 en tablet, 5 en desktop)
-- **Opción "Todas"**: Permite mostrar todos los elementos sin filtrar (configurable)
+- **Filtro multiselectivo**: Permite seleccionar múltiples familias para filtrar
+- **Búsqueda interna**: Barra de búsqueda dentro del dropdown para encontrar familias específicas
+- **Selección masiva**: Botones para "Seleccionar Todo" y "Limpiar" selecciones
+- **Indicadores visuales**: Muestra el número de familias seleccionadas con badges
 - **Estado disabled**: Puede deshabilitarse cuando hay operaciones en curso
-- **Completamente responsive**:
-  - En móviles: Muestra 2 familias, botones compactos con iconos
-  - En tablets: Muestra 3 familias, tamaño intermedio
-  - En desktop: Muestra 5 familias, tamaño completo
-- **Scroll horizontal oculto**: Permite deslizar horizontalmente sin mostrar barra de scroll
-- **Texto truncado inteligente**: Ajusta el ancho máximo del texto según el dispositivo
-
-## Props
+- **Completamente responsive**: Funciona perfecto en móviles, tablets y desktop
+- **Click fuera para cerrar**: Se cierra automáticamente al hacer click fuera del dropdown
+- **Interfaz intuitiva**: Texto dinámico que se adapta según las selecciones## Props
 
 | Prop             | Tipo                               | Requerido | Descripción                                                  |
 | ---------------- | ---------------------------------- | --------- | ------------------------------------------------------------ |

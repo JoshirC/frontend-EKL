@@ -47,7 +47,7 @@ export default function AcopioIdPage({
   const [funcion, setFuncion] = useState("");
 
   // Estados para filtros
-  const [currentFamily, setCurrentFamily] = useState<string | null>(null);
+  const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredDetalles, setFilteredDetalles] = useState<
     DetalleOrdenAcopio[]
@@ -76,7 +76,8 @@ export default function AcopioIdPage({
               .includes(searchTerm.toLowerCase());
 
           const matchesFamily =
-            !currentFamily || detalle.producto.familia === currentFamily;
+            selectedFamilies.length === 0 ||
+            selectedFamilies.includes(detalle.producto.familia);
 
           return matchesSearch && matchesFamily;
         }
@@ -84,7 +85,7 @@ export default function AcopioIdPage({
 
       setFilteredDetalles(filtered);
     }
-  }, [data, searchTerm, currentFamily]);
+  }, [data, searchTerm, selectedFamilies]);
   const [eliminarOrdenAcopio] = useMutation(ELIMINAR_ORDEN_ACOPIO, {
     onCompleted: () => {
       setAlertType("exitoso");
@@ -314,26 +315,19 @@ export default function AcopioIdPage({
 
         {/* Controles de filtro */}
         {detalles.length > 0 && (
-          <>
-            <div className="flex flex-col sm:flex-row justify-start items-center mt-4 pb-4 gap-4">
-              <FamilyPagination
-                familyGroups={familyGroups}
-                currentFamily={currentFamily}
-                onFamilyChange={setCurrentFamily}
-                disabled={loading}
-                showAllOption={true}
-                allOptionText="Todas las familias"
-              />
-              {/* Barra de Busqueda */}
-              <input
-                type="text"
-                placeholder="Buscar por código o nombre del producto..."
-                className="w-full p-4 my-4 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </>
+          <div className="mt-4 pb-4">
+            <FamilyPagination
+              familyGroups={familyGroups}
+              selectedFamilies={selectedFamilies}
+              onFamilyChange={setSelectedFamilies}
+              disabled={loading}
+              placeholder="Filtrar por familia"
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Buscar por código o nombre del producto..."
+              showSearch={true}
+            />
+          </div>
         )}
 
         {filteredDetalles.length === 0 && detalles.length > 0 ? (

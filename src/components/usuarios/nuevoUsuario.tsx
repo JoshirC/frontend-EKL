@@ -95,14 +95,27 @@ const NuevoUsuario: React.FC<ModalProps> = ({ isOpen, onClose, onSuccess }) => {
               />
             )}
             <form onSubmit={handleSubmit}>
-              <input
-                type="text"
-                value={rut}
-                placeholder="Rut"
-                className="block w-full mt-4 p-2 border border-gray-300 rounded"
-                onChange={(e) => setRut(e.target.value.toLocaleUpperCase())}
-                required
-              />
+              <div className="flex items-center border border-gray-300 rounded">
+                <input
+                  type="text"
+                  placeholder="Ingrese su número de Rut"
+                  className="w-full px-3 py-2 text-sm sm:text-base focus:outline-none"
+                  value={rut}
+                  onChange={(e) => {
+                    let value = e.target.value
+                      .toUpperCase()
+                      .replace(/[^0-9K]/g, "");
+                    // Insert '-' after the 8th character if not present
+                    if (value.length > 8) {
+                      value = value.slice(0, 8) + "-" + value.slice(8, 9);
+                    }
+                    setRut(value);
+                  }}
+                  maxLength={10}
+                  disabled={loading}
+                  required
+                />
+              </div>
               <input
                 type="text"
                 value={nombre}
