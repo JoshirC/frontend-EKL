@@ -225,9 +225,8 @@ const Navbar = () => {
                 )}
               </div>
             )}
-
             {/* Entrada */}
-            {!["Adquisiciones"].includes(rolUsuario ?? "") && (
+            {!["Adquisiciones", "Bodeguero"].includes(rolUsuario ?? "") && (
               <div className="relative flex justify-center">
                 <button
                   onClick={handleOpenEntrada}
@@ -260,16 +259,14 @@ const Navbar = () => {
                         Ingreso de Productos
                       </div>
                     </Link>
-                    {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                      <Link href="/entrada/carga_softland">
-                        <div
-                          className="block px-4 py-2 hover:bg-orange-200 rounded-md"
-                          onClick={handleSelectOption}
-                        >
-                          Carga Masiva Softland
-                        </div>
-                      </Link>
-                    )}
+                    <Link href="/entrada/carga_softland">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                        onClick={handleSelectOption}
+                      >
+                        Carga Masiva Softland
+                      </div>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -466,7 +463,7 @@ const Navbar = () => {
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          ▶ Ordenes de Acopio
+                          Ordenes de Acopio
                         </div>
                       </Link>
                       <Link href="/adquisiciones/productos">
@@ -474,7 +471,15 @@ const Navbar = () => {
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          ▶ Productos
+                          Productos
+                        </div>
+                      </Link>
+                      <Link href="/adquisiciones/guias_entrada">
+                        <div
+                          className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          Guías de Entrada
                         </div>
                       </Link>
                     </div>
@@ -483,7 +488,7 @@ const Navbar = () => {
               )}
 
               {/* Entrada */}
-              {!["Adquisiciones"].includes(rolUsuario ?? "") && (
+              {!["Adquisiciones", "Bodeguero"].includes(rolUsuario ?? "") && (
                 <div>
                   <button
                     onClick={handleOpenEntrada}
@@ -498,26 +503,25 @@ const Navbar = () => {
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          ▶ Ingreso de Productos
+                          Ingreso de Productos
                         </div>
                       </Link>
-                      {!["Bodeguero"].includes(rolUsuario ?? "") && (
-                        <Link href="/entrada/revision">
-                          <div
-                            className="block px-4 py-2 text-black font-medium hover:bg-orange-300 rounded-md"
-                            onClick={handleSelectOption}
-                          >
-                            ▶ Revisión guia de Entrada
-                          </div>
-                        </Link>
-                      )}
+
+                      <Link href="/entrada/revision">
+                        <div
+                          className="block px-4 py-2 text-black font-medium hover:bg-orange-300 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          Revisión guia de Entrada
+                        </div>
+                      </Link>
                       {!["Bodeguero"].includes(rolUsuario ?? "") && (
                         <Link href="/entrada/carga_softland">
                           <div
                             className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                             onClick={handleSelectOption}
                           >
-                            ▶ Carga Masiva Softland
+                            Carga Masiva Softland
                           </div>
                         </Link>
                       )}
@@ -542,7 +546,7 @@ const Navbar = () => {
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          ▶ Acopio de Productos
+                          Acopio de Productos
                         </div>
                       </Link>
                       {!["Bodeguero"].includes(rolUsuario ?? "") && (
@@ -552,7 +556,7 @@ const Navbar = () => {
                               className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                               onClick={handleSelectOption}
                             >
-                              ▶ Revisión
+                              Revisión
                             </div>
                           </Link>
                           <Link href="/salida/carga_softland">
@@ -560,7 +564,7 @@ const Navbar = () => {
                               className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                               onClick={handleSelectOption}
                             >
-                              ▶ Carga Masiva Softland
+                              Carga Masiva Softland
                             </div>
                           </Link>
                         </>
@@ -586,7 +590,7 @@ const Navbar = () => {
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          ▶ Registro Acopio
+                          Registro Acopio
                         </div>
                       </Link>
                       <Link href="/reporte/trazabilidad">
@@ -594,7 +598,7 @@ const Navbar = () => {
                           className="block px-4 py-2 hover:bg-orange-200"
                           onClick={handleSelectOption}
                         >
-                          ▶ Trazabilidad
+                          Trazabilidad
                         </div>
                       </Link>
                     </div>
@@ -619,7 +623,7 @@ const Navbar = () => {
                       }}
                       className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md cursor-pointer"
                     >
-                      ▶ Cambiar Contraseña
+                      Cambiar Contraseña
                     </div>
                     <div>
                       <Link
@@ -632,7 +636,7 @@ const Navbar = () => {
                           handleSelectOption();
                         }}
                       >
-                        ▶ Salir
+                        Salir
                       </Link>
                     </div>
                   </div>
