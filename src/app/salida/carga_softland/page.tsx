@@ -2,7 +2,10 @@
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_GUIAS_DE_SALIDA_SOFTLAND } from "@/graphql/query";
-import { UPDATE_ESTADO_ORDEN_ACOPIO } from "@/graphql/mutations";
+import {
+  UPDATE_ESTADO_ORDEN_ACOPIO,
+  ENVIAR_CORREO_GUIA_SALIDA,
+} from "@/graphql/mutations";
 import Alert from "@/components/Alert";
 
 import * as XLSX from "xlsx";
@@ -118,12 +121,35 @@ const CargaSoftlandPage: React.FC = () => {
       setShowAlert(true);
     },
   });
+  const [enviarCorreoGuiaSalida] = useMutation(ENVIAR_CORREO_GUIA_SALIDA, {
+    onCompleted: () => {
+      guias.forEach((guia) => {
+        handleCambiarEstado(guia.orden.id.toString());
+      });
+      setBotonCargando(false);
+    },
+    onError: (error) => {
+      setBotonCargando(false);
+      setAlertType("error");
+      setAlertMessage(`${error.message}`);
+      setShowAlert(true);
+    },
+  });
+
   const handleCambiarEstado = (id_orden: string) => {
     setBotonCargando(true);
     updateEstadoOrden({
       variables: {
         id: parseFloat(id_orden),
         estado: "Cerrado",
+      },
+    });
+  };
+  const handleEnviarCorreo = () => {
+    setBotonCargando(true);
+    enviarCorreoGuiaSalida({
+      variables: {
+        id: guias.map((guia) => guia.id),
       },
     });
   };
@@ -164,19 +190,34 @@ const CargaSoftlandPage: React.FC = () => {
           <h1 className="text-2xl font-semibold mb-4">
             Carga Softland Guias de Salida
           </h1>
-          <button
-            className={`${
-              botonCargando
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-orange-400 hover:bg-orange-500"
-            } text-white font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap`}
-            onClick={() => {
-              exportarAExcel();
-              setBotonCargando(true);
-            }}
-          >
-            Exportar a Excel
-          </button>
+          <div className="flex sm:flex-row flex-col gap-2 sm:gap-4">
+            <button
+              className={`${
+                botonCargando
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-orange-400 hover:bg-orange-500"
+              } text-white font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap`}
+              onClick={() => {
+                exportarAExcel();
+                setBotonCargando(true);
+              }}
+            >
+              Descargar Excel
+            </button>
+            <button
+              className={`${
+                botonCargando
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-400 hover:bg-blue-500"
+              } text-white font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap`}
+              onClick={() => {
+                handleEnviarCorreo();
+                setBotonCargando(true);
+              }}
+            >
+              Enviar por Correo
+            </button>
+          </div>
         </div>
         {/* Tabla de datos */}
         <div className="overflow-x-auto">

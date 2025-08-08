@@ -286,7 +286,7 @@ export default function AcopioSalidaIdPage({
           !d.producto.trazabilidad &&
           cantidadesTemporales[d.id] !== undefined &&
           cantidadesTemporales[d.id] !== null &&
-          cantidadesTemporales[d.id] > 0
+          cantidadesTemporales[d.id] >= 0
       )
       .map((d) => ({
         id_detalle_orden_acopio: d.id,

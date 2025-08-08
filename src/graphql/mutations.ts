@@ -321,3 +321,8 @@ export const ENVIAR_CORREO_GUIA_ENTRADA = gql`
     enviarExcelGuias
   }
 `;
+export const ENVIAR_CORREO_GUIA_SALIDA = gql`
+  mutation enviarExcelSalidas{
+    enviarExcelSalidas
+  }
+`;
