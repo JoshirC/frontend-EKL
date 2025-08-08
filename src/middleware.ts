@@ -11,6 +11,7 @@ const restrictedRoutes = {
     '/adquisiciones/acopio',
     '/salida/revision',
     '/salida/carga_softland',
+    '/entrada/orden_compra',
     '/entrada/carga_softland',
     '/entrada/revision',
     '/reporte/registro_acopio',

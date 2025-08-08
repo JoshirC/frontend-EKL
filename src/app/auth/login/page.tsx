@@ -120,7 +120,17 @@ export default function Login() {
                 placeholder="Ingrese su número de Rut"
                 className="w-full px-3 py-2 text-sm sm:text-base focus:outline-none"
                 value={rut}
-                onChange={(e) => setRut(e.target.value.toLocaleUpperCase())}
+                onChange={(e) => {
+                  let value = e.target.value
+                    .toUpperCase()
+                    .replace(/[^0-9K]/g, "");
+                  // Insert '-' after the 8th character if not present
+                  if (value.length > 8) {
+                    value = value.slice(0, 8) + "-" + value.slice(8, 9);
+                  }
+                  setRut(value);
+                }}
+                maxLength={10}
                 disabled={loading}
                 required
               />

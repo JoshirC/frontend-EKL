@@ -1,187 +1,231 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-interface FamilyPaginationProps {
+interface FamilyFilterProps {
   familyGroups: string[];
-  currentFamily: string | null;
-  onFamilyChange: (family: string | null) => void;
+  selectedFamilies: string[];
+  onFamilyChange: (families: string[]) => void;
   disabled?: boolean;
-  showAllOption?: boolean;
-  allOptionText?: string;
+  placeholder?: string;
+  // Props para el buscador
+  searchTerm?: string;
+  onSearchChange?: (term: string) => void;
+  searchPlaceholder?: string;
+  showSearch?: boolean;
 }
 
-const FamilyPagination: React.FC<FamilyPaginationProps> = ({
+const FamilyFilter: React.FC<FamilyFilterProps> = ({
   familyGroups,
-  currentFamily,
+  selectedFamilies,
   onFamilyChange,
   disabled = false,
-  showAllOption = true,
-  allOptionText = "Todas las familias",
+  placeholder = "Seleccionar familias...",
+  // Props del buscador
+  searchTerm = "",
+  onSearchChange,
+  searchPlaceholder = "Buscar por código o descripción...",
+  showSearch = true,
 }) => {
-  const [screenSize, setScreenSize] = useState<"sm" | "md" | "lg">("lg");
+  const [isOpen, setIsOpen] = useState(false);
+  const [familySearchTerm, setFamilySearchTerm] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Detectar tamaño de pantalla
+  // Cerrar dropdown cuando se hace click fuera
   useEffect(() => {
-    const checkScreenSize = () => {
-      if (window.innerWidth < 640) {
-        setScreenSize("sm");
-      } else if (window.innerWidth < 1024) {
-        setScreenSize("md");
-      } else {
-        setScreenSize("lg");
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
       }
     };
 
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  const handlePrevious = () => {
-    if (!currentFamily) {
-      // Si no hay familia seleccionada y queremos ir hacia atrás, ir a la última
-      onFamilyChange(familyGroups[familyGroups.length - 1]);
+
+  // Filtrar familias según búsqueda
+  const filteredFamilies = familyGroups.filter((family) =>
+    family.toLowerCase().includes(familySearchTerm.toLowerCase())
+  );
+
+  const handleFamilyToggle = (family: string) => {
+    const isSelected = selectedFamilies.includes(family);
+    if (isSelected) {
+      onFamilyChange(selectedFamilies.filter((f) => f !== family));
     } else {
-      const currentIndex = familyGroups.indexOf(currentFamily);
-      if (currentIndex > 0) {
-        onFamilyChange(familyGroups[currentIndex - 1]);
-      } else if (showAllOption) {
-        // Si estamos en la primera familia y hay opción "Todas", ir a null
-        onFamilyChange(null);
-      }
+      onFamilyChange([...selectedFamilies, family]);
     }
   };
 
-  const handleNext = () => {
-    if (!currentFamily) {
-      // Si no hay familia seleccionada, ir a la primera
-      onFamilyChange(familyGroups[0]);
+  const handleSelectAll = () => {
+    if (selectedFamilies.length === familyGroups.length) {
+      onFamilyChange([]);
     } else {
-      const currentIndex = familyGroups.indexOf(currentFamily);
-      if (currentIndex < familyGroups.length - 1) {
-        onFamilyChange(familyGroups[currentIndex + 1]);
-      }
+      onFamilyChange([...familyGroups]);
     }
   };
 
-  const isPreviousDisabled = (): boolean => {
-    if (disabled) return true;
-    if (!showAllOption) {
-      return !currentFamily || familyGroups.indexOf(currentFamily) === 0;
-    }
-    return false; // Siempre permitir ir hacia atrás si hay opción "Todas"
+  const handleClearAll = () => {
+    onFamilyChange([]);
   };
 
-  const isNextDisabled = (): boolean => {
-    if (disabled) return true;
-    return Boolean(
-      currentFamily &&
-        familyGroups.indexOf(currentFamily) === familyGroups.length - 1
-    );
-  };
-
-  // Calcular qué familias mostrar en la vista
-  const getVisibleFamilies = () => {
-    // Ajustar número de familias visibles según tamaño de pantalla
-    const maxVisible = screenSize === "sm" ? 2 : screenSize === "md" ? 3 : 5;
-
-    if (familyGroups.length <= maxVisible) {
-      return familyGroups;
+  const getDisplayText = () => {
+    if (selectedFamilies.length === 0) {
+      return placeholder;
+    } else if (selectedFamilies.length === 1) {
+      return selectedFamilies[0];
+    } else if (selectedFamilies.length === familyGroups.length) {
+      return "Todas las familias";
+    } else {
+      return "Familias seleccionadas";
     }
-
-    const currentIndex = currentFamily
-      ? familyGroups.indexOf(currentFamily)
-      : -1;
-
-    if (currentIndex === -1) {
-      // Si no hay familia seleccionada, mostrar las primeras
-      return familyGroups.slice(0, maxVisible);
-    }
-
-    // Calcular el rango para mostrar elementos centrados en la selección actual
-    const start = Math.max(
-      0,
-      Math.min(
-        currentIndex - Math.floor(maxVisible / 2),
-        familyGroups.length - maxVisible
-      )
-    );
-    const end = Math.min(start + maxVisible, familyGroups.length);
-
-    return familyGroups.slice(start, end);
   };
-  const visibleFamilies = getVisibleFamilies();
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
-      {/* Botón Anterior */}
-      <button
-        onClick={handlePrevious}
-        disabled={isPreviousDisabled()}
-        className={`p-2 sm:p-3 rounded font-semibold text-xs sm:text-sm lg:text-base flex-shrink-0 ${
-          isPreviousDisabled()
-            ? "bg-gray-200 cursor-not-allowed"
-            : "bg-orange-500 hover:bg-orange-600 text-white"
-        }`}
-      >
-        <span className="hidden sm:inline">Anterior</span>
-        <span className="sm:hidden">‹</span>
-      </button>
-
-      {/* Familias visibles */}
-      <div className="flex-1 min-w-0 overflow-hidden">
-        <div className="flex overflow-x-auto gap-1 sm:gap-2 pb-1 sm:pb-0 scrollbar-none">
-          {/* Opción "Todas" si está habilitada */}
-          {showAllOption && (
-            <button
-              onClick={() => onFamilyChange(null)}
-              className={`p-2 sm:p-3 rounded text-xs sm:text-sm lg:text-base font-semibold flex-shrink-0 min-w-0 ${
-                currentFamily === null
-                  ? "bg-gray-400 text-white"
-                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-              }`}
-              disabled={disabled}
+    <div className="flex flex-col sm:flex-row gap-4 w-full">
+      {/* Buscador principal */}
+      {showSearch && onSearchChange && (
+        <div className="flex-1 relative">
+          {/* Icono de búsqueda */}
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <span className="block truncate max-w-[60px] sm:max-w-[80px] md:max-w-[120px] lg:max-w-[150px]">
-                {allOptionText}
-              </span>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+
+          <input
+            type="text"
+            placeholder={searchPlaceholder}
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            disabled={disabled}
+            className={`w-full p-3 pl-10 pr-10 border rounded-md ${
+              disabled
+                ? "bg-gray-100 cursor-not-allowed text-gray-400"
+                : "bg-white hover:bg-gray-50 border-gray-300"
+            }`}
+          />
+
+          {/* Botón para limpiar búsqueda */}
+          {searchTerm && !disabled && (
+            <button
+              onClick={() => onSearchChange("")}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-400 hover:text-red-500 transition-colors"
+              type="button"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </button>
           )}
-
-          {/* Botones de familias */}
-          {visibleFamilies.map((family) => (
-            <button
-              key={family}
-              onClick={() => onFamilyChange(family)}
-              className={`p-2 sm:p-3 rounded text-xs sm:text-sm lg:text-base font-semibold flex-shrink-0 min-w-0 ${
-                currentFamily === family
-                  ? "bg-gray-400 text-white"
-                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-              }`}
-              disabled={disabled}
-            >
-              <span className="block truncate max-w-[60px] sm:max-w-[80px] md:max-w-[120px] lg:max-w-[150px]">
-                {family}
-              </span>
-            </button>
-          ))}
         </div>
-      </div>
+      )}
 
-      {/* Botón Siguiente */}
-      <button
-        onClick={handleNext}
-        disabled={isNextDisabled()}
-        className={`p-2 sm:p-3 rounded font-semibold text-xs sm:text-sm lg:text-base flex-shrink-0 ${
-          isNextDisabled()
-            ? "bg-gray-200 cursor-not-allowed"
-            : "bg-orange-500 hover:bg-orange-600 text-white"
-        }`}
-      >
-        <span className="hidden sm:inline">Siguiente</span>
-        <span className="sm:hidden">›</span>
-      </button>
+      {/* Filtro de familias */}
+      <div className="relative w-full sm:w-80" ref={dropdownRef}>
+        {/* Botón principal del dropdown */}
+        <button
+          type="button"
+          onClick={() => !disabled && setIsOpen(!isOpen)}
+          disabled={disabled}
+          className={`w-full flex items-center justify-between py-2 px-3 border rounded-md text-left ${
+            disabled
+              ? "bg-gray-100 cursor-not-allowed text-gray-400"
+              : "bg-white hover:bg-gray-50 border-gray-300"
+          }`}
+        >
+          <span className="block truncate">{getDisplayText()}</span>
+          <div className="flex items-center gap-2">
+            {selectedFamilies.length >= 0 && (
+              <span className="text-white font-semibold bg-orange-400 rounded-lg px-4 py-2 text-xs">
+                {selectedFamilies.length}
+              </span>
+            )}
+            <svg
+              className={`w-4 h-4 transition-transform ${
+                isOpen ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </button>
+
+        {/* Dropdown menu */}
+        {isOpen && (
+          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-80 overflow-hidden">
+            {/* Acciones rápidas */}
+            <div className="p-2 border-b border-gray-200 flex gap-2">
+              <button
+                onClick={handleSelectAll}
+                className="flex-1 px-3 py-2 font-semibold bg-orange-400 text-white rounded hover:bg-orange-500 transition-colors"
+              >
+                {selectedFamilies.length === familyGroups.length
+                  ? "Deseleccionar Todo"
+                  : "Seleccionar Todo"}
+              </button>
+            </div>
+
+            {/* Lista de familias */}
+            <div className="max-h-48 overflow-y-auto">
+              {filteredFamilies.length > 0 ? (
+                filteredFamilies.map((family) => (
+                  <label
+                    key={family}
+                    className="flex items-center p-3 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedFamilies.includes(family)}
+                      onChange={() => handleFamilyToggle(family)}
+                      className="mr-3 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-900 flex-1">
+                      {family}
+                    </span>
+                  </label>
+                ))
+              ) : (
+                <div className="p-3 text-sm text-gray-500 text-center">
+                  No se encontraron familias
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default FamilyPagination;
+export default FamilyFilter;

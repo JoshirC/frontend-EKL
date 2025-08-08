@@ -6,6 +6,7 @@ import DropdownCambioProducto from "@/components/salida_acopio/DropdownCambioPro
 import DropdownEnviosDetalleOrdenAcopio from "@/components/salida_acopio/dropdownEnviosDetalleOrdenAcopio";
 import DropdownTrazabilidad from "@/components/salida_acopio/dropdownTrazabilidad";
 import FormularioGuiaSalida from "@/components/salida_acopio/formularioGuiaSalida";
+import FamilyFilter from "@/components/FamilyPagination";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
   UPDATE_ESTADO_DETALLE_ACOPIO,
@@ -89,8 +90,9 @@ export default function AcopioSalidaIdPage({
   const [editValue, setEditValue] = useState<string>("");
   const [editLoading, setEditLoading] = useState<number | null>(null);
   const [loadingSave, setLoadingSave] = useState<number | null>(null);
-  const [currentFamily, setCurrentFamily] = useState<string | null>(null);
   const [familyGroups, setFamilyGroups] = useState<string[]>([]);
+  const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [openModalGuia, setOpenModalGuia] = useState(false);
 
   // Query para obtener datos
@@ -112,32 +114,59 @@ export default function AcopioSalidaIdPage({
     const families = Object.keys(grouped).sort();
     setFamilyGroups(families); // Actualiza la lista de familias
 
+    // Filtrar por familias seleccionadas
+    let filteredItems: DetalleOrdenAcopio[] = [];
+    if (selectedFamilies.length > 0) {
+      selectedFamilies.forEach((familia) => {
+        if (grouped[familia]) {
+          filteredItems = filteredItems.concat(grouped[familia]);
+        }
+      });
+    } else {
+      // Si no hay familias seleccionadas, mostrar todos los items
+      filteredItems = detalles;
+    }
+
+    // Filtrar por término de búsqueda
+    if (searchTerm.trim()) {
+      filteredItems = filteredItems.filter(
+        (detalle) =>
+          detalle.codigo_producto
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          detalle.producto.nombre_producto
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Crear una copia del array y ordenar productos: primero por estado de envío, luego alfabéticamente
+    const sortedItems = [...filteredItems].sort((a, b) => {
+      // Determinar si los productos fueron enviados
+      const aEnviado = a.envios.length > 0;
+      const bEnviado = b.envios.length > 0;
+
+      // Si uno está enviado y el otro no, el no enviado va primero
+      if (aEnviado && !bEnviado) return 1;
+      if (!aEnviado && bEnviado) return -1;
+
+      // Si ambos tienen el mismo estado de envío, ordenar alfabéticamente por nombre del producto
+      return a.producto.nombre_producto.localeCompare(
+        b.producto.nombre_producto,
+        "es",
+        { sensitivity: "base" }
+      );
+    });
+
     return {
       groupedByFamily: grouped,
-      currentItems: currentFamily ? grouped[currentFamily] || [] : [],
+      currentItems: sortedItems,
     };
-  }, [data, currentFamily]);
+  }, [data, selectedFamilies, searchTerm]);
 
-  // Efecto para mantener la familia actual después de refetch
-  useEffect(() => {
-    if (familyGroups.length > 0) {
-      if (!currentFamily) {
-        // Primera carga
-        setCurrentFamily(familyGroups[0]);
-      } else if (!familyGroups.includes(currentFamily)) {
-        // Si la familia actual ya no existe después del refetch
-        setCurrentFamily(familyGroups[0]);
-      }
-    }
-  }, [familyGroups, currentFamily]);
-
-  // Refetch modificado para mantener posición
+  // Refetch simplificado
   const stableRefetch = async () => {
-    const currentFamilyBefore = currentFamily;
     await refetch();
-    if (currentFamilyBefore && familyGroups.includes(currentFamilyBefore)) {
-      setCurrentFamily(currentFamilyBefore);
-    }
   };
 
   // Mutaciones
@@ -155,9 +184,19 @@ export default function AcopioSalidaIdPage({
   const [createEnvioDetalleOrdenAcopio] = useMutation(
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
     {
-      onCompleted: () => {
+      onCompleted: (data, context) => {
         stableRefetch();
         setDesactivacionBoton(false);
+
+        // Si el envío fue exitoso y tenemos el ID del detalle, limpiamos la cantidad temporal
+        const detalleId = context?.variables?.id_detalle_orden_acopio;
+        if (detalleId) {
+          setCantidadesTemporales((prev) => {
+            const newState = { ...prev };
+            delete newState[detalleId];
+            return newState;
+          });
+        }
       },
       onError: (error) => {
         setDesactivacionBoton(false);
@@ -187,17 +226,6 @@ export default function AcopioSalidaIdPage({
       },
     }
   );
-  const [updateEstadoEnviado] = useMutation(UPDATE_ESTADO_DETALLE_ACOPIO, {
-    onCompleted: stableRefetch,
-    onError: (error) => {
-      setAlertType("error");
-      setAlertMessage(
-        "Error al actualizar el estado del envio: " + error.message
-      );
-      setShowAlert(true);
-    },
-  });
-
   const [updateCantidadEnvioDetalle] = useMutation(
     UPDATE_CANTIDAD_ENVIO_DETALLE,
     {
@@ -219,13 +247,46 @@ export default function AcopioSalidaIdPage({
   const handleCambioCantidad = (id: number, valor: number) => {
     setCantidadesTemporales((prev) => ({ ...prev, [id]: valor }));
   };
+
+  const handleEnvioUnico = async (detalleId: number) => {
+    const cantidad = cantidadesTemporales[detalleId];
+
+    if (cantidad === undefined || cantidad === null || cantidad < 0) {
+      setAlertType("advertencia");
+      setAlertMessage("Debe ingresar una cantidad válida para enviar");
+      setShowAlert(true);
+      return;
+    }
+
+    const detalle = currentItems.find((d) => d.id === detalleId);
+    if (!detalle) {
+      setAlertType("error");
+      setAlertMessage("No se encontró el detalle del producto");
+      setShowAlert(true);
+      return;
+    }
+
+    setDesactivacionBoton(true);
+
+    try {
+      await handleCrearEnvioDetalle(
+        detalleId,
+        cantidad,
+        detalle.codigo_producto
+      );
+    } catch (error) {
+      console.error("Error en envío único:", error);
+      setDesactivacionBoton(false);
+    }
+  };
   const handleCrearEnviosMasivos = async () => {
     const productosFiltrados = currentItems
       .filter(
         (d) =>
           !d.producto.trazabilidad &&
           cantidadesTemporales[d.id] !== undefined &&
-          cantidadesTemporales[d.id] !== null
+          cantidadesTemporales[d.id] !== null &&
+          cantidadesTemporales[d.id] >= 0
       )
       .map((d) => ({
         id_detalle_orden_acopio: d.id,
@@ -533,9 +594,24 @@ export default function AcopioSalidaIdPage({
           </div>
         </div>
 
+        {/* Filtro de familias y búsqueda */}
+        <div className="mt-4 mb-2">
+          <FamilyFilter
+            familyGroups={familyGroups}
+            selectedFamilies={selectedFamilies}
+            onFamilyChange={setSelectedFamilies}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            placeholder="Filtrar por familias..."
+            searchPlaceholder="Buscar por código o descripción del producto..."
+            disabled={desactivacionBoton}
+            showSearch={true}
+          />
+        </div>
+
         <div className="overflow-x-auto">
           <table className="table-auto w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
-            <thead className="bg-gray-200">
+            <thead className="bg-gray-200 ">
               <tr>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Familia
@@ -634,23 +710,44 @@ export default function AcopioSalidaIdPage({
                             </div>
                           )}
                         </td>
-
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          <button
-                            onClick={() => {
-                              handleDropdownCambiarProductoClick(detalle.id);
-                              setLoadingSave(detalle.id);
-                            }}
-                            className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200
+                          <div className="flex flex-col gap-2 sm:flex-row">
+                            {!detalle.producto.trazabilidad &&
+                              cantidadesTemporales[detalle.id] !== undefined &&
+                              cantidadesTemporales[detalle.id] >= 0 && (
+                                <button
+                                  onClick={() => handleEnvioUnico(detalle.id)}
+                                  className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200
+    ${
+      desactivacionBoton || loadingSave === detalle.id
+        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+        : "bg-blue-400 hover:bg-blue-500"
+    }
+  `}
+                                  disabled={
+                                    desactivacionBoton ||
+                                    loadingSave === detalle.id
+                                  }
+                                >
+                                  Enviar
+                                </button>
+                              )}
+                            <button
+                              onClick={() => {
+                                handleDropdownCambiarProductoClick(detalle.id);
+                                setLoadingSave(detalle.id);
+                              }}
+                              className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200
     ${
       loadingSave === detalle.id
         ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
         : "bg-orange-400 hover:bg-orange-500"
     }
   `}
-                          >
-                            Cambiar Producto
-                          </button>
+                            >
+                              Cambiar Producto
+                            </button>
+                          </div>
                         </td>
                       </>
                     ) : detalle.envios.length > 1 ? (
@@ -853,103 +950,8 @@ export default function AcopioSalidaIdPage({
               onClick={handleCrearEnviosMasivos}
               disabled={desactivacionBoton}
             >
-              Enviar Productos
+              Enviar Múltiples Productos
             </button>
-          </div>
-
-          {/* Paginación por familia */}
-          <div className="flex flex-col sm:flex-row justify-end items-center mt-6 pb-4 gap-4">
-            <div className="flex items-center gap-2 sm:w-auto w-full">
-              <button
-                onClick={() => {
-                  const currentIndex = familyGroups.indexOf(
-                    currentFamily || ""
-                  );
-                  if (currentIndex > 0) {
-                    setCurrentFamily(familyGroups[currentIndex - 1]);
-                  }
-                }}
-                disabled={
-                  desactivacionBoton ||
-                  !currentFamily ||
-                  familyGroups.indexOf(currentFamily) === 0
-                }
-                className={`p-3 rounded font-semibold text-sm sm:text-base
-    ${
-      desactivacionBoton ||
-      !currentFamily ||
-      familyGroups.indexOf(currentFamily) === 0
-        ? "bg-gray-200 cursor-not-allowed"
-        : "bg-orange-500 hover:bg-orange-600 text-white"
-    }
-  `}
-              >
-                Anterior
-              </button>
-
-              <div className="flex-1 overflow-x-hidden">
-                <div className="flex space-x-2 justify-center">
-                  {familyGroups
-                    .slice(
-                      Math.max(
-                        0,
-                        Math.min(
-                          familyGroups.indexOf(currentFamily || "") - 2,
-                          familyGroups.length - 5
-                        )
-                      ),
-                      Math.min(
-                        familyGroups.indexOf(currentFamily || "") + 3,
-                        familyGroups.length
-                      )
-                    )
-                    .map((family) => (
-                      <button
-                        key={family}
-                        onClick={() => setCurrentFamily(family)}
-                        disabled={desactivacionBoton}
-                        className={`p-3 rounded text-sm sm:text-base font-semibold min-w-max whitespace-nowrap ${
-                          currentFamily === family
-                            ? "bg-gray-400 text-white"
-                            : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                        }`}
-                      >
-                        <span className="max-w-[100px] sm:max-w-[150px] truncate">
-                          {family}
-                        </span>
-                      </button>
-                    ))}
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  const currentIndex = familyGroups.indexOf(
-                    currentFamily || ""
-                  );
-                  if (currentIndex < familyGroups.length - 1) {
-                    setCurrentFamily(familyGroups[currentIndex + 1]);
-                  }
-                }}
-                disabled={
-                  desactivacionBoton ||
-                  !currentFamily ||
-                  familyGroups.indexOf(currentFamily) ===
-                    familyGroups.length - 1
-                }
-                className={`p-3 rounded font-semibold text-sm sm:text-base
-    ${
-      desactivacionBoton ||
-      !currentFamily ||
-      familyGroups.indexOf(currentFamily) === familyGroups.length - 1
-        ? "bg-gray-200 cursor-not-allowed"
-        : "bg-orange-500 hover:bg-orange-600 text-white"
-    }
-  `}
-              >
-                Siguiente
-              </button>
-            </div>
           </div>
         </div>
       </div>
