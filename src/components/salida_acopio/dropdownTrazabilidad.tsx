@@ -54,6 +54,9 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
 
   // Estados para cantidad, alerta y loading
   const [cantidades, setCantidades] = useState<Record<number, number>>({});
+  const [numerosPallet, setNumerosPallet] = useState<Record<number, number>>(
+    {}
+  );
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
@@ -106,15 +109,33 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
     }));
   };
 
+  // Manejar cambio de número de pallet
+  const handleCambioNumeroPallet = (id: number, valor: number) => {
+    setNumerosPallet((prev) => ({
+      ...prev,
+      [id]: valor,
+    }));
+  };
+
   // Manejar envío
   const handleEnviar = async (item: Trazabilidad) => {
     const cantidadEnviada = cantidades[item.id] || 0;
+    const numeroPallet = numerosPallet[item.id] || 0;
+
     if (cantidadEnviada <= 0) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad enviada debe ser mayor a 0");
       setShowAlert(true);
       return;
     }
+
+    if (numeroPallet <= 0) {
+      setAlertType("advertencia");
+      setAlertMessage("Debe ingresar un número de pallet válido");
+      setShowAlert(true);
+      return;
+    }
+
     setLoadingState(true);
     try {
       console.log(
@@ -130,6 +151,7 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
           cantidad_enviada: cantidadEnviada,
           codigo_producto_enviado: item.producto.codigo,
           usuario_rut: rutUsuario,
+          numero_pallet: numeroPallet,
           id_trazabilidad: item.id,
         },
       });
@@ -217,6 +239,20 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
                         placeholder={item.cantidad_producto.toString()}
                         onChange={(e) =>
                           handleCambioCantidad(item.id, Number(e.target.value))
+                        }
+                        disabled={loadingState}
+                      />
+                      <input
+                        type="number"
+                        min="1"
+                        value={numerosPallet[item.id] || ""}
+                        className="w-24 border border-gray-300 rounded p-2 text-sm sm:text-base"
+                        placeholder="Nº Pallet"
+                        onChange={(e) =>
+                          handleCambioNumeroPallet(
+                            item.id,
+                            Number(e.target.value)
+                          )
                         }
                         disabled={loadingState}
                       />

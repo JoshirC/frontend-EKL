@@ -49,6 +49,9 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
   const [showCambiarProducto, setShowCambiarProducto] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
+  const [numerosPallet, setNumerosPallet] = useState<Record<string, number>>(
+    {}
+  );
   const [productosEnviados, setProductosEnviados] = useState<ProductoEnviado[]>(
     []
   );
@@ -99,10 +102,17 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
     cantidad_sistema: number
   ) => {
     const cantidadEnviada = cantidades[codigo] || 0;
+    const numeroPallet = numerosPallet[codigo] || 0;
 
     if (cantidadEnviada <= 0) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad enviada debe ser mayor a 0");
+      return setShowAlert(true);
+    }
+
+    if (numeroPallet <= 0) {
+      setAlertType("advertencia");
+      setAlertMessage("Debe ingresar un número de pallet válido");
       return setShowAlert(true);
     }
 
@@ -122,6 +132,7 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
           cantidad_enviada: cantidadEnviada,
           codigo_producto_enviado: codigo,
           usuario_rut: rutUsuario,
+          numero_pallet: numeroPallet,
         },
       });
       await updateEstadoEnviado({ variables: { id: id_detalle_orden_acopio } });
@@ -175,6 +186,20 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
               className="w-20 border border-gray-300 rounded p-2 text-sm"
               disabled={loadingState}
             />
+            <input
+              type="number"
+              min="1"
+              value={numerosPallet[producto.codigo] || ""}
+              placeholder="Nº Pallet"
+              onChange={(e) =>
+                setNumerosPallet((prev) => ({
+                  ...prev,
+                  [producto.codigo]: Number(e.target.value),
+                }))
+              }
+              className="w-24 border border-gray-300 rounded p-2 text-sm"
+              disabled={loadingState}
+            />
             <button
               onClick={() =>
                 handleEnviarProducto(producto.codigo, producto.cantidad)
@@ -225,7 +250,10 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
     <div className="bg-white border border-gray-200 rounded shadow-lg py-4 px-6 m-1">
       <CambiarProducto
         isOpen={showCambiarProducto}
-        onClose={() => setShowCambiarProducto(false)}
+        onClose={() => {
+          setShowCambiarProducto(false);
+          onClose(); // Cierra el dropdown padre
+        }}
         producto={
           producto || {
             codigo: "",
@@ -259,16 +287,36 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
           </button>
         </div>
       </div>
-
-      <div className="bg-gray-200 p-3 rounded text-center font-bold mt-4">
-        Producto - {producto?.nombre_producto}
-      </div>
-      <div className="flex flex-col sm:flex-row justify-around items-center my-3 gap-4 font-bold">
-        <div className="bg-gray-200 p-3 text-center rounded w-full">
-          Código - {producto?.codigo}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+        <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
+          <div className="flex items-center gap-2">
+            <div>
+              <p className="text-sm font-medium">Producto</p>
+              <p className="font-semibold text-gray-800">
+                {producto?.nombre_producto ?? "N/A"}
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="bg-gray-200 p-3 text-center rounded w-full">
-          Cantidad a enviar - {cantidad}
+        <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
+          <div className="flex items-center gap-2">
+            <div>
+              <p className="text-sm font-medium">Código</p>
+              <p className="font-semibold text-gray-800">
+                {producto?.codigo ?? "N/A"}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
+          <div className="flex items-center gap-2">
+            <div>
+              <p className="text-sm font-medium">Cantidad</p>
+              <p className="font-semibold text-gray-800">
+                {cantidad ?? "N/A"} {producto?.unidad_medida ?? "N/A"}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

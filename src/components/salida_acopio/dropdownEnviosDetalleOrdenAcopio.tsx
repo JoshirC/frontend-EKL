@@ -18,12 +18,16 @@ type Producto = {
   familia: string;
   trazabilidad?: boolean;
 };
-
+type Pallet = {
+  id: number;
+  numero_pallet: number;
+};
 interface Envio {
   id: number;
   cantidad_enviada: number;
   codigo_producto_enviado: string;
   producto?: Producto;
+  pallet: Pallet;
 }
 
 interface DetalleOrdenAcopio {
@@ -55,6 +59,9 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
   const [cerrarModal, setCerrarModal] = useState(false);
   const [activarEditar, setActivarEditar] = useState(false);
   const [editValues, setEditValues] = useState<Record<number, string>>({});
+  const [editPalletValues, setEditPalletValues] = useState<
+    Record<number, string>
+  >({});
   const [editLoading, setEditLoading] = useState<number | null>(null);
   const [enviosEliminados, setEnviosEliminados] = useState<number[]>([]);
   const [botonCargando, setBotonCargando] = useState(false);
@@ -111,31 +118,58 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
     setEditValues((prev) => ({ ...prev, [envioId]: value }));
   };
 
+  const handleEditPalletChange = (envioId: number, value: string) => {
+    setEditPalletValues((prev) => ({ ...prev, [envioId]: value }));
+  };
+
   const handleSaveEdit = async (
     envioId: number,
     cantidad_enviada: number,
-    cantidad_sistema: number
+    cantidad_sistema: number,
+    numero_pallet_actual: number
   ) => {
-    const value = editValues[envioId];
-    if (!value || isNaN(Number(value))) {
+    const cantidadValue = editValues[envioId];
+    const palletValue = editPalletValues[envioId];
+
+    // Validar cantidad
+    if (!cantidadValue || isNaN(Number(cantidadValue))) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad debe ser un número válido");
       setShowAlert(true);
       return;
     }
-    let cantidad = Number(value);
+
+    // Validar pallet
+    if (
+      !palletValue ||
+      isNaN(Number(palletValue)) ||
+      Number(palletValue) <= 0
+    ) {
+      setAlertType("advertencia");
+      setAlertMessage(
+        "El número de pallet debe ser un número válido mayor a 0"
+      );
+      setShowAlert(true);
+      return;
+    }
+
+    const cantidad = Number(cantidadValue);
+    const numeroPallet = Number(palletValue);
+
     if (cantidad <= 0) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad debe ser mayor a cero");
       setShowAlert(true);
       return;
     }
+
     if (enviosEliminados.includes(envioId)) {
       setAlertType("advertencia");
       setAlertMessage("No se puede editar un envío eliminado");
       setShowAlert(true);
       return;
     }
+
     if (cantidad > cantidad_sistema + cantidad_enviada) {
       setAlertType("advertencia");
       setAlertMessage(
@@ -144,21 +178,44 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       setShowAlert(true);
       return;
     }
-    if (cantidad === cantidad_enviada) {
+
+    // Verificar si hay cambios
+    if (
+      cantidad === cantidad_enviada &&
+      numeroPallet === numero_pallet_actual
+    ) {
       setAlertType("advertencia");
-      setAlertMessage("No se ha realizado ningún cambio en la cantidad");
+      setAlertMessage("No se han realizado cambios");
       setShowAlert(true);
       return;
     }
+
     setEditLoading(envioId);
     try {
+      // Construir el objeto de entrada solo con los campos que han cambiado
+      const updateInput: any = {
+        id: envioId,
+        cantidad: cantidad,
+      };
+
+      // Solo incluir numero_pallet si es diferente al actual
+      if (numeroPallet !== numero_pallet_actual) {
+        updateInput.numero_pallet = numeroPallet;
+      }
+
       await updateCantidadEnvioDetalle({
         variables: {
-          id: envioId,
-          cantidad,
+          updateEnvioDetalleOrdenAcopioInput: updateInput,
         },
       });
+
+      // Limpiar los valores editados
       setEditValues((prev) => {
+        const newValues = { ...prev };
+        delete newValues[envioId];
+        return newValues;
+      });
+      setEditPalletValues((prev) => {
         const newValues = { ...prev };
         delete newValues[envioId];
         return newValues;
@@ -194,25 +251,37 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
 
   if (loading) {
     return (
-      <div className="p-10">
-        <div className="bg-white p-6 rounded shadow">
-          <p>Cargando detalles del acopio...</p>
-        </div>
+      <div className="bg-white border border-gray-200 rounded-xl shadow-xl py-8 px-6 m-2 max-w-6xl mx-auto">
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          Cargando detalles del acopio...
+        </h3>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-100 text-red-700 p-4 rounded flex justify-between items-center">
-        <span>Error: {error.message}</span>
-        <button
-          className="ml-4 text-red-700 font-bold text-lg hover:text-red-900"
-          onClick={onClose}
-          aria-label="Cerrar"
-        >
-          x
-        </button>
+      <div className="bg-red-50 border border-red-200 rounded-xl shadow-xl py-6 px-6 m-2 max-w-6xl mx-auto">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-bold">!</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-red-800">
+                Error al cargar datos
+              </h3>
+              <p className="text-red-600">{error.message}</p>
+            </div>
+          </div>
+          <button
+            className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 transition-colors duration-200"
+            onClick={onClose}
+            aria-label="Cerrar"
+          >
+            Cerrar
+          </button>
+        </div>
       </div>
     );
   }
@@ -221,7 +290,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
   const envios = detalleOrdenAcopio?.envios;
 
   return (
-    <div className="bg-white border border-gray-200 rounded shadow-lg py-3 sm:py-4 px-4 sm:px-8 m-1">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-xl py-6 px-6 m-2 mx-auto">
       {showConfirmacion && (
         <Confirmacion
           isOpen={showConfirmacion}
@@ -232,22 +301,37 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
         />
       )}
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-3">
-        <h2 className="text-base font-semibold sm:text-lg">
-          Detalle de Envíos
-        </h2>
-        <div className="flex gap-2 sm:gap-4">
+      {/* Header principal con diseño mejorado */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">
+              Detalle de Envíos
+            </h2>
+            <p className="text-sm text-gray-600">
+              Gestiona los envíos de la orden de acopio
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-3">
           <button
-            className="bg-orange-400 text-white font-semibold px-4 py-2 rounded hover:bg-orange-500"
+            className={`${
+              activarEditar
+                ? "bg-gray-500 hover:bg-gray-600"
+                : "bg-orange-400 hover:bg-orange-500"
+            } text-white font-medium px-6 py-2.5 rounded transition-all duration-200 flex items-center gap-2 shadow-sm`}
             onClick={() => {
               setActivarEditar(!activarEditar);
-              if (activarEditar) setEditValues({});
+              if (activarEditar) {
+                setEditValues({});
+                setEditPalletValues({});
+              }
             }}
           >
-            {activarEditar ? "Cancelar" : "Editar Cantidades"}
+            {activarEditar ? <>Cancelar</> : <>Editar Cantidades</>}
           </button>
           <button
-            className="bg-gray-500 text-white font-semibold px-4 py-2 rounded hover:bg-gray-600"
+            className="bg-gray-500 hover:bg-gray-600 text-white font-medium px-6 py-2.5 rounded transition-all duration-200 flex items-center gap-2 shadow-sm"
             onClick={() => {
               onClose();
               onProcesoCompleto?.();
@@ -255,18 +339,6 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
           >
             Cerrar
           </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row justify-around items-center my-3 gap-4 font-semibold">
-        <div className="bg-gray-200 p-2 rounded text-center w-full">
-          Producto: {detalleOrdenAcopio?.producto?.nombre_producto ?? "N/A"}
-        </div>
-        <div className="bg-gray-200 p-2 rounded text-center w-full">
-          Código Producto: {detalleOrdenAcopio?.codigo_producto}
-        </div>
-        <div className="bg-gray-200 p-2 rounded text-center w-full">
-          Familia: {detalleOrdenAcopio?.producto?.familia ?? "N/A"}
         </div>
       </div>
 
@@ -283,69 +355,125 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       {envios?.map((envio) => (
         <div
           key={envio.id}
-          className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 border rounded-lg mt-2 gap-2 ${
+          className={`relative bg-white border rounded-xl shadow-md p-6 mt-4 transition-all duration-200 ${
             esEnvioEliminado(envio.id)
-              ? "bg-red-50 border-red-200"
-              : "border-gray-200 hover:bg-gray-50"
+              ? "bg-gray-400 border-gray-200 opacity-75"
+              : "border-gray-200 hover:shadow-lg hover:border-gray-300"
           }`}
         >
-          <div className="flex flex-col gap-1">
-            <h2 className="">
-              Nombre del producto: {envio.producto?.nombre_producto ?? "N/A"}
-            </h2>
-            <h2 className="">
-              Código producto Enviado: {envio.codigo_producto_enviado}
-              {esEnvioEliminado(envio.id) && (
-                <span className="ml-2 text-red-500">(Anulado)</span>
-              )}
-            </h2>
+          {/* Información del producto */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div className="rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-medium text-gray-700">Producto Enviado</h4>
+              </div>
+              <p className="text-gray-800 font-semibold">
+                {envio.producto?.nombre_producto ?? "N/A"}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                <span className="font-medium">Código:</span>{" "}
+                {envio.codigo_producto_enviado}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className=" rounded-lg p-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <p className="text-sm font-medium">Cantidad</p>
+                </div>
+                <p className="text-xl font-bold">{envio.cantidad_enviada}</p>
+                <p className="text-xs">
+                  {envio.producto?.unidad_medida || "unidades"}
+                </p>
+              </div>
+
+              <div className=" rounded-lg p-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <p className="text-sm font-medium">Pallet</p>
+                </div>
+                <p className="text-xl font-bold">
+                  #{envio.pallet?.numero_pallet}
+                </p>
+              </div>
+            </div>
           </div>
 
+          {/* Acciones */}
           {!esEnvioEliminado(envio.id) && (
-            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-1/3">
+            <div className="border-t border-gray-200 pt-4">
               {activarEditar ? (
-                <div className="flex w-full gap-2">
-                  <input
-                    type="number"
-                    placeholder={`Cantidad Sistema: ${
-                      envio?.producto?.cantidad ?? 0
-                    }`}
-                    value={editValues[envio.id] ?? ""}
-                    onChange={(e) => handleEditChange(envio.id, e.target.value)}
-                    className="w-full border p-2 rounded"
-                  />
-                  <button
-                    onClick={() => {
-                      handleSaveEdit(
-                        envio.id,
-                        envio.cantidad_enviada,
-                        envio.producto?.cantidad ?? 0
-                      );
-                      setBotonCargando(true);
-                    }}
-                    disabled={editLoading === envio.id || botonCargando}
-                    className={`${
-                      botonCargando
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-blue-400 hover:bg-blue-500"
-                    } text-white px-4 py-2 rounded w-full font-semibold`}
-                  >
-                    Guardar
-                  </button>
+                <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nueva cantidad (Máximo: {envio.producto?.cantidad ?? 0})
+                      </label>
+                      <input
+                        type="number"
+                        placeholder={`Cantidad actual: ${envio.cantidad_enviada}`}
+                        value={editValues[envio.id] ?? ""}
+                        onChange={(e) =>
+                          handleEditChange(envio.id, e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min="1"
+                        max={envio.producto?.cantidad ?? 0}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nuevo número de pallet
+                      </label>
+                      <input
+                        type="number"
+                        placeholder={`Pallet actual: ${
+                          envio.pallet?.numero_pallet ?? 0
+                        }`}
+                        value={editPalletValues[envio.id] ?? ""}
+                        onChange={(e) =>
+                          handleEditPalletChange(envio.id, e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min="1"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        handleSaveEdit(
+                          envio.id,
+                          envio.cantidad_enviada,
+                          envio.producto?.cantidad ?? 0,
+                          envio.pallet?.numero_pallet ?? 0
+                        );
+                        setBotonCargando(true);
+                      }}
+                      disabled={editLoading === envio.id || botonCargando}
+                      className={`${
+                        botonCargando
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-400 hover:bg-blue-500"
+                      } text-white rounded font-medium transition-colors duration-200 flex items-center justify-center`}
+                    >
+                      {editLoading === envio.id ? (
+                        <>
+                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          Guardando...
+                        </>
+                      ) : (
+                        <>Guardar</>
+                      )}
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <div className="flex justify-end items-center gap-4 w-full">
-                  <h2 className="">
-                    Cantidad enviada: {envio.cantidad_enviada}
-                  </h2>
+                <div className="flex justify-end">
                   <button
-                    className="bg-red-500 text-white font-semibold px-4 py-2 rounded hover:bg-red-600"
+                    className="bg-red-500 hover:bg-red-600 text-white font-medium px-6 py-2 rounded transition-colors duration-200 flex items-center gap-2 shadow-sm"
                     onClick={() => {
                       setShowConfirmacion(true);
                       setIdEnvioEliminar(envio.id);
                     }}
                   >
-                    Anular
+                    Anular Envío
                   </button>
                 </div>
               )}

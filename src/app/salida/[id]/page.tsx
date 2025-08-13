@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, use, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import DropdownCambioProducto from "@/components/salida_acopio/DropdownCambioProducto";
@@ -9,8 +8,6 @@ import FormularioGuiaSalida from "@/components/salida_acopio/formularioGuiaSalid
 import FamilyFilter from "@/components/FamilyPagination";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
-  UPDATE_ESTADO_DETALLE_ACOPIO,
-  UPDATE_ESTADO_ORDEN_ACOPIO,
   UPDATE_CANTIDAD_ENVIO_DETALLE,
   REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO,
   CREATE_MULTIPLE_ENVIOS_DETALLE,
@@ -32,6 +29,7 @@ type Envio = {
   id_detalle_orden_acopio: number;
   cantidad_enviada: number;
   codigo_producto_enviado: string;
+  pallet: Pallet;
   producto: Producto;
 };
 
@@ -54,6 +52,10 @@ type CreateMultipleEnviosResponse = {
     codigo_producto_enviado: string;
     motivo: string;
   }[];
+};
+type Pallet = {
+  id: number;
+  numero_pallet: number;
 };
 
 export default function AcopioSalidaIdPage({
@@ -78,6 +80,9 @@ export default function AcopioSalidaIdPage({
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
   >({});
+  const [numerosPallet, setNumerosPallet] = useState<Record<number, number>>(
+    {}
+  );
   const [dropdownEnviosOpen, setDropdownEnviosOpen] = useState<number | null>(
     null
   );
@@ -88,6 +93,7 @@ export default function AcopioSalidaIdPage({
   >(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>("");
+  const [editPalletValue, setEditPalletValue] = useState<string>("");
   const [editLoading, setEditLoading] = useState<number | null>(null);
   const [loadingSave, setLoadingSave] = useState<number | null>(null);
   const [familyGroups, setFamilyGroups] = useState<string[]>([]);
@@ -173,7 +179,10 @@ export default function AcopioSalidaIdPage({
 
   const [createManyEnvios] = useMutation(CREATE_MULTIPLE_ENVIOS_DETALLE, {
     onCompleted: (data) =>
-      handleEnvioMasivoCompleted(data, () => setCantidadesTemporales({})),
+      handleEnvioMasivoCompleted(data, () => {
+        setCantidadesTemporales({});
+        setNumerosPallet({});
+      }),
     onError: (error) => {
       setAlertType("error");
       setAlertMessage("Error general al enviar productos: " + error.message);
@@ -188,10 +197,15 @@ export default function AcopioSalidaIdPage({
         stableRefetch();
         setDesactivacionBoton(false);
 
-        // Si el envío fue exitoso y tenemos el ID del detalle, limpiamos la cantidad temporal
+        // Si el envío fue exitoso y tenemos el ID del detalle, limpiamos las cantidades temporales y pallet
         const detalleId = context?.variables?.id_detalle_orden_acopio;
         if (detalleId) {
           setCantidadesTemporales((prev) => {
+            const newState = { ...prev };
+            delete newState[detalleId];
+            return newState;
+          });
+          setNumerosPallet((prev) => {
             const newState = { ...prev };
             delete newState[detalleId];
             return newState;
@@ -248,12 +262,28 @@ export default function AcopioSalidaIdPage({
     setCantidadesTemporales((prev) => ({ ...prev, [id]: valor }));
   };
 
+  const handleCambioNumeroPallet = (id: number, valor: number) => {
+    setNumerosPallet((prev) => ({ ...prev, [id]: valor }));
+  };
+
   const handleEnvioUnico = async (detalleId: number) => {
     const cantidad = cantidadesTemporales[detalleId];
+    const numeroPallet = numerosPallet[detalleId];
 
     if (cantidad === undefined || cantidad === null || cantidad < 0) {
       setAlertType("advertencia");
       setAlertMessage("Debe ingresar una cantidad válida para enviar");
+      setShowAlert(true);
+      return;
+    }
+
+    if (
+      numeroPallet === undefined ||
+      numeroPallet === null ||
+      numeroPallet <= 0
+    ) {
+      setAlertType("advertencia");
+      setAlertMessage("Debe ingresar un número de pallet válido");
       setShowAlert(true);
       return;
     }
@@ -272,7 +302,8 @@ export default function AcopioSalidaIdPage({
       await handleCrearEnvioDetalle(
         detalleId,
         cantidad,
-        detalle.codigo_producto
+        detalle.codigo_producto,
+        numeroPallet
       );
     } catch (error) {
       console.error("Error en envío único:", error);
@@ -280,26 +311,53 @@ export default function AcopioSalidaIdPage({
     }
   };
   const handleCrearEnviosMasivos = async () => {
-    const productosFiltrados = currentItems
-      .filter(
-        (d) =>
-          !d.producto.trazabilidad &&
-          cantidadesTemporales[d.id] !== undefined &&
-          cantidadesTemporales[d.id] !== null &&
-          cantidadesTemporales[d.id] >= 0
-      )
-      .map((d) => ({
-        id_detalle_orden_acopio: d.id,
-        cantidad_enviada: Number(cantidadesTemporales[d.id]),
-        codigo_producto_enviado: d.codigo_producto,
-      }));
+    const productosValidos = currentItems.filter(
+      (d) =>
+        !d.producto.trazabilidad &&
+        cantidadesTemporales[d.id] !== undefined &&
+        cantidadesTemporales[d.id] !== null &&
+        cantidadesTemporales[d.id] >= 0 &&
+        numerosPallet[d.id] !== undefined &&
+        numerosPallet[d.id] !== null &&
+        numerosPallet[d.id] > 0
+    );
 
-    if (productosFiltrados.length === 0) {
+    if (productosValidos.length === 0) {
       setAlertType("advertencia");
-      setAlertMessage("Debe ingresar cantidad para al menos un producto.");
+      setAlertMessage(
+        "Debe ingresar cantidad y número de pallet para al menos un producto."
+      );
       setShowAlert(true);
       return;
     }
+
+    // Validar que todos los productos con cantidad tengan su número de pallet
+    const productosSinPallet = currentItems.filter(
+      (d) =>
+        !d.producto.trazabilidad &&
+        cantidadesTemporales[d.id] !== undefined &&
+        cantidadesTemporales[d.id] !== null &&
+        cantidadesTemporales[d.id] >= 0 &&
+        (numerosPallet[d.id] === undefined ||
+          numerosPallet[d.id] === null ||
+          numerosPallet[d.id] <= 0)
+    );
+
+    if (productosSinPallet.length > 0) {
+      setAlertType("advertencia");
+      setAlertMessage(
+        "Todos los productos con cantidad deben tener un número de pallet válido."
+      );
+      setShowAlert(true);
+      return;
+    }
+
+    const productosFiltrados = productosValidos.map((d) => ({
+      id_detalle_orden_acopio: d.id,
+      cantidad_enviada: Number(cantidadesTemporales[d.id]),
+      codigo_producto_enviado: d.codigo_producto,
+      numero_pallet: Number(numerosPallet[d.id]),
+    }));
 
     setDesactivacionBoton(true);
 
@@ -356,7 +414,8 @@ export default function AcopioSalidaIdPage({
   const handleCrearEnvioDetalle = async (
     id_detalle: number,
     cantidad: number,
-    codigo: string
+    codigo: string,
+    numero_pallet: number
   ) => {
     // Busca el detalle correspondiente
     const detalle = currentItems.find((d) => d.id === id_detalle);
@@ -398,6 +457,7 @@ export default function AcopioSalidaIdPage({
           cantidad_enviada: Number(cantidad),
           codigo_producto_enviado: String(codigo),
           usuario_rut: String(rutUsuario),
+          numero_pallet: Number(numero_pallet),
         },
       });
     } catch (err) {
@@ -413,6 +473,9 @@ export default function AcopioSalidaIdPage({
   const handleEditClick = (detalle: DetalleOrdenAcopio) => {
     setEditingId(detalle.id);
     setEditValue(detalle.envios[0]?.cantidad_enviada?.toString() || "");
+    setEditPalletValue(
+      detalle.envios[0]?.pallet?.numero_pallet?.toString() || ""
+    );
   };
 
   const handleSaveEdit = async (
@@ -423,6 +486,8 @@ export default function AcopioSalidaIdPage({
     cantidad_enviada = parseFloat(Number(cantidad_enviada).toFixed(2));
     const detalle = currentItems.find((d) => d.id === detalleId);
     const cantidadSolicitada = detalle?.producto.cantidad ?? 0;
+    const numeroPalletActual = detalle?.envios[0]?.pallet?.numero_pallet;
+
     if (!editValue || isNaN(Number(editValue))) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad no es válida");
@@ -430,13 +495,27 @@ export default function AcopioSalidaIdPage({
       return;
     }
 
-    const cantidad = Number(editValue);
-    if (cantidad === cantidad_enviada) {
+    if (
+      !editPalletValue ||
+      isNaN(Number(editPalletValue)) ||
+      Number(editPalletValue) <= 0
+    ) {
       setAlertType("advertencia");
-      setAlertMessage("La cantidad no puede ser igual al envío actual");
+      setAlertMessage("El número de pallet no es válido");
       setShowAlert(true);
       return;
     }
+
+    const cantidad = Number(editValue);
+    const numeroPallet = Number(editPalletValue);
+
+    if (cantidad === cantidad_enviada && numeroPallet === numeroPalletActual) {
+      setAlertType("advertencia");
+      setAlertMessage("No hay cambios para guardar");
+      setShowAlert(true);
+      return;
+    }
+
     if (cantidad < 0) {
       setAlertType("advertencia");
       setAlertMessage("La cantidad debe ser mayor o igual a 0");
@@ -456,8 +535,21 @@ export default function AcopioSalidaIdPage({
     setEditLoading(detalleId);
 
     try {
+      // Construir el objeto de entrada solo con los campos que han cambiado
+      const updateInput: any = {
+        id: envioId,
+        cantidad: cantidad,
+      };
+
+      // Solo incluir numero_pallet si es diferente al actual
+      if (numeroPallet !== numeroPalletActual) {
+        updateInput.numero_pallet = numeroPallet;
+      }
+
       await updateCantidadEnvioDetalle({
-        variables: { id: envioId, cantidad: cantidad },
+        variables: {
+          updateEnvioDetalleOrdenAcopioInput: updateInput,
+        },
       });
     } catch (error) {
       setAlertType("error");
@@ -474,6 +566,7 @@ export default function AcopioSalidaIdPage({
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditValue("");
+    setEditPalletValue("");
   };
   const handleDropdownTrazabilidadClick = (id: number) => {
     setDropdownTrazabilidadOpen(dropdownTrazabilidadOpen === id ? null : id);
@@ -510,7 +603,7 @@ export default function AcopioSalidaIdPage({
 
   if (loading) {
     return (
-      <div className="p-10">
+      <div className="p-4 sm:p-10">
         <div className="bg-white p-6 rounded shadow">
           <h1>Cargando detalles del acopio...</h1>
         </div>
@@ -520,7 +613,7 @@ export default function AcopioSalidaIdPage({
 
   if (error) {
     return (
-      <div className="p-10">
+      <div className="p-4 sm:p-10">
         <div className="bg-white p-6 rounded shadow">
           <p className="text-red-500">
             Error al cargar los detalles del acopio, detalle del error:{" "}
@@ -554,9 +647,6 @@ export default function AcopioSalidaIdPage({
         {data.ordenAcopio.estado === "Confirmacion" &&
         rolUsuario != "Bodeguero" ? (
           <div>
-            <div className="flex w-full">
-              <FormularioGuiaSalida id_orden={data.ordenAcopio.id} />
-            </div>
             <h2 className="text-xl font-semibold">Detalles Orden de Acopio</h2>
           </div>
         ) : (
@@ -582,15 +672,36 @@ export default function AcopioSalidaIdPage({
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row justify-around items-center my-4 gap-4 sm:gap-6 font-bold">
-          <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
-            Centro de Costo - {data.ordenAcopio.centroCosto}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+          <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2">
+              <div>
+                <p className="text-sm font-medium">Centro de Costo</p>
+                <p className="font-semibold text-gray-800">
+                  {data?.ordenAcopio.centroCosto ?? "N/A"}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
-            Fecha - {data.ordenAcopio.fecha}
+          <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2">
+              <div>
+                <p className="text-sm font-medium">Fecha Despacho</p>
+                <p className="font-semibold text-gray-800">
+                  {data?.ordenAcopio.fechaDespacho ?? "N/A"}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="bg-gray-200 p-3 sm:p-4 text-black rounded w-full text-center">
-            Estado - {data.ordenAcopio.estado}
+          <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2">
+              <div>
+                <p className="text-sm font-medium">Estado del Acopio</p>
+                <p className="font-semibold text-gray-800">
+                  {data?.ordenAcopio.estado ?? "N/A"}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -630,6 +741,9 @@ export default function AcopioSalidaIdPage({
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Cantidad Enviada
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Número Pallet
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Acciones
@@ -711,6 +825,21 @@ export default function AcopioSalidaIdPage({
                           )}
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          <input
+                            type="number"
+                            min={1}
+                            value={numerosPallet[detalle.id] || ""}
+                            onChange={(e) =>
+                              handleCambioNumeroPallet(
+                                detalle.id,
+                                e.target.value ? Number(e.target.value) : 0
+                              )
+                            }
+                            className="w-full border border-gray-300 rounded p-1"
+                            disabled={desactivacionBoton}
+                          />
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <div className="flex flex-col gap-2 sm:flex-row">
                             {!detalle.producto.trazabilidad &&
                               cantidadesTemporales[detalle.id] !== undefined &&
@@ -752,7 +881,10 @@ export default function AcopioSalidaIdPage({
                       </>
                     ) : detalle.envios.length > 1 ? (
                       <>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                        <td
+                          className="border border-gray-300 px-2 sm:px-4 py-2"
+                          colSpan={3}
+                        >
                           <button
                             onClick={() => {
                               handleDropdownEnviosClick(detalle.id);
@@ -770,13 +902,15 @@ export default function AcopioSalidaIdPage({
                             Ver Envíos
                           </button>
                         </td>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2"></td>
                       </>
                     ) : detalle.codigo_producto !==
                       detalle.envios[0].codigo_producto_enviado ? (
                       <>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2 font-semibold">
                           {detalle.envios[0]?.cantidad_enviada || "N/A"}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2 font-semibold">
+                          {detalle.envios[0]?.pallet?.numero_pallet || "N/A"}
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
@@ -791,7 +925,7 @@ export default function AcopioSalidaIdPage({
                             }}
                             disabled={loadingSave === detalle.id}
                           >
-                            Ver Envio
+                            Ver Envío
                           </button>
                         </td>
                       </>
@@ -799,13 +933,38 @@ export default function AcopioSalidaIdPage({
                       <>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           {editingId === detalle.id ? (
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                className="w-20 border border-gray-300 rounded p-1"
-                              />
+                            <input
+                              type="number"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              className="w-20 border border-gray-300 rounded p-1"
+                              placeholder="Cantidad"
+                            />
+                          ) : (
+                            detalle.envios[0]?.cantidad_enviada || "N/A"
+                          )}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {editingId === detalle.id ? (
+                            <input
+                              type="number"
+                              value={editPalletValue}
+                              onChange={(e) =>
+                                setEditPalletValue(e.target.value)
+                              }
+                              className="w-20 border border-gray-300 rounded p-1"
+                              placeholder="Pallet"
+                            />
+                          ) : (
+                            <span className="font-semibold">
+                              {detalle.envios[0]?.pallet?.numero_pallet ||
+                                "N/A"}
+                            </span>
+                          )}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {editingId === detalle.id ? (
+                            <div className="flex gap-2">
                               <button
                                 onClick={() =>
                                   handleSaveEdit(
@@ -816,27 +975,26 @@ export default function AcopioSalidaIdPage({
                                 }
                                 disabled={editLoading === detalle.id}
                                 className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full ${
-                                  loadingSave === detalle.id
+                                  editLoading === detalle.id
                                     ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
-                                    : "bg-orange-400 hover:bg-orange-500"
+                                    : "bg-blue-400 hover:bg-blue-500"
                                 }
   `}
                               >
                                 Guardar
                               </button>
+                              <button
+                                disabled={editLoading === detalle.id}
+                                onClick={handleCancelEdit}
+                                className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full ${
+                                  editLoading === detalle.id
+                                    ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+                                    : "bg-red-500 hover:bg-red-600"
+                                }`}
+                              >
+                                Cancelar
+                              </button>
                             </div>
-                          ) : (
-                            detalle.envios[0]?.cantidad_enviada || "N/A"
-                          )}
-                        </td>
-                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          {editingId === detalle.id ? (
-                            <button
-                              onClick={handleCancelEdit}
-                              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200 w-full"
-                            >
-                              Cancelar
-                            </button>
                           ) : (
                             <div className="flex items-center gap-2">
                               {detalle.envios[0].cantidad_enviada != 0 && (
@@ -881,7 +1039,7 @@ export default function AcopioSalidaIdPage({
                   {dropdownEnviosOpen === detalle.id && (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="border-0 p-2 sm:p-4 bg-gray-100"
                       >
                         <DropdownEnviosDetalleOrdenAcopio
@@ -900,7 +1058,7 @@ export default function AcopioSalidaIdPage({
                   {dropdownCambiarProductoOpen === detalle.id && (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="border-0 p-2 sm:p-4 bg-gray-100 "
                       >
                         <DropdownCambioProducto
@@ -920,7 +1078,7 @@ export default function AcopioSalidaIdPage({
                   {dropdownTrazabilidadOpen === detalle.id && (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="border-0 p-2 sm:p-4 bg-gray-100"
                       >
                         <DropdownTrazabilidad

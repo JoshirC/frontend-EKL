@@ -72,33 +72,38 @@ export const GET_CENTROS_COSTOS = gql`
 export const GET_ORDEN_ACOPIO = gql`
   query ordenAcopio($id: Float!) {
     ordenAcopio(id: $id) {
+    id
+    centroCosto
+    fecha
+    estado
+    detalles {
       id
-      centroCosto
-      fecha
-      estado
-      detalles {
-        id
-        codigo_producto
-        producto {
-          id
-          nombre_producto
-          codigo
-          familia
-          unidad_medida
-          cantidad
-          cantidad_softland
-          trazabilidad
-        }
+      codigo_producto
+      cantidad
+      enviado
+      producto {
+        codigo
+        nombre_producto
+        familia
+        unidad_medida
+        precio_unitario
         cantidad
-        enviado
-        envios {
-          id
-          cantidad_enviada
-          codigo_producto_enviado
+      }
+      envios {
+        id
+        cantidad_enviada
+        codigo_producto_enviado
+        pallet {
+          numero_pallet
         }
       }
     }
+    pallets {
+      id
+      numero_pallet
+    }
   }
+}
 `;
 // Query para Detalle de Orden de Acopio
 export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
@@ -122,6 +127,10 @@ export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
           familia
           unidad_medida
           cantidad
+        }
+        pallet {
+          id
+          numero_pallet
         }
       }
     }
@@ -157,6 +166,10 @@ export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
       }
       guiaSalida {
         numero_folio
+      }
+      pallet {
+        id
+        numero_pallet
       }
     }
   }
