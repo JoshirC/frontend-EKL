@@ -32,7 +32,7 @@ export default function CentroCostoNamePage({
   const { loading, error, data } = useQuery(GET_ORDENES_ACOPIO_DOS_ESTADOS, {
     variables: {
       centroCosto: sanitizedCentroCosto,
-      estados: ["Pendiente", "Proceso", "Parcial"],
+      estados: ["Parcial", "Subir"],
     },
   });
 
@@ -65,8 +65,8 @@ export default function CentroCostoNamePage({
         />
       )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
-        <div className="text-xl sm:text-2xl font-semibold mb-4">
-          Lista de Acopio {sanitizedCentroCosto}
+        <div className="text-xl sm:text-2xl font-bold mb-4">
+          Generar Guías de Salida "{sanitizedCentroCosto}"
         </div>
         <div className="overflow-x-auto">
           <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
@@ -104,23 +104,23 @@ export default function CentroCostoNamePage({
                     {orden.estado}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.estado === "Pendiente" ? (
-                      <button
-                        className="bg-orange-400 text-white w-full font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300"
-                        onClick={() => {
-                          window.location.href = `/salida/${orden.id}`;
-                        }}
-                      >
-                        Comenzar Acopio
-                      </button>
-                    ) : (
+                    {orden.estado === "Parcial" ? (
                       <button
                         className="bg-blue-400 text-white w-full font-semibold p-3 sm:p-4 rounded hover:bg-blue-500 transition duration-300"
                         onClick={() => {
-                          window.location.href = `/salida/${orden.id}`;
+                          window.location.href = `/salida/carga_softland/centro_costo/${orden.id}`;
                         }}
                       >
-                        Continuar Acopio
+                        Generar Guías Parcial
+                      </button>
+                    ) : (
+                      <button
+                        className="bg-orange-400 text-white w-full font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300"
+                        onClick={() => {
+                          window.location.href = `/salida/carga_softland/centro_costo/${orden.id}`;
+                        }}
+                      >
+                        Generar Guías
                       </button>
                     )}
                   </td>

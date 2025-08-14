@@ -4,13 +4,13 @@ import { useQuery, useMutation } from "@apollo/client";
 import DropdownCambioProducto from "@/components/salida_acopio/DropdownCambioProducto";
 import DropdownEnviosDetalleOrdenAcopio from "@/components/salida_acopio/dropdownEnviosDetalleOrdenAcopio";
 import DropdownTrazabilidad from "@/components/salida_acopio/dropdownTrazabilidad";
-import FormularioGuiaSalida from "@/components/salida_acopio/formularioGuiaSalida";
 import FamilyFilter from "@/components/FamilyPagination";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
   UPDATE_CANTIDAD_ENVIO_DETALLE,
   REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO,
   CREATE_MULTIPLE_ENVIOS_DETALLE,
+  UPDATE_ESTADO_ORDEN_ACOPIO,
 } from "@/graphql/mutations";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
@@ -257,6 +257,20 @@ export default function AcopioSalidaIdPage({
       },
     }
   );
+  const [updateEstadoOrdenAcopio] = useMutation(UPDATE_ESTADO_ORDEN_ACOPIO, {
+    onCompleted: () => {
+      stableRefetch();
+      setEditingId(null);
+      setEditValue("");
+    },
+    onError: (error) => {
+      setAlertType("error");
+      setAlertMessage(
+        "Error al actualizar el estado de la orden de acopio: " + error.message
+      );
+      setShowAlert(true);
+    },
+  });
   // Handlers
   const handleCambioCantidad = (id: number, valor: number) => {
     setCantidadesTemporales((prev) => ({ ...prev, [id]: valor }));
@@ -277,13 +291,15 @@ export default function AcopioSalidaIdPage({
       return;
     }
 
+    // Si la cantidad es mayor a 0, debe haber un número de pallet válido
     if (
-      numeroPallet === undefined ||
-      numeroPallet === null ||
-      numeroPallet <= 0
+      cantidad > 0 &&
+      (numeroPallet === undefined || numeroPallet === null || numeroPallet <= 0)
     ) {
       setAlertType("advertencia");
-      setAlertMessage("Debe ingresar un número de pallet válido");
+      setAlertMessage(
+        "Debe ingresar un número de pallet válido cuando la cantidad es mayor a 0"
+      );
       setShowAlert(true);
       return;
     }
@@ -303,7 +319,7 @@ export default function AcopioSalidaIdPage({
         detalleId,
         cantidad,
         detalle.codigo_producto,
-        numeroPallet
+        cantidad > 0 ? numeroPallet : 0
       );
     } catch (error) {
       console.error("Error en envío único:", error);
@@ -311,33 +327,28 @@ export default function AcopioSalidaIdPage({
     }
   };
   const handleCrearEnviosMasivos = async () => {
-    const productosValidos = currentItems.filter(
+    // Productos con cantidad válida (>= 0)
+    const productosConCantidad = currentItems.filter(
       (d) =>
         !d.producto.trazabilidad &&
         cantidadesTemporales[d.id] !== undefined &&
         cantidadesTemporales[d.id] !== null &&
-        cantidadesTemporales[d.id] >= 0 &&
-        numerosPallet[d.id] !== undefined &&
-        numerosPallet[d.id] !== null &&
-        numerosPallet[d.id] > 0
+        cantidadesTemporales[d.id] >= 0
     );
 
-    if (productosValidos.length === 0) {
+    if (productosConCantidad.length === 0) {
       setAlertType("advertencia");
       setAlertMessage(
-        "Debe ingresar cantidad y número de pallet para al menos un producto."
+        "Debe ingresar una cantidad válida para al menos un producto."
       );
       setShowAlert(true);
       return;
     }
 
-    // Validar que todos los productos con cantidad tengan su número de pallet
-    const productosSinPallet = currentItems.filter(
+    // Validar que productos con cantidad > 0 tengan número de pallet
+    const productosSinPallet = productosConCantidad.filter(
       (d) =>
-        !d.producto.trazabilidad &&
-        cantidadesTemporales[d.id] !== undefined &&
-        cantidadesTemporales[d.id] !== null &&
-        cantidadesTemporales[d.id] >= 0 &&
+        cantidadesTemporales[d.id] > 0 &&
         (numerosPallet[d.id] === undefined ||
           numerosPallet[d.id] === null ||
           numerosPallet[d.id] <= 0)
@@ -346,18 +357,26 @@ export default function AcopioSalidaIdPage({
     if (productosSinPallet.length > 0) {
       setAlertType("advertencia");
       setAlertMessage(
-        "Todos los productos con cantidad deben tener un número de pallet válido."
+        "Los productos con cantidad mayor a 0 deben tener un número de pallet válido."
       );
       setShowAlert(true);
       return;
     }
 
-    const productosFiltrados = productosValidos.map((d) => ({
-      id_detalle_orden_acopio: d.id,
-      cantidad_enviada: Number(cantidadesTemporales[d.id]),
-      codigo_producto_enviado: d.codigo_producto,
-      numero_pallet: Number(numerosPallet[d.id]),
-    }));
+    const productosFiltrados = productosConCantidad.map((d) => {
+      const objeto = {
+        id_detalle_orden_acopio: d.id,
+        cantidad_enviada: Number(cantidadesTemporales[d.id]),
+        codigo_producto_enviado: d.codigo_producto,
+      };
+
+      // Solo agregar numero_pallet si la cantidad es mayor a 0
+      if (cantidadesTemporales[d.id] > 0) {
+        (objeto as any).numero_pallet = Number(numerosPallet[d.id]);
+      }
+
+      return objeto;
+    });
 
     setDesactivacionBoton(true);
 
@@ -451,14 +470,16 @@ export default function AcopioSalidaIdPage({
     setLoadingSave(id_detalle);
 
     try {
+      const variables: any = {
+        id_detalle_orden_acopio: Number(id_detalle),
+        cantidad_enviada: Number(cantidad),
+        codigo_producto_enviado: String(codigo),
+        usuario_rut: String(rutUsuario),
+        numero_pallet: Number(numero_pallet),
+      };
+
       await createEnvioDetalleOrdenAcopio({
-        variables: {
-          id_detalle_orden_acopio: Number(id_detalle),
-          cantidad_enviada: Number(cantidad),
-          codigo_producto_enviado: String(codigo),
-          usuario_rut: String(rutUsuario),
-          numero_pallet: Number(numero_pallet),
-        },
+        variables,
       });
     } catch (err) {
       setDesactivacionBoton(false);
@@ -495,19 +516,22 @@ export default function AcopioSalidaIdPage({
       return;
     }
 
+    const cantidad = Number(editValue);
+    const numeroPallet = Number(editPalletValue);
+
     if (
-      !editPalletValue ||
-      isNaN(Number(editPalletValue)) ||
-      Number(editPalletValue) <= 0
+      cantidad > 0 &&
+      (!editPalletValue ||
+        isNaN(Number(editPalletValue)) ||
+        Number(editPalletValue) <= 0)
     ) {
       setAlertType("advertencia");
-      setAlertMessage("El número de pallet no es válido");
+      setAlertMessage(
+        "El número de pallet no es válido cuando la cantidad es mayor a 0"
+      );
       setShowAlert(true);
       return;
     }
-
-    const cantidad = Number(editValue);
-    const numeroPallet = Number(editPalletValue);
 
     if (cantidad === cantidad_enviada && numeroPallet === numeroPalletActual) {
       setAlertType("advertencia");
@@ -600,6 +624,29 @@ export default function AcopioSalidaIdPage({
     setIdEnvioEliminar(null);
     setShowConfirmacion(false);
   };
+  const handleConfirmarAcopio = async (id: number) => {
+    setDesactivacionBoton(true);
+    try {
+      await updateEstadoOrdenAcopio({
+        variables: {
+          id,
+          estado: "Subir",
+        },
+      });
+      setAlertType("exitoso");
+      setAlertMessage("Acopio confirmado exitosamente");
+      setShowAlert(true);
+      setTimeout(() => {
+        window.location.href = "/salida/acopio_productos";
+      }, 2000);
+    } catch (error) {
+      setAlertType("error");
+      setAlertMessage("Error al confirmar el acopio: " + error);
+      setShowAlert(true);
+    } finally {
+      setDesactivacionBoton(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -646,8 +693,14 @@ export default function AcopioSalidaIdPage({
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         {data.ordenAcopio.estado === "Confirmacion" &&
         rolUsuario != "Bodeguero" ? (
-          <div>
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Detalles Orden de Acopio</h2>
+            <button
+              className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
+              onClick={() => handleConfirmarAcopio(data.ordenAcopio.id)}
+            >
+              Confirmar Acopio de Productos
+            </button>
           </div>
         ) : (
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">

@@ -46,25 +46,78 @@ export const GET_ORDENES_ACOPIO = gql`
   }
 `;
 export const GET_ORDENES_ACOPIO_DOS_ESTADOS = gql`
-  query ($centroCosto: String!, $estado1: String!, $estado2: String!) {
-    ordenAcopioByCentroCostoYEstados(
+  query ($centroCosto: String!, $estados: [String!]!) {
+    ordenAcopioByCentroCostoYMultiplesEstados(
       centroCosto: $centroCosto
-      estado1: $estado1
-      estado2: $estado2
+      estados: $estados
     ) {
       id
       centroCosto
       fecha
       estado
+      detalles {
+        id
+        codigo_producto
+        cantidad
+        enviado
+        producto {
+          codigo
+          nombre_producto
+          unidad_medida
+        }
+      }
+    }
+  }
+`;
+
+export const GET_ORDENES_ACOPIO_BY_CENTRO_COSTO_Y_ESTADOS = gql`
+  query ($centroCosto: String!, $estados: [String!]!) {
+    ordenAcopioByCentroCostoYMultiplesEstados(
+      centroCosto: $centroCosto
+      estados: $estados
+    ) {
+      id
+      centroCosto
+      fecha
+      estado
+      detalles {
+        id
+        codigo_producto
+        cantidad
+        enviado
+        producto {
+          codigo
+          nombre_producto
+          unidad_medida
+        }
+      }
     }
   }
 `;
 export const GET_CENTROS_COSTOS = gql`
-  query {
-    ordenAcopioDosEstados(estado1: "Pendiente", estado2: "Proceso") {
+  query ($estados: [String!]!) {
+    ordenAcopioMultiplesEstados(estados: $estados) {
       centroCosto
       Pendiente
       Proceso
+      Subir
+      Cerrado
+      Revision
+      Parcial
+    }
+  }
+`;
+
+export const GET_ORDENES_ACOPIO_MULTIPLES_ESTADOS = gql`
+  query ($estados: [String!]!) {
+    ordenAcopioMultiplesEstados(estados: $estados) {
+      centroCosto
+      Pendiente
+      Proceso
+      Subir
+      Cerrado
+      Revision
+      Parcial
     }
   }
 `;
