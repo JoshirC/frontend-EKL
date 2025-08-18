@@ -173,6 +173,17 @@ export const ELIMINAR_GUIA_SALIDA = gql`
   }
 `;
 
+export const CREAR_GUIAS_POR_PALLETS = gql`
+  mutation CrearGuiasPorPallets($input: CreateGuiasPorPalletsInput!) {
+    crearGuiasPorPallets(input: $input) {
+      guias_creadas_ids
+      total_guias_creadas
+      errores
+    }
+  }
+`;
+
+
 // Mutaciones para Productos
 export const UPDATE_TRAZABILIDAD = gql`
   mutation updateTrazabilidadProducto($codigo_producto: String!) {

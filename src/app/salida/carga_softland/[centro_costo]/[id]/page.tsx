@@ -1,10 +1,12 @@
 "use client";
 
-import React, { use, useMemo, useState } from "react";
-import { useQuery } from "@apollo/client";
+import React, { use, useMemo, useState, useEffect } from "react";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
+import { CREAR_GUIAS_POR_PALLETS } from "@/graphql/mutations";
 import Alert from "@/components/Alert";
 import ListaVacia from "@/components/listaVacia";
+import GuiaSalidaModal from "@/components/salida_acopio/guiaSalida";
 
 type Producto = {
   codigo: string;
@@ -59,6 +61,22 @@ type FormErrors = {
   codigoCentroCosto?: string;
 };
 
+type CentroCosto = {
+  codigo: string;
+  nombre: string;
+};
+
+const centrosCosto: CentroCosto[] = [
+  { codigo: "021-34", nombre: "Cerro Negro Norte - CMP" },
+  { codigo: "001-06", nombre: "Cenizas - Planta Las Luces" },
+  { codigo: "021-11", nombre: "Inca de Oro" },
+  { codigo: "021-30", nombre: "Promet - Colbun Aguas Verdes" },
+  { codigo: "001-14", nombre: "Pucobre" },
+  { codigo: "023-03", nombre: "Aura" },
+  { codigo: "023-02", nombre: "Rio Blanco" },
+  { codigo: "023-04", nombre: "Unifrutti" },
+];
+
 const CargaGuiaSalidaPage = ({ params }: PageProps) => {
   const { id } = use(params);
   const id_orden_acopio = parseFloat(id);
@@ -72,15 +90,18 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
   );
   const [isFormValid, setIsFormValid] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isCentroCostoManual, setIsCentroCostoManual] = useState(false);
   const [formData, setFormData] = useState<FormErrors>({
-    codigoBodega: "",
+    codigoBodega: " ",
     concepto: "",
     descripcion: "",
     codigoCentroCosto: "",
   });
+  const [showGuiaSalidaModal, setShowGuiaSalidaModal] = useState(false);
+  const [guiaIds, setGuiaIds] = useState<string[]>([]);
   const validateForm = () => {
     const errors: FormErrors = {};
-    if (!formData.codigoBodega || formData.codigoBodega.trim() === "") {
+    if (!formData.codigoBodega || formData.codigoBodega === " ") {
       errors.codigoBodega = "El código de bodega es requerido.";
     }
     if (!formData.concepto || formData.concepto.trim() === "") {
@@ -95,9 +116,48 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
     setErrors(errors);
     setIsFormValid(Object.keys(errors).length === 0);
   };
+
+  // Ejecutar validación inicial al montar el componente
+  useEffect(() => {
+    validateForm();
+  }, []);
+
   const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_orden_acopio },
   });
+
+  // Configurar mutación para crear guías por pallets
+  const [crearGuiasPorPallets, { loading: loadingMutation }] = useMutation(
+    CREAR_GUIAS_POR_PALLETS,
+    {
+      onCompleted: (data) => {
+        const { guias_creadas_ids, total_guias_creadas, errores } =
+          data.crearGuiasPorPallets;
+
+        if (errores && errores.length > 0) {
+          setAlertType("error");
+          setAlertMessage(`Error al crear guías: ${errores.join(", ")}`);
+          setShowAlert(true);
+        } else {
+          // Configurar el modal con los IDs y mostrarlo
+          setGuiaIds(guias_creadas_ids);
+          setShowGuiaSalidaModal(true);
+          setFormData({
+            codigoBodega: " ",
+            concepto: "",
+            descripcion: "",
+            codigoCentroCosto: "",
+          });
+          setPalletsSeleccionados([]);
+        }
+      },
+      onError: (error) => {
+        setAlertType("error");
+        setAlertMessage(`Error al crear guías: ${error.message}`);
+        setShowAlert(true);
+      },
+    }
+  );
 
   // Procesar datos para obtener lista de todos los envíos
   const todosLosEnvios = useMemo((): EnvioConProducto[] => {
@@ -135,6 +195,13 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
     return [...new Set(pallets)].sort((a, b) => a - b);
   }, [todosLosEnvios]);
 
+  // Seleccionar todos los pallets por defecto cuando estén disponibles
+  useEffect(() => {
+    if (palletsDisponibles.length > 0 && palletsSeleccionados.length === 0) {
+      setPalletsSeleccionados(palletsDisponibles);
+    }
+  }, [palletsDisponibles]);
+
   // Filtrar envíos por pallets seleccionados
   const enviosFiltrados = useMemo(() => {
     let enviosFiltrados = todosLosEnvios;
@@ -171,18 +238,58 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
   const isPalletSeleccionado = (numeroPallet: number) => {
     return palletsSeleccionados.includes(numeroPallet);
   };
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e:
+      | React.ChangeEvent<HTMLInputElement>
+      | React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        name.includes("numero") ||
-        name.includes("Folio") ||
-        name.includes("Factura")
-          ? parseInt(value) || 0
-          : value,
-    }));
+    // Manejar la lógica especial para centro de costo
+    if (name === "codigoCentroCosto") {
+      if (value === "manual") {
+        setIsCentroCostoManual(true);
+        setFormData((prev) => ({ ...prev, codigoCentroCosto: "" }));
+        return;
+      } else if (!isCentroCostoManual) {
+        // Solo cambiar el estado si no está en modo manual
+        setIsCentroCostoManual(false);
+      }
+    }
+
+    setFormData((prev) => {
+      const updatedData = {
+        ...prev,
+        [name]:
+          name.includes("numero") ||
+          name.includes("Folio") ||
+          name.includes("Factura")
+            ? parseInt(value) || 0
+            : value,
+      };
+
+      // Validar el formulario con los nuevos datos
+      setTimeout(() => {
+        const errors: FormErrors = {};
+        if (!updatedData.codigoBodega || updatedData.codigoBodega === " ") {
+          errors.codigoBodega = "El código de bodega es requerido.";
+        }
+        if (!updatedData.concepto || updatedData.concepto.trim() === "") {
+          errors.concepto = "El concepto es requerido.";
+        }
+        if (
+          !updatedData.codigoCentroCosto ||
+          updatedData.codigoCentroCosto.trim() === ""
+        ) {
+          errors.codigoCentroCosto =
+            "El código del centro de costo es requerido.";
+        }
+        setErrors(errors);
+        setIsFormValid(Object.keys(errors).length === 0);
+      }, 0);
+
+      return updatedData;
+    });
   };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,6 +300,32 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
       setShowAlert(true);
       return;
     }
+
+    // Obtener los IDs de los pallets desde la orden de acopio
+    const palletIds = orden.pallets
+      .filter((pallet) => palletsSeleccionados.includes(pallet.numero_pallet))
+      .map((pallet) => pallet.id);
+
+    if (palletIds.length === 0) {
+      setAlertType("error");
+      setAlertMessage("Debe seleccionar al menos un pallet.");
+      setShowAlert(true);
+      return;
+    }
+
+    // Ejecutar la mutación
+    crearGuiasPorPallets({
+      variables: {
+        input: {
+          pallet_ids: palletIds,
+          codigo_bodega: formData.codigoBodega,
+          concepto_salida: formData.concepto,
+          codigo_centro_costo: formData.codigoCentroCosto,
+          descripcion:
+            formData.descripcion || "Despacho de productos a cliente",
+        },
+      },
+    });
   };
 
   if (loading) {
@@ -208,11 +341,9 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
   if (error) {
     return (
       <div className="p-10">
-        <Alert
-          type="error"
-          message={`Error al cargar la orden: ${error.message}`}
-          onClose={() => {}}
-        />
+        <div className="bg-white p-6 rounded shadow">
+          <p>Error al cargar la orden: {error.message}</p>
+        </div>
       </div>
     );
   }
@@ -244,11 +375,20 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         {/* Header */}
         <div className="mb-6 w-full">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold text-gray-800">
+              Guía de Salida - Orden #{orden.id}
+            </h1>
+            <button
+              className="px-4 py-2 rounded bg-orange-400 text-white font-semibold hover:bg-orange-500 shadow-md disabled:bg-gray-300 disabled:text-gray-500"
+              disabled={!isFormValid || loadingMutation}
+              onClick={handleSubmit}
+            >
+              {loadingMutation ? "Generando..." : "Generar Guía Salida"}
+            </button>
+          </div>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
             <div className="w-full">
-              <h1 className="text-xl font-bold text-gray-800">
-                Guía de Salida - Orden #{orden.id}
-              </h1>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 w-full">
                 <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm w-full">
                   <div className="flex items-center gap-2">
@@ -304,9 +444,9 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                       id="codigoBodega"
                       name="codigoBodega"
                       type="text"
-                      className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      className={`p-3 w-full border rounded ${
                         errors.codigoBodega
-                          ? "border-red-500"
+                          ? "border-red-400"
                           : "border-gray-300"
                       }`}
                       onChange={handleChange}
@@ -324,8 +464,8 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                       id="concepto"
                       name="concepto"
                       type="text"
-                      className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.concepto ? "border-red-500" : "border-gray-300"
+                      className={`p-3 w-full border rounded ${
+                        errors.concepto ? "border-red-400" : "border-gray-300"
                       }`}
                       onChange={handleChange}
                       value={formData.concepto}
@@ -337,24 +477,61 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                       htmlFor="codigoCentroCosto"
                       className="block text-sm font-medium text-gray-700 mb-3"
                     >
-                      Código Centro Costo *
+                      Centro de Costo *
                     </label>
-                    <input
-                      id="codigoCentroCosto"
-                      name="codigoCentroCosto"
-                      type="text"
-                      className={`p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.codigoCentroCosto
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      onChange={handleChange}
-                      value={formData.codigoCentroCosto}
-                    />
+                    {!isCentroCostoManual ? (
+                      <select
+                        id="codigoCentroCosto"
+                        name="codigoCentroCosto"
+                        className={`p-3 w-full border rounded ${
+                          errors.codigoCentroCosto
+                            ? "border-red-400"
+                            : "border-gray-300"
+                        }`}
+                        onChange={handleChange}
+                        value={formData.codigoCentroCosto}
+                      >
+                        <option value="">Seleccione un centro de costo</option>
+                        {centrosCosto.map((centro) => (
+                          <option key={centro.codigo} value={centro.codigo}>
+                            {centro.nombre}
+                          </option>
+                        ))}
+                        <option value="manual">Agregar manualmente...</option>
+                      </select>
+                    ) : (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          name="codigoCentroCosto"
+                          placeholder="Ingrese código del centro de costo"
+                          className={`p-3 w-full border rounded ${
+                            errors.codigoCentroCosto
+                              ? "border-red-400"
+                              : "border-gray-300"
+                          }`}
+                          onChange={handleChange}
+                          value={formData.codigoCentroCosto || ""}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCentroCostoManual(false);
+                            setFormData((prev) => ({
+                              ...prev,
+                              codigoCentroCosto: "",
+                            }));
+                          }}
+                          className="text-sm text-gray-400 hover:text-gray-500 underline"
+                        >
+                          Volver a lista predefinida
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label
-                      htmlFor="codigoCentroCosto"
+                      htmlFor="descripcion"
                       className="block text-sm font-medium text-gray-700 mb-3"
                     >
                       Descripción
@@ -363,7 +540,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                       id="descripcion"
                       name="descripcion"
                       type="string"
-                      className="p-3 w-full border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500  border-gray-300"
+                      className="p-3 w-full border rounded border-gray-300"
                       onChange={handleChange}
                       value={formData.descripcion || ""}
                     />
@@ -397,7 +574,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                 <button
                   key={numeroPallet}
                   onClick={() => togglePallet(numeroPallet)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded font-medium transition-all duration-200 ${
                     isPalletSeleccionado(numeroPallet)
                       ? "bg-orange-400 text-white shadow-md"
                       : "bg-gray-300 text-gray-500 hover:bg-orange-400 hover:text-white"
@@ -471,6 +648,13 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
           </div>
         )}
       </div>
+
+      {/* Modal de Guías de Salida */}
+      <GuiaSalidaModal
+        isOpen={showGuiaSalidaModal}
+        onClose={() => setShowGuiaSalidaModal(false)}
+        guiaIds={guiaIds}
+      />
     </div>
   );
 };

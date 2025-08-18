@@ -266,39 +266,7 @@ export const GET_GUIA_SALIDA_CON_FOLIO = gql`
     }
   }
 `;
-export const GET_GUIAS_DE_SALIDA_SOFTLAND = gql`
-  query {
-    guiasDeSalidaSoftland {
-      id
-      codigo_bodega
-      numero_folio
-      fecha_generacion
-      concepto_salida
-      descripcion
-      codigo_centro_costo
-      usuario_creacion
-      codigo_lugar_despacho
-      valor_total
-      orden {
-        id
-        centroCosto
-        estado
-      }
-      envios {
-        id
-        cantidad_enviada
-        codigo_producto_enviado
-        producto {
-          id
-          nombre_producto
-          familia
-          unidad_medida
-          precio_unitario
-        }
-      }
-    }
-  }
-`; 
+
 // Query para Productos
 export const GET_PRODUCTOS = gql`
   query {
@@ -466,6 +434,34 @@ export const GET_TRAZABILIDAD_BY_CODIGO_PRODUCTO = gql`
         id
         codigo
         nombre_producto
+      }
+    }
+  }
+`;
+
+export const GET_GUIAS_SALIDA_BY_IDS = gql`
+  query GetGuiasSalidaPorIds($ids: [Float!]!) {
+    guiasDeSalidaPorIds(ids: $ids) {
+      id
+      codigo_bodega
+      numero_folio
+      fecha_generacion
+      concepto_salida
+      descripcion
+      codigo_centro_costo
+      pallet {
+        id
+        numero_pallet
+        envios {
+          id
+          cantidad_enviada
+          codigo_producto_enviado
+          producto {
+            codigo
+            nombre_producto
+            unidad_medida
+          }
+        }
       }
     }
   }
