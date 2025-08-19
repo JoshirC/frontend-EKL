@@ -2,7 +2,7 @@
 
 import React, { use, useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_ORDEN_ACOPIO } from "@/graphql/query";
+import { GET_ORDEN_ACOPIO_BY_ID_AND_ESTADO_PALLET } from "@/graphql/query";
 import { CREAR_GUIAS_POR_PALLETS } from "@/graphql/mutations";
 import Alert from "@/components/Alert";
 import ListaVacia from "@/components/listaVacia";
@@ -11,28 +11,28 @@ import GuiaSalidaModal from "@/components/salida_acopio/guiaSalida";
 type Producto = {
   codigo: string;
   nombre_producto: string;
-  unidad_medida: string;
   familia: string;
+  unidad_medida: string;
+  precio_unitario: number;
   cantidad: number;
 };
 
 type Pallet = {
   id: number;
+  estado: string;
   numero_pallet: number;
 };
 
 type Envio = {
   id: number;
   cantidad_enviada: number;
-  codigo_producto_enviado: string;
+  producto: Producto;
   pallet: Pallet;
 };
 
 type DetalleOrdenAcopio = {
   id: number;
-  codigo_producto: string;
   cantidad: number;
-  enviado: boolean;
   producto: Producto;
   envios: Envio[];
 };
@@ -43,7 +43,6 @@ type OrdenAcopio = {
   fecha: string;
   estado: string;
   detalles: DetalleOrdenAcopio[];
-  pallets: Pallet[];
 };
 
 interface PageProps {
@@ -122,9 +121,12 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
     validateForm();
   }, []);
 
-  const { loading, error, data } = useQuery(GET_ORDEN_ACOPIO, {
-    variables: { id: id_orden_acopio },
-  });
+  const { loading, error, data, refetch } = useQuery(
+    GET_ORDEN_ACOPIO_BY_ID_AND_ESTADO_PALLET,
+    {
+      variables: { id: id_orden_acopio, estado: "Subir" },
+    }
+  );
 
   // Configurar mutación para crear guías por pallets
   const [crearGuiasPorPallets, { loading: loadingMutation }] = useMutation(
@@ -161,9 +163,9 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
 
   // Procesar datos para obtener lista de todos los envíos
   const todosLosEnvios = useMemo((): EnvioConProducto[] => {
-    if (!data?.ordenAcopio) return [];
+    if (!data?.ordenAcopioByIdAndEstadoPallet) return [];
 
-    const orden: OrdenAcopio = data.ordenAcopio;
+    const orden: OrdenAcopio = data.ordenAcopioByIdAndEstadoPallet;
     const envios: EnvioConProducto[] = [];
 
     // Recorrer todos los detalles y sus envíos
@@ -301,10 +303,10 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
       return;
     }
 
-    // Obtener los IDs de los pallets desde la orden de acopio
-    const palletIds = orden.pallets
-      .filter((pallet) => palletsSeleccionados.includes(pallet.numero_pallet))
-      .map((pallet) => pallet.id);
+    // Obtener los IDs de los pallets desde los envíos filtrados
+    const palletIds = enviosFiltrados
+      .map((envio) => envio.pallet.id)
+      .filter((id, index, array) => array.indexOf(id) === index); // Eliminar duplicados
 
     if (palletIds.length === 0) {
       setAlertType("error");
@@ -347,20 +349,17 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
       </div>
     );
   }
-
-  const orden: OrdenAcopio = data?.ordenAcopio;
-
-  if (!orden) {
+  if (!data?.ordenAcopioByIdAndEstadoPallet) {
     return (
       <div className="p-10">
-        <Alert
-          type="error"
-          message="No se encontró la orden de acopio"
-          onClose={() => {}}
-        />
+        <div className="bg-white p-6 rounded shadow">
+          <p>La Orden de Acopio no tiene pallets disponibles.</p>
+        </div>
       </div>
     );
   }
+
+  const orden: OrdenAcopio = data?.ordenAcopioByIdAndEstadoPallet;
 
   return (
     <div className="p-4 sm:p-10">
@@ -395,7 +394,8 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                     <div>
                       <p className="text-sm font-medium">Centro de Costo</p>
                       <p className="font-semibold text-gray-800">
-                        {data?.ordenAcopio.centroCosto ?? "N/A"}
+                        {data?.ordenAcopioByIdAndEstadoPallet.centroCosto ??
+                          "N/A"}
                       </p>
                     </div>
                   </div>
@@ -405,7 +405,8 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                     <div>
                       <p className="text-sm font-medium">Fecha Despacho</p>
                       <p className="font-semibold text-gray-800">
-                        {data?.ordenAcopio.fechaDespacho ?? "N/A"}
+                        {data?.ordenAcopioByIdAndEstadoPallet.fechaDespacho ??
+                          "N/A"}
                       </p>
                     </div>
                   </div>
@@ -415,7 +416,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                     <div>
                       <p className="text-sm font-medium">Cantidad de Pallets</p>
                       <p className="font-semibold text-gray-800">
-                        {orden.pallets ? orden.pallets.length : 0}
+                        {palletsDisponibles.length}
                       </p>
                     </div>
                   </div>
@@ -627,7 +628,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                       {envio.producto.familia}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                      {envio.codigo_producto_enviado}
+                      {envio.producto.codigo}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
                       {envio.producto.nombre_producto}
@@ -652,7 +653,10 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
       {/* Modal de Guías de Salida */}
       <GuiaSalidaModal
         isOpen={showGuiaSalidaModal}
-        onClose={() => setShowGuiaSalidaModal(false)}
+        onClose={() => {
+          setShowGuiaSalidaModal(false);
+          refetch(); // Refrescar los datos cuando se cierre el modal
+        }}
         guiaIds={guiaIds}
       />
     </div>

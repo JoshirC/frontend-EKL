@@ -158,6 +158,47 @@ export const GET_ORDEN_ACOPIO = gql`
   }
 }
 `;
+
+export const GET_ORDEN_ACOPIO_BY_ID_AND_ESTADO_PALLET = gql`
+  query ordenAcopioByIdAndEstadoPallet($id: Float!, $estado: String) {
+    ordenAcopioByIdAndEstadoPallet(id: $id, estado: $estado) {
+      id
+      centroCosto
+      fecha
+      estado
+      detalles {
+        id
+        cantidad
+        envios {
+          id
+          cantidad_enviada
+          pallet {
+            id
+            estado
+            numero_pallet
+          }
+          producto {
+            codigo
+            nombre_producto
+            familia
+            unidad_medida
+            precio_unitario
+            cantidad
+          }
+        }
+        producto {
+          codigo
+          nombre_producto
+          familia
+          unidad_medida
+          precio_unitario
+          cantidad
+        }
+      }
+    }
+  }
+`;
+
 // Query para Detalle de Orden de Acopio
 export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
   query detalleOrdenAcopioID($id: Int!) {

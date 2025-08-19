@@ -183,7 +183,12 @@ export const CREAR_GUIAS_POR_PALLETS = gql`
   }
 `;
 
-
+// Mutaciones para Pallets
+export const CAMBIO_ESTADO_PALLET = gql`
+  mutation CambioEstadoPallet($ids: [Int!]!, $estado: String!) {
+    cambioEstadoPallet(ids: $ids, estado: $estado)
+  }
+`;
 // Mutaciones para Productos
 export const UPDATE_TRAZABILIDAD = gql`
   mutation updateTrazabilidadProducto($codigo_producto: String!) {
@@ -218,7 +223,6 @@ export const AJUSTE_DE_INVENTARIO = gql`
     ajusteDeInventarioSoftland
   }
 `;
-
 // Mutaciones para guia de entrada
 export const CREATE_GUIA_ENTRADA_WITH_DETAILS = gql`
   mutation createGuiaEntradaWithDetails($createGuiaEntradaInput: CreateGuiaEntradaInput!) {

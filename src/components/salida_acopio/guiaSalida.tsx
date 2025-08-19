@@ -1,8 +1,9 @@
 "use client";
-import React from "react";
-import { useQuery } from "@apollo/client";
+import React, { useEffect, useState } from "react";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_GUIAS_SALIDA_BY_IDS } from "@/graphql/query";
-
+import { CAMBIO_ESTADO_PALLET } from "@/graphql/mutations";
+import Alert from "../Alert";
 type GuiaSalidaModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -14,13 +15,48 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
   onClose,
   guiaIds,
 }) => {
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
   const { data, loading, error } = useQuery(GET_GUIAS_SALIDA_BY_IDS, {
     variables: {
       ids: guiaIds.map((id) => parseFloat(id)),
     },
     skip: !isOpen || guiaIds.length === 0,
   });
+  const [editarEstadoPallets] = useMutation(CAMBIO_ESTADO_PALLET, {
+    onCompleted: () => {
+      setAlertType("exitoso");
+      setAlertMessage("Formato descargado exitosamente");
+      setShowAlert(true);
+      setTimeout(() => {
+        onClose();
+        setAlertMessage("");
+        setShowAlert(false);
+      }, 3000);
+    },
+    onError: (error) => {
+      setAlertMessage(error.message);
+      setAlertType("error");
+      setShowAlert(true);
+    },
+  });
+  const handleEditPallets = () => {
+    if (!data?.guiasDeSalidaPorIds) return;
 
+    const idsPallets = data.guiasDeSalidaPorIds.flatMap(
+      (guia: any) => guia.pallet?.id || []
+    );
+
+    editarEstadoPallets({
+      variables: {
+        ids: idsPallets,
+        estado: "Cerrado",
+      },
+    });
+  };
   // Función para crear una fila CSV con todas las columnas numeradas
   function crearFilaCSV(
     campos: Partial<Record<string, string | number>>
@@ -120,13 +156,32 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
 
+    handleEditPallets();
+  };
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen]);
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50 px-4">
       <div className="bg-white opacity-100 w-full max-w-6xl rounded shadow-lg p-8 max-h-[90vh] overflow-y-auto">
+        {showAlert && (
+          <Alert
+            type={alertType}
+            message={alertMessage}
+            onClose={() => setShowAlert(false)}
+            modal={true}
+          />
+        )}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">
             Información de Guías de Salida

@@ -16,6 +16,8 @@ import { GET_ORDEN_ACOPIO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
+import Cargando from "@/components/cargando";
+import ModalSelectorPallets from "@/components/salida_acopio/modalSelectorPallets";
 type Producto = {
   codigo: string;
   nombre_producto: string;
@@ -69,6 +71,7 @@ export default function AcopioSalidaIdPage({
 
   // Estados
   const [desactivacionBoton, setDesactivacionBoton] = useState(false);
+  const [showSelectorPallets, setShowSelectorPallets] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
@@ -100,7 +103,7 @@ export default function AcopioSalidaIdPage({
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [openModalGuia, setOpenModalGuia] = useState(false);
-
+  const [showCargando, setShowCargando] = useState(false);
   // Query para obtener datos
   const { loading, error, data, refetch } = useQuery(GET_ORDEN_ACOPIO, {
     variables: { id: id_acopio_num },
@@ -262,6 +265,7 @@ export default function AcopioSalidaIdPage({
       stableRefetch();
       setEditingId(null);
       setEditValue("");
+      setShowCargando(false);
     },
     onError: (error) => {
       setAlertType("error");
@@ -647,6 +651,29 @@ export default function AcopioSalidaIdPage({
       setDesactivacionBoton(false);
     }
   };
+  const handleAcopioParcial = async (id: number) => {
+    setDesactivacionBoton(true);
+    try {
+      await updateEstadoOrdenAcopio({
+        variables: {
+          id,
+          estado: "Parcial",
+        },
+      });
+      setAlertType("exitoso");
+      setAlertMessage("Acopio parcial confirmado exitosamente");
+      setShowAlert(true);
+      setTimeout(() => {
+        window.location.href = "/salida/carga_softland";
+      }, 2000);
+    } catch (error) {
+      setAlertType("error");
+      setAlertMessage("Error al confirmar el acopio parcial: " + error);
+      setShowAlert(true);
+    } finally {
+      setDesactivacionBoton(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -690,6 +717,20 @@ export default function AcopioSalidaIdPage({
           onConfirm={handleConfirmacion}
         />
       )}
+      {showCargando && (
+        <Cargando
+          isOpen={showCargando}
+          mensaje={"Confirmando Acopio..."}
+          onClose={() => setShowCargando(false)}
+        />
+      )}
+      {showSelectorPallets && (
+        <ModalSelectorPallets
+          isOpen={showSelectorPallets}
+          onClose={() => setShowSelectorPallets(false)}
+          id_orden_acopio={data.ordenAcopio.id}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         {data.ordenAcopio.estado === "Confirmacion" &&
         rolUsuario != "Bodeguero" ? (
@@ -697,7 +738,10 @@ export default function AcopioSalidaIdPage({
             <h2 className="text-xl font-semibold">Detalles Orden de Acopio</h2>
             <button
               className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
-              onClick={() => handleConfirmarAcopio(data.ordenAcopio.id)}
+              onClick={() => {
+                handleConfirmarAcopio(data.ordenAcopio.id);
+                setShowCargando(true);
+              }}
             >
               Confirmar Acopio de Productos
             </button>
@@ -707,21 +751,31 @@ export default function AcopioSalidaIdPage({
             <div className="text-xl sm:text-2xl font-semibold">
               Detalle de Acopio N°{id_acopio}
             </div>
-            <button
-              className={`bg-gray-400 text-white font-semibold px-4 py-2 rounded transition duration-200
-    ${
-      desactivacionBoton
-        ? "bg-gray-400 cursor-not-allowed "
-        : "hover:bg-gray-500"
-    }
-  `}
-              onClick={() =>
-                (window.location.href = "/salida/acopio_productos")
-              }
-              disabled={desactivacionBoton}
-            >
-              Salir
-            </button>
+            <div className="flex gap-2">
+              {rolUsuario != "Bodeguero" && (
+                <button
+                  className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
+                  onClick={() => {
+                    setShowSelectorPallets(true);
+                  }}
+                >
+                  Acopio Parcial
+                </button>
+              )}
+              <button
+                className={`bg-gray-400 text-white font-semibold px-4 py-2 rounded transition duration-200 ${
+                  desactivacionBoton
+                    ? "bg-gray-400 cursor-not-allowed "
+                    : "hover:bg-gray-500"
+                }`}
+                onClick={() =>
+                  (window.location.href = "/salida/acopio_productos")
+                }
+                disabled={desactivacionBoton}
+              >
+                Salir
+              </button>
+            </div>
           </div>
         )}
 
