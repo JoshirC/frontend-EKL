@@ -46,32 +46,11 @@ export const GET_ORDENES_ACOPIO = gql`
   }
 `;
 export const GET_ORDENES_ACOPIO_DOS_ESTADOS = gql`
-  query ($centroCosto: String!, $estado1: String!, $estado2: String!) {
-    ordenAcopioByCentroCostoYEstados(
+  query ($centroCosto: String!, $estados: [String!]!) {
+    ordenAcopioByCentroCostoYMultiplesEstados(
       centroCosto: $centroCosto
-      estado1: $estado1
-      estado2: $estado2
+      estados: $estados
     ) {
-      id
-      centroCosto
-      fecha
-      estado
-    }
-  }
-`;
-export const GET_CENTROS_COSTOS = gql`
-  query {
-    ordenAcopioDosEstados(estado1: "Pendiente", estado2: "Proceso") {
-      centroCosto
-      Pendiente
-      Proceso
-    }
-  }
-`;
-
-export const GET_ORDEN_ACOPIO = gql`
-  query ordenAcopio($id: Float!) {
-    ordenAcopio(id: $id) {
       id
       centroCosto
       fecha
@@ -79,27 +58,149 @@ export const GET_ORDEN_ACOPIO = gql`
       detalles {
         id
         codigo_producto
-        producto {
-          id
-          nombre_producto
-          codigo
-          familia
-          unidad_medida
-          cantidad
-          cantidad_softland
-          trazabilidad
-        }
         cantidad
         enviado
-        envios {
-          id
-          cantidad_enviada
-          codigo_producto_enviado
+        producto {
+          codigo
+          nombre_producto
+          unidad_medida
         }
       }
     }
   }
 `;
+
+export const GET_ORDENES_ACOPIO_BY_CENTRO_COSTO_Y_ESTADOS = gql`
+  query ($centroCosto: String!, $estados: [String!]!) {
+    ordenAcopioByCentroCostoYMultiplesEstados(
+      centroCosto: $centroCosto
+      estados: $estados
+    ) {
+      id
+      centroCosto
+      fecha
+      estado
+      detalles {
+        id
+        codigo_producto
+        cantidad
+        enviado
+        producto {
+          codigo
+          nombre_producto
+          unidad_medida
+        }
+      }
+    }
+  }
+`;
+export const GET_CENTROS_COSTOS = gql`
+  query ($estados: [String!]!) {
+    ordenAcopioMultiplesEstados(estados: $estados) {
+      centroCosto
+      Pendiente
+      Proceso
+      Subir
+      Cerrado
+      Revision
+      Parcial
+    }
+  }
+`;
+
+export const GET_ORDENES_ACOPIO_MULTIPLES_ESTADOS = gql`
+  query ($estados: [String!]!) {
+    ordenAcopioMultiplesEstados(estados: $estados) {
+      centroCosto
+      Pendiente
+      Proceso
+      Subir
+      Cerrado
+      Revision
+      Parcial
+    }
+  }
+`;
+
+export const GET_ORDEN_ACOPIO = gql`
+  query ordenAcopio($id: Float!) {
+    ordenAcopio(id: $id) {
+    id
+    centroCosto
+    fecha
+    estado
+    detalles {
+      id
+      codigo_producto
+      cantidad
+      enviado
+      producto {
+        codigo
+        nombre_producto
+        familia
+        unidad_medida
+        precio_unitario
+        cantidad
+      }
+      envios {
+        id
+        cantidad_enviada
+        codigo_producto_enviado
+        pallet {
+          numero_pallet
+          estado
+        }
+      }
+    }
+    pallets {
+      id
+      numero_pallet
+      estado
+    }
+  }
+}
+`;
+
+export const GET_ORDEN_ACOPIO_BY_ID_AND_ESTADO_PALLET = gql`
+  query ordenAcopioByIdAndEstadoPallet($id: Float!, $estado: String) {
+    ordenAcopioByIdAndEstadoPallet(id: $id, estado: $estado) {
+      id
+      centroCosto
+      fecha
+      estado
+      detalles {
+        id
+        cantidad
+        envios {
+          id
+          cantidad_enviada
+          pallet {
+            id
+            estado
+            numero_pallet
+          }
+          producto {
+            codigo
+            nombre_producto
+            familia
+            unidad_medida
+            precio_unitario
+            cantidad
+          }
+        }
+        producto {
+          codigo
+          nombre_producto
+          familia
+          unidad_medida
+          precio_unitario
+          cantidad
+        }
+      }
+    }
+  }
+`;
+
 // Query para Detalle de Orden de Acopio
 export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
   query detalleOrdenAcopioID($id: Int!) {
@@ -123,6 +224,10 @@ export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
           unidad_medida
           cantidad
         }
+        pallet {
+          id
+          numero_pallet
+        }
       }
     }
   }
@@ -132,33 +237,42 @@ export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
   query envioDetalleOrdenAcopioByIdOrden($id_orden_acopio: Float!) {
     envioDetalleOrdenAcopioByIdOrden(id_orden_acopio: $id_orden_acopio) {
       id
-      detalleOrdenAcopio {
-        id
-        cantidad
-        producto {
-          nombre_producto
-          codigo
-          familia
-          unidad_medida
-        }
-      }
-      usuario {
-        id
-        nombre
-        rut
-      }
-      codigo_producto_enviado
-      cantidad_enviada
+    codigo_producto_enviado
+    cantidad_enviada
+    detalleOrdenAcopio {
+      id
+      codigo_producto
+      cantidad
       producto {
-        nombre_producto
         codigo
-        familia
-        unidad_medida
-      }
-      guiaSalida {
-        numero_folio
+        nombre_producto
       }
     }
+    usuario {
+      nombre
+    }
+    producto {
+      codigo
+      nombre_producto
+      familia
+      cantidad
+      trazabilidad
+    }
+    pallet {
+      numero_pallet
+      guiasSalida{
+        numero_folio
+      } 
+    }
+    trazabilidad {
+      id
+      numero_lote
+      fecha_elaboracion
+      fecha_vencimiento
+      temperatura
+      observaciones
+    }
+  }
   }
 `;
 
@@ -200,39 +314,7 @@ export const GET_GUIA_SALIDA_CON_FOLIO = gql`
     }
   }
 `;
-export const GET_GUIAS_DE_SALIDA_SOFTLAND = gql`
-  query {
-    guiasDeSalidaSoftland {
-      id
-      codigo_bodega
-      numero_folio
-      fecha_generacion
-      concepto_salida
-      descripcion
-      codigo_centro_costo
-      usuario_creacion
-      codigo_lugar_despacho
-      valor_total
-      orden {
-        id
-        centroCosto
-        estado
-      }
-      envios {
-        id
-        cantidad_enviada
-        codigo_producto_enviado
-        producto {
-          id
-          nombre_producto
-          familia
-          unidad_medida
-          precio_unitario
-        }
-      }
-    }
-  }
-`; 
+
 // Query para Productos
 export const GET_PRODUCTOS = gql`
   query {
@@ -400,6 +482,34 @@ export const GET_TRAZABILIDAD_BY_CODIGO_PRODUCTO = gql`
         id
         codigo
         nombre_producto
+      }
+    }
+  }
+`;
+
+export const GET_GUIAS_SALIDA_BY_IDS = gql`
+  query GetGuiasSalidaPorIds($ids: [Float!]!) {
+    guiasDeSalidaPorIds(ids: $ids) {
+      id
+      codigo_bodega
+      numero_folio
+      fecha_generacion
+      concepto_salida
+      descripcion
+      codigo_centro_costo
+      pallet {
+        id
+        numero_pallet
+        envios {
+          id
+          cantidad_enviada
+          codigo_producto_enviado
+          producto {
+            codigo
+            nombre_producto
+            unidad_medida
+          }
+        }
       }
     }
   }

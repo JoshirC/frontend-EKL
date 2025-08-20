@@ -67,11 +67,14 @@ export const EDIT_PASSWORD_USER = gql`
 // Mutaciones para Envío de Detalle de Orden de Acopio
 
 export const UPDATE_CANTIDAD_ENVIO_DETALLE = gql`
-  mutation updateCantidadEnvioDetalleOrdenAcopio($id: Int!, $cantidad: Float!) {
-    updateCantidadEnvioDetalleOrdenAcopio(id: $id, cantidad: $cantidad) {
+  mutation updateCantidadEnvioDetalleOrdenAcopio($updateEnvioDetalleOrdenAcopioInput: UpdateEnvioDetalleOrdenAcopioInput!) {
+    updateCantidadEnvioDetalleOrdenAcopio(updateEnvioDetalleOrdenAcopioInput: $updateEnvioDetalleOrdenAcopioInput) {
       id
-      codigo_producto_enviado
       cantidad_enviada
+      pallet {
+        id
+        numero_pallet
+      }
     }
   }
 `;
@@ -81,6 +84,7 @@ export const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
     $cantidad_enviada: Float!
     $codigo_producto_enviado: String!
     $usuario_rut: String!
+    $numero_pallet: Int!
     $id_trazabilidad: Int
   ) {
     createEnvioDetalleOrdenAcopio(
@@ -89,11 +93,16 @@ export const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
         cantidad_enviada: $cantidad_enviada
         codigo_producto_enviado: $codigo_producto_enviado
         usuario_rut: $usuario_rut
+        numero_pallet: $numero_pallet
         id_trazabilidad: $id_trazabilidad
       }
     ) {
       codigo_producto_enviado
       cantidad_enviada
+      pallet {
+      id
+      numero_pallet
+      }
     }
   }
 `;
@@ -110,6 +119,7 @@ export const CREATE_MULTIPLE_ENVIOS_DETALLE = gql`
         id
         cantidad_enviada
         codigo_producto_enviado
+        numero_pallet
       }
       fallidos {
         id_detalle_orden_acopio
@@ -163,6 +173,22 @@ export const ELIMINAR_GUIA_SALIDA = gql`
   }
 `;
 
+export const CREAR_GUIAS_POR_PALLETS = gql`
+  mutation CrearGuiasPorPallets($input: CreateGuiasPorPalletsInput!) {
+    crearGuiasPorPallets(input: $input) {
+      guias_creadas_ids
+      total_guias_creadas
+      errores
+    }
+  }
+`;
+
+// Mutaciones para Pallets
+export const CAMBIO_ESTADO_PALLET = gql`
+  mutation CambioEstadoPallet($ids: [Int!]!, $estado: String!) {
+    cambioEstadoPallet(ids: $ids, estado: $estado)
+  }
+`;
 // Mutaciones para Productos
 export const UPDATE_TRAZABILIDAD = gql`
   mutation updateTrazabilidadProducto($codigo_producto: String!) {
@@ -197,7 +223,6 @@ export const AJUSTE_DE_INVENTARIO = gql`
     ajusteDeInventarioSoftland
   }
 `;
-
 // Mutaciones para guia de entrada
 export const CREATE_GUIA_ENTRADA_WITH_DETAILS = gql`
   mutation createGuiaEntradaWithDetails($createGuiaEntradaInput: CreateGuiaEntradaInput!) {
@@ -322,7 +347,7 @@ export const ENVIAR_CORREO_GUIA_ENTRADA = gql`
   }
 `;
 export const ENVIAR_CORREO_GUIA_SALIDA = gql`
-  mutation enviarExcelSalidas{
-    enviarExcelSalidas
+  mutation EnviarExcelSalidas($ids: [Float!]!) {
+    enviarExcelSalidas(ids: $ids)
   }
 `;

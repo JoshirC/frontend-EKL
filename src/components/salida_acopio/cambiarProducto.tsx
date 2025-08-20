@@ -29,6 +29,9 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
   id_detalle_orden_acopio,
 }) => {
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
+  const [numerosPallet, setNumerosPallet] = useState<Record<string, number>>(
+    {}
+  );
   const [filtro, setFiltro] = useState("");
   const [botonActivo, setBotonActivo] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState(false);
@@ -65,6 +68,8 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
 
   const onEnviarProducto = async (codigo: string, cantidad_sistema: number) => {
     const cantidad = cantidades[codigo];
+    const numeroPallet = numerosPallet[codigo];
+
     if (!cantidad || cantidad <= 0) {
       setShowAlert(true);
       setAlertType("advertencia");
@@ -73,6 +78,14 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
       );
       return;
     }
+
+    if (!numeroPallet || numeroPallet <= 0) {
+      setShowAlert(true);
+      setAlertType("advertencia");
+      setAlertMessage("Debe ingresar un número de pallet válido.");
+      return;
+    }
+
     if (cantidad > cantidad_sistema) {
       setShowAlert(true);
       setAlertType("advertencia");
@@ -90,6 +103,7 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
           cantidad_enviada: cantidad,
           codigo_producto_enviado: codigo,
           usuario_rut: rutUsuario,
+          numero_pallet: numeroPallet,
         },
       });
       setShowAlert(true);
@@ -165,6 +179,20 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
                       value={cantidades[p.codigo] || ""}
                       onChange={(e) =>
                         setCantidades((prev) => ({
+                          ...prev,
+                          [p.codigo]: Number(e.target.value),
+                        }))
+                      }
+                      disabled={productosEnviados[p.codigo]}
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      placeholder="Nº Pallet"
+                      className="w-24 border border-gray-300 rounded p-2 text-sm"
+                      value={numerosPallet[p.codigo] || ""}
+                      onChange={(e) =>
+                        setNumerosPallet((prev) => ({
                           ...prev,
                           [p.codigo]: Number(e.target.value),
                         }))
