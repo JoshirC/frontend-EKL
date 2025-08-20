@@ -287,7 +287,7 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 mb-4">
         <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
           <div className="flex items-center gap-2">
             <div>
@@ -332,7 +332,7 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
       <input
         type="text"
         placeholder="Buscar por código o descripción"
-        className="w-full border border-gray-300 rounded p-2 mt-4 text-sm"
+        className="w-full border border-gray-300 rounded p-2 mt-4 mb-4 text-sm"
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
       />

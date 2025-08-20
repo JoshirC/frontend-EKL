@@ -347,7 +347,7 @@ export const ENVIAR_CORREO_GUIA_ENTRADA = gql`
   }
 `;
 export const ENVIAR_CORREO_GUIA_SALIDA = gql`
-  mutation enviarExcelSalidas{
-    enviarExcelSalidas
+  mutation EnviarExcelSalidas($ids: [Float!]!) {
+    enviarExcelSalidas(ids: $ids)
   }
 `;

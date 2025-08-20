@@ -19,7 +19,7 @@ const AcopioProductosPage: React.FC = () => {
   // Ejemplo de uso con todos los estados
   const { loading, error, data } = useQuery(GET_CENTROS_COSTOS, {
     variables: {
-      estados: ["Pendiente", "Proceso", "Subir", "Parcial"],
+      estados: ["Pendiente", "Proceso", "Parcial"],
     },
   });
 

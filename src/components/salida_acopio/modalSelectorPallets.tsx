@@ -225,6 +225,7 @@ const ModalSelectorPallets: React.FC<ModalSelectorPalletsProps> = ({
             type={alertType}
             message={alertMessage}
             onClose={() => setShowAlert(false)}
+            modal={true}
           />
         )}
 

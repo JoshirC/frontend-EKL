@@ -58,6 +58,7 @@ type CreateMultipleEnviosResponse = {
 type Pallet = {
   id: number;
   numero_pallet: number;
+  estado: string;
 };
 
 export default function AcopioSalidaIdPage({
@@ -151,6 +152,19 @@ export default function AcopioSalidaIdPage({
 
     // Crear una copia del array y ordenar productos: primero por estado de envío, luego alfabéticamente
     const sortedItems = [...filteredItems].sort((a, b) => {
+      // Verificar si los pallets están cerrados
+      const aPalletCerrado = a.envios.some(
+        (envio) => envio.pallet?.estado === "Cerrado"
+      );
+      const bPalletCerrado = b.envios.some(
+        (envio) => envio.pallet?.estado === "Cerrado"
+      );
+
+      // Si uno tiene pallet cerrado y el otro no, el que no tiene pallet cerrado va primero
+      if (aPalletCerrado && !bPalletCerrado) return 1;
+      if (!aPalletCerrado && bPalletCerrado) return -1;
+
+      // Si ambos tienen el mismo estado de pallet cerrado, continuar con el ordenamiento original
       // Determinar si los productos fueron enviados
       const aEnviado = a.envios.length > 0;
       const bEnviado = b.envios.length > 0;
@@ -675,6 +689,11 @@ export default function AcopioSalidaIdPage({
     }
   };
 
+  // Función helper para verificar si un pallet está cerrado
+  const isPalletCerrado = (detalle: DetalleOrdenAcopio): boolean => {
+    return detalle.envios.some((envio) => envio.pallet?.estado === "Cerrado");
+  };
+
   if (loading) {
     return (
       <div className="p-4 sm:p-10">
@@ -862,10 +881,12 @@ export default function AcopioSalidaIdPage({
                 <React.Fragment key={detalle.id}>
                   <tr
                     className={`${
-                      detalle.envios[0]?.cantidad_enviada === 0
-                        ? "bg-gray-100"
+                      isPalletCerrado(detalle)
+                        ? "bg-gray-200 border-l-4 border-gray-500"
+                        : detalle.envios[0]?.cantidad_enviada === 0
+                        ? "bg-red-100 border-l-4 border-red-500"
                         : detalle.envios.length > 0
-                        ? "bg-orange-100"
+                        ? "bg-orange-100 border-l-4 border-orange-500"
                         : ""
                     }`}
                   >
@@ -1085,8 +1106,7 @@ export default function AcopioSalidaIdPage({
                                   editLoading === detalle.id
                                     ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
                                     : "bg-blue-400 hover:bg-blue-500"
-                                }
-  `}
+                                }`}
                               >
                                 Guardar
                               </button>
@@ -1102,18 +1122,23 @@ export default function AcopioSalidaIdPage({
                                 Cancelar
                               </button>
                             </div>
+                          ) : isPalletCerrado(detalle) ? (
+                            // No mostrar botones para pallets cerrados
+                            <div className="flex items-center justify-center">
+                              <span className="ml-2 text-gray-600 font-bold text-xs">
+                                (CERRADO)
+                              </span>
+                            </div>
                           ) : (
                             <div className="flex items-center gap-2">
                               {detalle.envios[0].cantidad_enviada != 0 && (
                                 <button
                                   onClick={() => handleEditClick(detalle)}
-                                  className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
-    ${
-      loadingSave === detalle.id
-        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
-        : "bg-orange-400 hover:bg-orange-500"
-    }
-  `}
+                                  className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full ${
+                                    loadingSave === detalle.id
+                                      ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+                                      : "bg-orange-400 hover:bg-orange-500"
+                                  }`}
                                   disabled={loadingSave === detalle.id}
                                 >
                                   Editar
@@ -1121,13 +1146,11 @@ export default function AcopioSalidaIdPage({
                               )}
 
                               <button
-                                className={`font-semibold py-2 px-4 rounded transition duration-200 w-full
-                                  ${
-                                    loadingSave === detalle.id
-                                      ? "bg-gray-400 cursor-not-allowed text-white"
-                                      : "bg-red-500 hover:bg-red-600 text-white"
-                                  }
-                                `}
+                                className={`font-semibold py-2 px-4 rounded transition duration-200 w-full ${
+                                  loadingSave === detalle.id
+                                    ? "bg-gray-400 cursor-not-allowed text-white"
+                                    : "bg-red-500 hover:bg-red-600 text-white"
+                                }`}
                                 onClick={() => {
                                   setShowConfirmacion(true);
                                   setIdEnvioEliminar(detalle.envios[0].id);
@@ -1157,6 +1180,7 @@ export default function AcopioSalidaIdPage({
                             setLoadingSave(null);
                           }}
                           onProcesoCompleto={stableRefetch}
+                          pallet_cerrado={isPalletCerrado(detalle)}
                         />
                       </td>
                     </tr>
@@ -1205,7 +1229,8 @@ export default function AcopioSalidaIdPage({
               ))}
             </tbody>
           </table>
-          <div className="flex justify-end mt-6">
+          {/**
+           * <div className="flex justify-end mt-6">
             <button
               className={`bg-blue-400 text-white font-semibold py-2 px-6 rounded transition duration-200 ${
                 desactivacionBoton
@@ -1218,6 +1243,7 @@ export default function AcopioSalidaIdPage({
               Enviar Múltiples Productos
             </button>
           </div>
+           */}
         </div>
       </div>
     </div>

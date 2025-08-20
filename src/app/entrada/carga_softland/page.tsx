@@ -84,8 +84,9 @@ const CargaSoftlandPage: React.FC = () => {
     const dia = String(fecha.getDate()).padStart(2, "0");
     const mes = String(fecha.getMonth() + 1).padStart(2, "0");
     const anio = fecha.getFullYear();
-    const fechaActual = `${dia}_${mes}_${anio}`;
-    XLSX.writeFile(workbook, `carga_masiva_guia_entrada_${fechaActual}.xlsx`);
+    const codigoAleatorio = Math.floor(1000 + Math.random() * 9000);
+    const fechaActual = `${anio}_${mes}_${dia}`;
+    XLSX.writeFile(workbook, `${fechaActual}_G_E_${codigoAleatorio}.xlsx`);
     const listaIds = guiasEntrada.map((guia) => guia.id);
     handleActualizarEstado(listaIds, "Cargada");
   };

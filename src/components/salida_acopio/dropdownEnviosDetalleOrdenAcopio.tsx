@@ -40,13 +40,20 @@ interface DetalleOrdenAcopio {
 interface DropdownEnviosDetalleOrdenAcopioProps {
   isOpen: boolean;
   id_detalle_orden_acopio: number;
+  pallet_cerrado: boolean;
   onClose: () => void;
   onProcesoCompleto?: () => void;
 }
 
 const DropdownEnviosDetalleOrdenAcopio: React.FC<
   DropdownEnviosDetalleOrdenAcopioProps
-> = ({ isOpen, id_detalle_orden_acopio, onClose, onProcesoCompleto }) => {
+> = ({
+  isOpen,
+  id_detalle_orden_acopio,
+  onClose,
+  onProcesoCompleto,
+  pallet_cerrado,
+}) => {
   if (!isOpen) return null;
 
   const [showAlert, setShowAlert] = useState(false);
@@ -251,7 +258,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl shadow-xl py-8 px-6 m-2 max-w-6xl mx-auto">
+      <div className="bg-white border border-gray-200 rounded shadow-xl py-8 px-6 m-2 max-w-6xl mx-auto">
         <h3 className="text-lg font-semibold text-gray-700 mb-2">
           Cargando detalles del acopio...
         </h3>
@@ -261,7 +268,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl shadow-xl py-6 px-6 m-2 max-w-6xl mx-auto">
+      <div className="bg-red-50 border border-red-200 rounded shadow-xl py-6 px-6 m-2 max-w-6xl mx-auto">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
@@ -290,7 +297,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
   const envios = detalleOrdenAcopio?.envios;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-xl py-6 px-6 m-2 mx-auto">
+    <div className="bg-white border border-gray-200 rounded shadow-xl py-6 px-6 m-2 mx-auto">
       {showConfirmacion && (
         <Confirmacion
           isOpen={showConfirmacion}
@@ -317,7 +324,9 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
           <button
             className={`${
               activarEditar
-                ? "bg-gray-500 hover:bg-gray-600"
+                ? "bg-red-500 hover:bg-red-600"
+                : pallet_cerrado
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-orange-400 hover:bg-orange-500"
             } text-white font-medium px-6 py-2.5 rounded transition-all duration-200 flex items-center gap-2 shadow-sm`}
             onClick={() => {
@@ -327,6 +336,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
                 setEditPalletValues({});
               }
             }}
+            disabled={pallet_cerrado}
           >
             {activarEditar ? <>Cancelar</> : <>Editar Cantidades</>}
           </button>
@@ -467,11 +477,16 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
               ) : (
                 <div className="flex justify-end">
                   <button
-                    className="bg-red-500 hover:bg-red-600 text-white font-medium px-6 py-2 rounded transition-colors duration-200 flex items-center gap-2 shadow-sm"
+                    className={`${
+                      pallet_cerrado
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-red-500 hover:bg-red-600"
+                    } text-white font-medium px-6 py-2 rounded transition-colors duration-200 flex items-center gap-2 shadow-sm`}
                     onClick={() => {
                       setShowConfirmacion(true);
                       setIdEnvioEliminar(envio.id);
                     }}
+                    disabled={pallet_cerrado}
                   >
                     Anular Envío
                   </button>

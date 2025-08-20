@@ -148,12 +148,14 @@ export const GET_ORDEN_ACOPIO = gql`
         codigo_producto_enviado
         pallet {
           numero_pallet
+          estado
         }
       }
     }
     pallets {
       id
       numero_pallet
+      estado
     }
   }
 }
@@ -235,37 +237,42 @@ export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
   query envioDetalleOrdenAcopioByIdOrden($id_orden_acopio: Float!) {
     envioDetalleOrdenAcopioByIdOrden(id_orden_acopio: $id_orden_acopio) {
       id
-      detalleOrdenAcopio {
-        id
-        cantidad
-        producto {
-          nombre_producto
-          codigo
-          familia
-          unidad_medida
-        }
-      }
-      usuario {
-        id
-        nombre
-        rut
-      }
-      codigo_producto_enviado
-      cantidad_enviada
+    codigo_producto_enviado
+    cantidad_enviada
+    detalleOrdenAcopio {
+      id
+      codigo_producto
+      cantidad
       producto {
-        nombre_producto
         codigo
-        familia
-        unidad_medida
-      }
-      guiaSalida {
-        numero_folio
-      }
-      pallet {
-        id
-        numero_pallet
+        nombre_producto
       }
     }
+    usuario {
+      nombre
+    }
+    producto {
+      codigo
+      nombre_producto
+      familia
+      cantidad
+      trazabilidad
+    }
+    pallet {
+      numero_pallet
+      guiasSalida{
+        numero_folio
+      } 
+    }
+    trazabilidad {
+      id
+      numero_lote
+      fecha_elaboracion
+      fecha_vencimiento
+      temperatura
+      observaciones
+    }
+  }
   }
 `;
 

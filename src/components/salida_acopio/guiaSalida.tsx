@@ -2,7 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_GUIAS_SALIDA_BY_IDS } from "@/graphql/query";
-import { CAMBIO_ESTADO_PALLET } from "@/graphql/mutations";
+import {
+  CAMBIO_ESTADO_PALLET,
+  ENVIAR_CORREO_GUIA_SALIDA,
+} from "@/graphql/mutations";
 import Alert from "../Alert";
 type GuiaSalidaModalProps = {
   isOpen: boolean;
@@ -43,6 +46,16 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
       setShowAlert(true);
     },
   });
+  const [enviarCorreo] = useMutation(ENVIAR_CORREO_GUIA_SALIDA, {
+    onCompleted: () => {
+      handleEditPallets();
+    },
+    onError: (error) => {
+      setAlertMessage(error.message);
+      setAlertType("error");
+      setShowAlert(true);
+    },
+  });
   const handleEditPallets = () => {
     if (!data?.guiasDeSalidaPorIds) return;
 
@@ -54,6 +67,17 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
       variables: {
         ids: idsPallets,
         estado: "Cerrado",
+      },
+    });
+  };
+  const handleEnviarCorreo = () => {
+    if (!data?.guiasDeSalidaPorIds) return;
+
+    const idsGuias = data.guiasDeSalidaPorIds.map((guia: any) => guia.id);
+
+    enviarCorreo({
+      variables: {
+        ids: idsGuias,
       },
     });
   };
@@ -142,16 +166,14 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
     const dia = String(fecha.getDate()).padStart(2, "0");
     const mes = String(fecha.getMonth() + 1).padStart(2, "0");
     const anio = fecha.getFullYear();
-    const fechaActual = `${dia}_${mes}_${anio}`;
+    const codigoAleatorio = Math.floor(1000 + Math.random() * 9000);
+    const fechaActual = `${anio}_${mes}_${dia}`;
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `carga_masiva_guia_salida_${fechaActual}.csv`
-    );
+    link.setAttribute("download", `${fechaActual}_G_S_${codigoAleatorio}.csv`);
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -194,14 +216,18 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
             >
               Descargar CSV
             </button>
-            <button className="bg-orange-400 hover:bg-orange-500 font-semibold text-white px-4 py-2 rounded">
+            <button
+              className="bg-orange-400 hover:bg-orange-500 font-semibold text-white px-4 py-2 rounded"
+              onClick={handleEnviarCorreo}
+              disabled={loading || !data?.guiasDeSalidaPorIds}
+            >
               Enviar por Correo
             </button>
           </div>
         </div>
         {loading && (
           <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
           </div>
         )}
         {error && (
