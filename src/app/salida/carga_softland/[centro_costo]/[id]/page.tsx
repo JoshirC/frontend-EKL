@@ -319,12 +319,11 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
     crearGuiasPorPallets({
       variables: {
         input: {
-          pallet_ids: palletIds,
-          codigo_bodega: formData.codigoBodega,
-          concepto_salida: formData.concepto,
-          codigo_centro_costo: formData.codigoCentroCosto,
-          descripcion:
-            formData.descripcion || "Despacho de productos a cliente",
+          pallet_ids: palletIds.map(Number),
+          codigo_bodega: String(formData.codigoBodega),
+          concepto_salida: String(formData.concepto),
+          codigo_centro_costo: String(formData.codigoCentroCosto),
+          descripcion: String(formData.descripcion),
         },
       },
     });

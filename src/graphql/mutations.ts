@@ -174,7 +174,7 @@ export const ELIMINAR_GUIA_SALIDA = gql`
 `;
 
 export const CREAR_GUIAS_POR_PALLETS = gql`
-  mutation CrearGuiasPorPallets($input: CreateGuiasPorPalletsInput!) {
+  mutation crearGuiasPorPallets($input: CreateGuiasPorPalletsInput!) {
     crearGuiasPorPallets(input: $input) {
       guias_creadas_ids
       total_guias_creadas
