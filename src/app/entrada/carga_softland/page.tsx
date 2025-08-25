@@ -34,62 +34,6 @@ type GuiaEntrada = {
   guiaEntradaDetalle: GuiaEntradaDetalle[];
 };
 const CargaSoftlandPage: React.FC = () => {
-  function crearFilaExcel(
-    campos: Partial<Record<string, string | number>>
-  ): Record<string, string | number> {
-    const fila: Record<string, string | number> = {};
-
-    for (let i = 1; i <= 31; i++) {
-      const keyCompleta = Object.keys(campos).find((k) =>
-        k.startsWith(`${i}.`)
-      );
-
-      if (keyCompleta) {
-        fila[keyCompleta] = campos[keyCompleta] ?? "";
-      } else {
-        fila[`${i}.`] = "";
-      }
-    }
-
-    return fila;
-  }
-  const exportarAExcel = () => {
-    const datos = guiasEntrada.flatMap((guia) =>
-      guia.guiaEntradaDetalle.map((detalle) =>
-        crearFilaExcel({
-          "1. Codigo Bodega": guia.codigo_bodega,
-          "2. Folio": guia.numero_folio,
-          "3. Fecha": guia.fecha_generacion.replace(/\//g, "-"),
-          "4. Concepto": "02",
-          "5. Descripcion": guia.observacion || "N/A",
-          "6. Codigo Proveedor": guia.codigo_proveedor,
-          "11. Numero Factura": guia.numero_factura,
-          "13. Fecha Factura": guia.fecha_factura.replace(/\//g, "-"),
-          "16. Numero Orden Compra": guia.numero_orden_compra,
-          "21. Codigo Producto": detalle.producto?.codigo ?? "N/A",
-          "22. Descripcion Producto":
-            detalle.producto?.nombre_producto ?? "N/A",
-          "23. Cantidad Ingresada": detalle.cantidad_ingresada,
-          "24. Precio Unitario": detalle.precio_unitario ?? "0.00",
-          "31. Tipo Factura": 33,
-        })
-      )
-    );
-
-    const worksheet = XLSX.utils.json_to_sheet(datos);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Guias de Entrada");
-
-    const fecha = new Date();
-    const dia = String(fecha.getDate()).padStart(2, "0");
-    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-    const anio = fecha.getFullYear();
-    const codigoAleatorio = Math.floor(1000 + Math.random() * 9000);
-    const fechaActual = `${anio}_${mes}_${dia}`;
-    XLSX.writeFile(workbook, `${fechaActual}_G_E_${codigoAleatorio}.xlsx`);
-    const listaIds = guiasEntrada.map((guia) => guia.id);
-    handleActualizarEstado(listaIds, "Cargada");
-  };
   // Estado para almacenar el mensaje de alerta
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
@@ -187,20 +131,6 @@ const CargaSoftlandPage: React.FC = () => {
           </h1>
           {/* Botones de acción */}
           <div className="flex flex-col sm:flex-row w-full sm:w-auto">
-            <button
-              className={`${
-                botonCargando
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-orange-400 hover:bg-orange-500"
-              } text-white font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap`}
-              onClick={() => {
-                exportarAExcel();
-                setBotonCargando(true);
-              }}
-              disabled={botonCargando}
-            >
-              Descargar a Excel
-            </button>
             <button
               className={`${
                 botonCargando

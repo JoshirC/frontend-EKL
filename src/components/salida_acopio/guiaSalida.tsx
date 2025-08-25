@@ -81,106 +81,7 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
       },
     });
   };
-  // Función para crear una fila CSV con todas las columnas numeradas
-  function crearFilaCSV(
-    campos: Partial<Record<string, string | number>>
-  ): Record<string, string | number> {
-    const fila: Record<string, string | number> = {};
 
-    for (let i = 1; i <= 153; i++) {
-      const keyCompleta = Object.keys(campos).find((k) =>
-        k.startsWith(`${i}.`)
-      );
-
-      if (keyCompleta) {
-        fila[keyCompleta] = campos[keyCompleta] ?? "";
-      } else {
-        fila[`${i}.`] = "";
-      }
-    }
-
-    return fila;
-  }
-
-  // Función para exportar a CSV
-  const exportarACSV = () => {
-    if (!data?.guiasDeSalidaPorIds) return;
-
-    const datos = data.guiasDeSalidaPorIds.flatMap(
-      (guia: any) =>
-        guia.pallet?.envios
-          ?.filter((envio: any) => envio.cantidad_enviada > 0)
-          .map((envio: any) =>
-            crearFilaCSV({
-              "1. Codigo Bodega": guia.codigo_bodega,
-              "2. Folio": guia.numero_folio,
-              "3. Tipo Documento": "S",
-              "4. Sub Tipo Documento": "T",
-              "5. Fecha": guia.fecha_generacion.replace(/\//g, "-"),
-              "6. Concepto de Salida": guia.concepto_salida,
-              "7. Observacion": guia.descripcion || "N/A",
-              "15. Codigo Centro Costo": guia.codigo_centro_costo,
-              "60. Codigo Producto": envio.codigo_producto_enviado,
-              "62. Descripcion Producto":
-                envio.producto?.nombre_producto || "N/A",
-              "64. Cantidad Despachada": envio.cantidad_enviada,
-              "82. Conserva Folio Asignado DTE": "S",
-            })
-          ) || []
-    );
-
-    // Convertir datos a CSV
-    if (datos.length === 0) return;
-
-    const headers = Object.keys(datos[0]);
-    const csvContent = [
-      headers.join(";"), // Encabezados
-      ...datos.map((fila: Record<string, string | number>) =>
-        headers
-          .map((header) => {
-            let valor = fila[header];
-
-            // Procesar cantidad despachada para convertir punto a coma
-            if (
-              header === "64. Cantidad Despachada" &&
-              typeof valor === "number"
-            ) {
-              valor = valor.toString().replace(".", ",");
-            }
-
-            // Escapar valores que contienen punto y coma o comillas
-            if (
-              typeof valor === "string" &&
-              (valor.includes(";") || valor.includes('"'))
-            ) {
-              return `"${valor.replace(/"/g, '""')}"`;
-            }
-            return valor;
-          })
-          .join(";")
-      ),
-    ].join("\n");
-
-    // Crear y descargar el archivo
-    const fecha = new Date();
-    const dia = String(fecha.getDate()).padStart(2, "0");
-    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-    const anio = fecha.getFullYear();
-    const codigoAleatorio = Math.floor(1000 + Math.random() * 9000);
-    const fechaActual = `${anio}_${mes}_${dia}`;
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `${fechaActual}_G_S_${codigoAleatorio}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    handleEditPallets();
-  };
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -210,18 +111,11 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
           </h2>
           <div className="flex space-x-4">
             <button
-              className="bg-blue-400 hover:bg-blue-500 font-semibold text-white px-4 py-2 rounded"
-              onClick={exportarACSV}
-              disabled={loading || !data?.guiasDeSalidaPorIds}
-            >
-              Descargar CSV
-            </button>
-            <button
               className="bg-orange-400 hover:bg-orange-500 font-semibold text-white px-4 py-2 rounded"
               onClick={handleEnviarCorreo}
               disabled={loading || !data?.guiasDeSalidaPorIds}
             >
-              Enviar por Correo
+              Enviar CSV por Correo
             </button>
           </div>
         </div>
