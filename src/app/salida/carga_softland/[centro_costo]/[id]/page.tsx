@@ -98,6 +98,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
   });
   const [showGuiaSalidaModal, setShowGuiaSalidaModal] = useState(false);
   const [guiaIds, setGuiaIds] = useState<string[]>([]);
+  const [idPallets, setIdPallets] = useState<number[]>([]);
   const validateForm = () => {
     const errors: FormErrors = {};
     if (!formData.codigoBodega || formData.codigoBodega === " ") {
@@ -307,7 +308,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
     const palletIds = enviosFiltrados
       .map((envio) => envio.pallet.id)
       .filter((id, index, array) => array.indexOf(id) === index); // Eliminar duplicados
-
+    setIdPallets(palletIds);
     if (palletIds.length === 0) {
       setAlertType("error");
       setAlertMessage("Debe seleccionar al menos un pallet.");
@@ -657,6 +658,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
           refetch(); // Refrescar los datos cuando se cierre el modal
         }}
         guiaIds={guiaIds}
+        palletIds={idPallets}
       />
     </div>
   );

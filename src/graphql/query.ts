@@ -497,18 +497,14 @@ export const GET_GUIAS_SALIDA_BY_IDS = gql`
       concepto_salida
       descripcion
       codigo_centro_costo
-      pallet {
+      envios {
         id
-        numero_pallet
-        envios {
-          id
-          cantidad_enviada
-          codigo_producto_enviado
-          producto {
-            codigo
-            nombre_producto
-            unidad_medida
-          }
+        cantidad_enviada
+        codigo_producto_enviado
+        producto {
+          codigo
+          nombre_producto
+          unidad_medida
         }
       }
     }

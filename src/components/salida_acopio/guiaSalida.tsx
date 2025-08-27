@@ -7,28 +7,42 @@ import {
   ENVIAR_CORREO_GUIA_SALIDA,
 } from "@/graphql/mutations";
 import Alert from "../Alert";
+
 type GuiaSalidaModalProps = {
   isOpen: boolean;
   onClose: () => void;
   guiaIds: string[];
+  palletIds: number[];
 };
-
+type GuiaSalida = {
+  id: string;
+  codigo_bodega: string;
+  numero_folio: string;
+  fecha_generacion: string;
+  concepto_salida: string;
+  descripcion: string;
+  codigo_centro_costo: string;
+};
 const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
   isOpen,
   onClose,
   guiaIds,
+  palletIds,
 }) => {
+  const [cargando, setCargando] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+
   const { data, loading, error } = useQuery(GET_GUIAS_SALIDA_BY_IDS, {
     variables: {
       ids: guiaIds.map((id) => parseFloat(id)),
     },
     skip: !isOpen || guiaIds.length === 0,
   });
+
   const [editarEstadoPallets] = useMutation(CAMBIO_ESTADO_PALLET, {
     onCompleted: () => {
       setAlertType("exitoso");
@@ -39,6 +53,7 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
         setAlertMessage("");
         setShowAlert(false);
       }, 3000);
+      setCargando(false);
     },
     onError: (error) => {
       setAlertMessage(error.message);
@@ -46,6 +61,7 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
       setShowAlert(true);
     },
   });
+
   const [enviarCorreo] = useMutation(ENVIAR_CORREO_GUIA_SALIDA, {
     onCompleted: () => {
       handleEditPallets();
@@ -53,28 +69,25 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
     onError: (error) => {
       setAlertMessage(error.message);
       setAlertType("error");
+      setCargando(true);
       setShowAlert(true);
     },
   });
+
   const handleEditPallets = () => {
-    if (!data?.guiasDeSalidaPorIds) return;
-
-    const idsPallets = data.guiasDeSalidaPorIds.flatMap(
-      (guia: any) => guia.pallet?.id || []
-    );
-
+    if (palletIds == null) return;
     editarEstadoPallets({
       variables: {
-        ids: idsPallets,
+        ids: palletIds,
         estado: "Cerrado",
       },
     });
   };
+
   const handleEnviarCorreo = () => {
     if (!data?.guiasDeSalidaPorIds) return;
-
+    setCargando(true);
     const idsGuias = data.guiasDeSalidaPorIds.map((guia: any) => guia.id);
-
     enviarCorreo({
       variables: {
         ids: idsGuias,
@@ -92,6 +105,7 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
       document.body.style.overflow = "auto";
     };
   }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -111,9 +125,13 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
           </h2>
           <div className="flex space-x-4">
             <button
-              className="bg-orange-400 hover:bg-orange-500 font-semibold text-white px-4 py-2 rounded"
+              className={`px-4 py-2 rounded font-semibold transition-all duration-200 ${
+                cargando
+                  ? "bg-gray-400 text-gray-200 shadow-md"
+                  : "bg-orange-400 hover:bg-orange-500 text-white"
+              }`}
               onClick={handleEnviarCorreo}
-              disabled={loading || !data?.guiasDeSalidaPorIds}
+              disabled={loading || !data?.guiasDeSalidaPorIds || cargando}
             >
               Enviar CSV por Correo
             </button>
@@ -165,41 +183,40 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data.guiasDeSalidaPorIds.flatMap(
-                  (guia: any) =>
-                    guia.pallet?.envios
-                      ?.filter((envio: any) => envio.cantidad_enviada > 0)
-                      .map((envio: any) => (
-                        <tr key={`${guia.id}-${envio.id}`}>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                            {guia.numero_folio}
-                          </td>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                            {guia.fecha_generacion}
-                          </td>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                            {guia.concepto_salida}
-                          </td>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                            {guia.descripcion || "N/A"}
-                          </td>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                            {guia.codigo_centro_costo}
-                          </td>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                            {envio.codigo_producto_enviado}
-                          </td>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                            {envio.producto?.nombre_producto || "N/A"}
-                          </td>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                            {envio.cantidad_enviada}
-                          </td>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                            {envio.producto?.unidad_medida || "N/A"}
-                          </td>
-                        </tr>
-                      )) || []
+                {data.guiasDeSalidaPorIds.flatMap((guia: any) =>
+                  guia.envios
+                    ?.filter((envio: any) => envio.cantidad_enviada > 0)
+                    .map((envio: any) => (
+                      <tr key={`${guia.id}-${envio.id}`}>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {guia.numero_folio}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {guia.fecha_generacion}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {guia.concepto_salida}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {guia.descripcion || "N/A"}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {guia.codigo_centro_costo}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {envio.codigo_producto_enviado}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {envio.producto?.nombre_producto || "N/A"}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {envio.cantidad_enviada}
+                        </td>
+                        <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                          {envio.producto?.unidad_medida || "N/A"}
+                        </td>
+                      </tr>
+                    ))
                 )}
               </tbody>
             </table>
