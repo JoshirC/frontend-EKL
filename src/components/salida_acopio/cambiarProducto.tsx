@@ -169,6 +169,9 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
                   <div>
                     <p className="font-medium">{p.nombre_producto}</p>
                     <p className="text-sm text-gray-500">Código: {p.codigo}</p>
+                    <p className="text-sm text-gray-500">
+                      Unidad: {p.unidad_medida}
+                    </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <input

@@ -169,6 +169,9 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
           <p>
             <strong>Código:</strong> {producto.codigo}
           </p>
+          <p>
+            <strong>Unidad de Medida:</strong> {producto.unidad_medida}
+          </p>
         </div>
         {!enviado ? (
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
@@ -252,7 +255,8 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
         isOpen={showCambiarProducto}
         onClose={() => {
           setShowCambiarProducto(false);
-          onClose(); // Cierra el dropdown padre
+          onClose(); // Cierra el modal padre
+          onProductoEnviado?.();
         }}
         producto={
           producto || {
