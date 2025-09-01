@@ -203,22 +203,30 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
                       disabled={productosEnviados[p.codigo]}
                     />
                     {productosEnviados[p.codigo] ? (
-                      <span className="text-gray-600 font-semibold">
-                        Enviado
-                      </span>
+                      <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-green-700 font-semibold text-sm">
+                          ✓ Reemplazado
+                        </span>
+                      </div>
                     ) : (
                       <button
                         onClick={() => onEnviarProducto(p.codigo, p.cantidad)}
                         className={`${
                           botonActivo === p.codigo
                             ? "bg-gray-400 cursor-wait"
-                            : "bg-blue-400 hover:bg-blue-500"
-                        } text-white rounded px-4 py-2 font-semibold transition duration-200`}
+                            : "bg-blue-500 hover:bg-blue-600"
+                        } text-white rounded px-4 py-2 font-semibold transition duration-200 flex items-center gap-2`}
                         disabled={botonActivo === p.codigo}
                       >
-                        {botonActivo === p.codigo
-                          ? "Enviando..."
-                          : "Reemplazar"}
+                        {botonActivo === p.codigo ? (
+                          <>
+                            <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                            Enviando...
+                          </>
+                        ) : (
+                          <>Reemplazar</>
+                        )}
                       </button>
                     )}
                   </div>

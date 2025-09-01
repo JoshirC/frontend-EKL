@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import DropdownCambioProducto from "@/components/salida_acopio/DropdownCambioProducto";
 import DropdownEnviosDetalleOrdenAcopio from "@/components/salida_acopio/dropdownEnviosDetalleOrdenAcopio";
 import DropdownTrazabilidad from "@/components/salida_acopio/dropdownTrazabilidad";
+import DropdownDividirEnvio from "@/components/salida_acopio/dropdownDividirEnvio";
 import FamilyFilter from "@/components/FamilyPagination";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
@@ -18,6 +19,7 @@ import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
 import Cargando from "@/components/cargando";
 import ModalSelectorPallets from "@/components/salida_acopio/modalSelectorPallets";
+
 type Producto = {
   codigo: string;
   nombre_producto: string;
@@ -95,6 +97,9 @@ export default function AcopioSalidaIdPage({
   const [dropdownTrazabilidadOpen, setDropdownTrazabilidadOpen] = useState<
     number | null
   >(null);
+  const [dropdownDividirEnvioOpen, setDropdownDividirEnvioOpen] = useState<
+    number | null
+  >(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [editPalletValue, setEditPalletValue] = useState<string>("");
@@ -103,7 +108,6 @@ export default function AcopioSalidaIdPage({
   const [familyGroups, setFamilyGroups] = useState<string[]>([]);
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [openModalGuia, setOpenModalGuia] = useState(false);
   const [showCargando, setShowCargando] = useState(false);
   // Query para obtener datos
   const { loading, error, data, refetch } = useQuery(GET_ORDEN_ACOPIO, {
@@ -622,6 +626,9 @@ export default function AcopioSalidaIdPage({
       dropdownCambiarProductoOpen === id ? null : id
     );
   };
+  const handleDropdownDividirEnvioClick = (id: number) => {
+    setDropdownDividirEnvioOpen(dropdownDividirEnvioOpen === id ? null : id);
+  };
   const handleEliminarEnvio = async (id: number) => {
     if (id) {
       try {
@@ -869,7 +876,7 @@ export default function AcopioSalidaIdPage({
                   Cantidad Enviada
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Número Pallet
+                  Pallet
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Acciones
@@ -974,13 +981,12 @@ export default function AcopioSalidaIdPage({
                               cantidadesTemporales[detalle.id] >= 0 && (
                                 <button
                                   onClick={() => handleEnvioUnico(detalle.id)}
-                                  className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200
-    ${
-      desactivacionBoton || loadingSave === detalle.id
-        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
-        : "bg-blue-400 hover:bg-blue-500"
-    }
-  `}
+                                  className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200 ${
+                                    desactivacionBoton ||
+                                    loadingSave === detalle.id
+                                      ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+                                      : "bg-blue-400 hover:bg-blue-500"
+                                  }`}
                                   disabled={
                                     desactivacionBoton ||
                                     loadingSave === detalle.id
@@ -994,15 +1000,26 @@ export default function AcopioSalidaIdPage({
                                 handleDropdownCambiarProductoClick(detalle.id);
                                 setLoadingSave(detalle.id);
                               }}
-                              className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200
-    ${
-      loadingSave === detalle.id
-        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
-        : "bg-orange-400 hover:bg-orange-500"
-    }
-  `}
+                              className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200 ${
+                                loadingSave === detalle.id
+                                  ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+                                  : "bg-orange-400 hover:bg-orange-500"
+                              }`}
                             >
                               Cambiar Producto
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleDropdownDividirEnvioClick(detalle.id);
+                                setLoadingSave(detalle.id);
+                              }}
+                              className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200 ${
+                                loadingSave === detalle.id
+                                  ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+                                  : "bg-gray-400 hover:bg-gray-500"
+                              }`}
+                            >
+                              Dividir Envío
                             </button>
                           </div>
                         </td>
@@ -1018,13 +1035,11 @@ export default function AcopioSalidaIdPage({
                               handleDropdownEnviosClick(detalle.id);
                               setLoadingSave(detalle.id);
                             }}
-                            className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full
-    ${
-      loadingSave === detalle.id
-        ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
-        : "bg-orange-400 hover:bg-orange-500"
-    }
-  `}
+                            className={`text-white font-semibold py-2 px-4 rounded transition duration-200 w-full ${
+                              loadingSave === detalle.id
+                                ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+                                : "bg-orange-400 hover:bg-orange-500"
+                            }`}
                             disabled={loadingSave === detalle.id}
                           >
                             Ver Envíos
@@ -1123,11 +1138,21 @@ export default function AcopioSalidaIdPage({
                               </button>
                             </div>
                           ) : isPalletCerrado(detalle) ? (
-                            // No mostrar botones para pallets cerrados
+                            // Mostrar solo el botón de dividir envío
                             <div className="flex items-center justify-center">
-                              <span className="ml-2 text-gray-600 font-bold text-xs">
-                                (CERRADO)
-                              </span>
+                              <button
+                                onClick={() => {
+                                  handleDropdownDividirEnvioClick(detalle.id);
+                                  setLoadingSave(detalle.id);
+                                }}
+                                className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200 ${
+                                  loadingSave === detalle.id
+                                    ? "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+                                    : "bg-gray-400 hover:bg-gray-500"
+                                }`}
+                              >
+                                Dividir Envío
+                              </button>
                             </div>
                           ) : (
                             <div className="flex items-center gap-2">
@@ -1180,7 +1205,6 @@ export default function AcopioSalidaIdPage({
                             setLoadingSave(null);
                           }}
                           onProcesoCompleto={stableRefetch}
-                          pallet_cerrado={isPalletCerrado(detalle)}
                         />
                       </td>
                     </tr>
@@ -1221,6 +1245,26 @@ export default function AcopioSalidaIdPage({
                             setLoadingSave(null);
                           }}
                           onTrazabilidadCompleta={stableRefetch}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  {dropdownDividirEnvioOpen === detalle.id && (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="border-0 p-2 sm:p-4 bg-gray-100"
+                      >
+                        <DropdownDividirEnvio
+                          onClose={() => {
+                            setDropdownDividirEnvioOpen(null);
+                            setLoadingSave(null);
+                          }}
+                          onProductoEnviado={stableRefetch}
+                          id_detalle_orden_acopio={detalle.id}
+                          cantidad_solicitada={detalle.cantidad}
+                          envios={detalle.envios}
+                          producto={detalle.producto}
                         />
                       </td>
                     </tr>

@@ -21,6 +21,7 @@ type Producto = {
 type Pallet = {
   id: number;
   numero_pallet: number;
+  estado: string;
 };
 interface Envio {
   id: number;
@@ -40,20 +41,13 @@ interface DetalleOrdenAcopio {
 interface DropdownEnviosDetalleOrdenAcopioProps {
   isOpen: boolean;
   id_detalle_orden_acopio: number;
-  pallet_cerrado: boolean;
   onClose: () => void;
   onProcesoCompleto?: () => void;
 }
 
 const DropdownEnviosDetalleOrdenAcopio: React.FC<
   DropdownEnviosDetalleOrdenAcopioProps
-> = ({
-  isOpen,
-  id_detalle_orden_acopio,
-  onClose,
-  onProcesoCompleto,
-  pallet_cerrado,
-}) => {
+> = ({ isOpen, id_detalle_orden_acopio, onClose, onProcesoCompleto }) => {
   if (!isOpen) return null;
 
   const [showAlert, setShowAlert] = useState(false);
@@ -72,6 +66,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
   const [editLoading, setEditLoading] = useState<number | null>(null);
   const [enviosEliminados, setEnviosEliminados] = useState<number[]>([]);
   const [botonCargando, setBotonCargando] = useState(false);
+  const [enviosEnEdicion, setEnviosEnEdicion] = useState<number[]>([]);
 
   const { loading, error, data, refetch } = useQuery<{
     detalleOrdenAcopioID: DetalleOrdenAcopio;
@@ -129,6 +124,29 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
     setEditPalletValues((prev) => ({ ...prev, [envioId]: value }));
   };
 
+  const handleToggleEdicion = (envioId: number) => {
+    setEnviosEnEdicion((prev) =>
+      prev.includes(envioId)
+        ? prev.filter((id) => id !== envioId)
+        : [...prev, envioId]
+    );
+
+    // Limpiar valores si se cancela la edición
+    if (enviosEnEdicion.includes(envioId)) {
+      setEditValues((prev) => {
+        const newValues = { ...prev };
+        delete newValues[envioId];
+        return newValues;
+      });
+      setEditPalletValues((prev) => {
+        const newValues = { ...prev };
+        delete newValues[envioId];
+        return newValues;
+      });
+    }
+  };
+
+  const esEnvioEnEdicion = (id: number) => enviosEnEdicion.includes(id);
   const handleSaveEdit = async (
     envioId: number,
     cantidad_enviada: number,
@@ -143,6 +161,8 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       setAlertType("advertencia");
       setAlertMessage("La cantidad debe ser un número válido");
       setShowAlert(true);
+      setBotonCargando(false);
+      setEditLoading(null);
       return;
     }
 
@@ -157,6 +177,8 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
         "El número de pallet debe ser un número válido mayor a 0"
       );
       setShowAlert(true);
+      setBotonCargando(false);
+      setEditLoading(null);
       return;
     }
 
@@ -167,6 +189,8 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       setAlertType("advertencia");
       setAlertMessage("La cantidad debe ser mayor a cero");
       setShowAlert(true);
+      setBotonCargando(false);
+      setEditLoading(null);
       return;
     }
 
@@ -174,6 +198,8 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       setAlertType("advertencia");
       setAlertMessage("No se puede editar un envío eliminado");
       setShowAlert(true);
+      setBotonCargando(false);
+      setEditLoading(null);
       return;
     }
 
@@ -183,6 +209,8 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
         `La cantidad no puede ser mayor a la cantidad del sistema (${cantidad_sistema})`
       );
       setShowAlert(true);
+      setBotonCargando(false);
+      setEditLoading(null);
       return;
     }
 
@@ -194,6 +222,8 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       setAlertType("advertencia");
       setAlertMessage("No se han realizado cambios");
       setShowAlert(true);
+      setBotonCargando(false);
+      setEditLoading(null);
       return;
     }
 
@@ -216,7 +246,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
         },
       });
 
-      // Limpiar los valores editados
+      // Limpiar los valores editados y salir del modo edición
       setEditValues((prev) => {
         const newValues = { ...prev };
         delete newValues[envioId];
@@ -227,11 +257,15 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
         delete newValues[envioId];
         return newValues;
       });
+      setEnviosEnEdicion((prev) => prev.filter((id) => id !== envioId));
     } catch (error) {
       setAlertType("error");
       setAlertMessage("Error al actualizar: " + error);
       setShowAlert(true);
+      setBotonCargando(false);
+      setEditLoading(null);
     }
+    setEditLoading(null);
   };
 
   const handleEliminarEnvio = async (id: number) => {
@@ -242,6 +276,8 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       setAlertType("error");
       setAlertMessage("Error al eliminar el envío: " + error);
       setShowAlert(true);
+      setBotonCargando(false);
+      setEditLoading(null);
       setEnviosEliminados((prev) => prev.filter((envioId) => envioId !== id));
     }
   };
@@ -308,7 +344,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
         />
       )}
 
-      {/* Header principal con diseño mejorado */}
+      {/* Header principal - Simplificado */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div>
@@ -321,25 +357,6 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
           </div>
         </div>
         <div className="flex gap-3">
-          <button
-            className={`${
-              activarEditar
-                ? "bg-red-500 hover:bg-red-600"
-                : pallet_cerrado
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-orange-400 hover:bg-orange-500"
-            } text-white font-medium px-6 py-2.5 rounded transition-all duration-200 flex items-center gap-2 shadow-sm`}
-            onClick={() => {
-              setActivarEditar(!activarEditar);
-              if (activarEditar) {
-                setEditValues({});
-                setEditPalletValues({});
-              }
-            }}
-            disabled={pallet_cerrado}
-          >
-            {activarEditar ? <>Cancelar</> : <>Editar Cantidades</>}
-          </button>
           <button
             className="bg-gray-500 hover:bg-gray-600 text-white font-medium px-6 py-2.5 rounded transition-all duration-200 flex items-center gap-2 shadow-sm"
             onClick={() => {
@@ -365,10 +382,12 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
       {envios?.map((envio) => (
         <div
           key={envio.id}
-          className={`relative bg-white border rounded-xl shadow-md p-6 mt-4 transition-all duration-200 ${
-            esEnvioEliminado(envio.id)
-              ? "bg-gray-400 border-gray-200 opacity-75"
-              : "border-gray-200 hover:shadow-lg hover:border-gray-300"
+          className={`bg-white border rounded-xl p-6 mt-4 relative border-gray-300 ${
+            envio.pallet?.estado === "Cerrado"
+              ? "bg-gray-300 opacity-75 pointer-events-none"
+              : esEnvioEliminado(envio.id)
+              ? "bg-red-100 opacity-75"
+              : "border-gray-300"
           }`}
         >
           {/* Información del producto */}
@@ -386,7 +405,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className=" rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <p className="text-sm font-medium">Cantidad</p>
                 </div>
@@ -396,7 +415,7 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
                 </p>
               </div>
 
-              <div className=" rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <p className="text-sm font-medium">Pallet</p>
                 </div>
@@ -408,92 +427,115 @@ const DropdownEnviosDetalleOrdenAcopio: React.FC<
           </div>
 
           {/* Acciones */}
-          {!esEnvioEliminado(envio.id) && (
-            <div className="border-t border-gray-200 pt-4">
-              {activarEditar ? (
-                <div className="flex flex-col gap-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nueva cantidad (Máximo: {envio.producto?.cantidad ?? 0})
-                      </label>
-                      <input
-                        type="number"
-                        placeholder={`Cantidad actual: ${envio.cantidad_enviada}`}
-                        value={editValues[envio.id] ?? ""}
-                        onChange={(e) =>
-                          handleEditChange(envio.id, e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        min="1"
-                        max={envio.producto?.cantidad ?? 0}
-                      />
+          {!esEnvioEliminado(envio.id) &&
+            envio.pallet?.estado !== "Cerrado" && (
+              <div className="border-t border-gray-200 pt-4">
+                {esEnvioEnEdicion(envio.id) ? (
+                  <div className="flex flex-col gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Nueva cantidad (Máximo:{" "}
+                          {envio.producto?.cantidad ?? 0})
+                        </label>
+                        <input
+                          type="number"
+                          placeholder={`Actual: ${envio.cantidad_enviada}`}
+                          value={editValues[envio.id] ?? ""}
+                          onChange={(e) =>
+                            handleEditChange(envio.id, e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          min="1"
+                          max={envio.producto?.cantidad ?? 0}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Nuevo pallet
+                        </label>
+                        <input
+                          type="number"
+                          placeholder={`Actual: ${
+                            envio.pallet?.numero_pallet ?? 0
+                          }`}
+                          value={editPalletValues[envio.id] ?? ""}
+                          onChange={(e) =>
+                            handleEditPalletChange(envio.id, e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          min="1"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => {
+                            setBotonCargando(true);
+                            handleSaveEdit(
+                              envio.id,
+                              envio.cantidad_enviada,
+                              envio.producto?.cantidad ?? 0,
+                              envio.pallet?.numero_pallet ?? 0
+                            );
+                          }}
+                          disabled={editLoading === envio.id || botonCargando}
+                          className={`w-full ${
+                            editLoading === envio.id || botonCargando
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-orange-400 hover:bg-orange-500"
+                          } text-white rounded font-medium p-2 transition-colors duration-200 flex items-center justify-center gap-2`}
+                        >
+                          {editLoading === envio.id ? (
+                            <>
+                              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                              Guardando...
+                            </>
+                          ) : (
+                            <>Guardar</>
+                          )}
+                        </button>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => handleToggleEdicion(envio.id)}
+                          className="w-full bg-red-500 hover:bg-red-600 text-white rounded font-semibold p-2 transition-colors duration-200"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nuevo número de pallet
-                      </label>
-                      <input
-                        type="number"
-                        placeholder={`Pallet actual: ${
-                          envio.pallet?.numero_pallet ?? 0
-                        }`}
-                        value={editPalletValues[envio.id] ?? ""}
-                        onChange={(e) =>
-                          handleEditPalletChange(envio.id, e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        min="1"
-                      />
-                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-end gap-3">
                     <button
-                      onClick={() => {
-                        handleSaveEdit(
-                          envio.id,
-                          envio.cantidad_enviada,
-                          envio.producto?.cantidad ?? 0,
-                          envio.pallet?.numero_pallet ?? 0
-                        );
-                        setBotonCargando(true);
-                      }}
-                      disabled={editLoading === envio.id || botonCargando}
                       className={`${
-                        botonCargando
-                          ? "bg-gray-400 cursor-not-allowed"
+                        envio.pallet?.estado === "Cerrado"
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                           : "bg-blue-400 hover:bg-blue-500"
-                      } text-white rounded font-medium transition-colors duration-200 flex items-center justify-center`}
+                      } text-white font-semibold px-4 py-2 rounded transition-colors duration-200 flex items-center gap-2 shadow-sm`}
+                      onClick={() => handleToggleEdicion(envio.id)}
+                      disabled={envio.pallet?.estado === "Cerrado"}
                     >
-                      {editLoading === envio.id ? (
-                        <>
-                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                          Guardando...
-                        </>
-                      ) : (
-                        <>Guardar</>
-                      )}
+                      Editar
+                    </button>
+                    <button
+                      className={`${
+                        envio.pallet?.estado === "Cerrado"
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-red-500 hover:bg-red-600"
+                      } text-white font-semibold px-4 py-2 rounded transition-colors duration-200 flex items-center gap-2 shadow-sm`}
+                      onClick={() => {
+                        setShowConfirmacion(true);
+                        setIdEnvioEliminar(envio.id);
+                      }}
+                      disabled={envio.pallet?.estado === "Cerrado"}
+                    >
+                      Anular
                     </button>
                   </div>
-                </div>
-              ) : (
-                <div className="flex justify-end">
-                  <button
-                    className={`${
-                      pallet_cerrado
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-red-500 hover:bg-red-600"
-                    } text-white font-medium px-6 py-2 rounded transition-colors duration-200 flex items-center gap-2 shadow-sm`}
-                    onClick={() => {
-                      setShowConfirmacion(true);
-                      setIdEnvioEliminar(envio.id);
-                    }}
-                    disabled={pallet_cerrado}
-                  >
-                    Anular Envío
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
         </div>
       ))}
     </div>

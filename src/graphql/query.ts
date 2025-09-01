@@ -227,6 +227,7 @@ export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
         pallet {
           id
           numero_pallet
+          estado
         }
       }
     }

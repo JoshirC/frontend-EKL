@@ -220,15 +220,6 @@ const ModalSelectorPallets: React.FC<ModalSelectorPalletsProps> = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50 px-4">
       <div className="bg-white rounded shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
-        {showAlert && (
-          <Alert
-            type={alertType}
-            message={alertMessage}
-            onClose={() => setShowAlert(false)}
-            modal={true}
-          />
-        )}
-
         {/* Header del modal */}
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -257,7 +248,17 @@ const ModalSelectorPallets: React.FC<ModalSelectorPalletsProps> = ({
             de salida.
           </p>
         </div>
-
+        {/* Alert */}
+        <div className="px-6">
+          {showAlert && (
+            <Alert
+              type={alertType}
+              message={alertMessage}
+              onClose={() => setShowAlert(false)}
+              modal={true}
+            />
+          )}
+        </div>
         {/* Contenido del modal */}
         <div className="px-6 py-4 overflow-y-auto max-h-[60vh]">
           {loading && (
