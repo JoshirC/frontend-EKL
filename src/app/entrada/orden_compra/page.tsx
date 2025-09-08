@@ -238,47 +238,40 @@ const OrdenCompraPage: React.FC = () => {
     nuevaLista.splice(index, 1);
     setDetalles(nuevaLista);
   };
+
   const handleEditarDetalles = (
     index: number,
-    campo: keyof DetalleOrdenCompra,
-    valor: number
+    campo: "cantidad" | "precio_unitario",
+    valor: number | null
   ) => {
-    // Clona el array y el objeto a editar
     const nuevaLista: DetalleOrdenCompra[] = [...detalles];
     const detalleEditado = { ...nuevaLista[index] };
 
-    // Edita el campo
-    detalleEditado[campo] = valor as never;
+    if (valor !== null && !isNaN(valor)) {
+      detalleEditado[campo] = valor;
+    }
 
-    // Recalcula el total
     detalleEditado.valor_total =
-      detalleEditado.cantidad * detalleEditado.precio_unitario;
+      (detalleEditado.cantidad || 0) * (detalleEditado.precio_unitario || 0);
 
-    // Actualiza el array de detalles
     nuevaLista[index] = detalleEditado;
     setDetalles(nuevaLista);
 
-    // 🔁 Actualizar cantidad en trazabilidad si existe
-    const existeTrazabilidad = trazabilidadProductos.find(
-      (t) => t.codigoProducto === detalleEditado.codigo
-    );
-    if (existeTrazabilidad && campo === "cantidad") {
+    // 🔁 Si editamos cantidad y hay trazabilidad
+    if (campo === "cantidad" && valor !== null && !isNaN(valor)) {
       setTrazabilidadProductos((prev) =>
         prev.map((t) =>
           t.codigoProducto === detalleEditado.codigo
             ? {
                 ...t,
-                datos: {
-                  ...t.datos,
-                  cantidad_producto: valor,
-                },
+                datos: { ...t.datos, cantidad_producto: valor },
               }
             : t
         )
       );
     }
 
-    // Actualizar historial de cambios
+    // Historial de cambios
     const detalleOriginal = detallesOriginales.find(
       (d) => d.codigo === detalleEditado.codigo
     );
@@ -782,17 +775,19 @@ const OrdenCompraPage: React.FC = () => {
                             <td className="border border-gray-300 px-2 sm:px-4 py-2">
                               <input
                                 name="cantidad"
+                                type="number"
                                 id="cantidad"
                                 min="1"
                                 step="any"
                                 placeholder={detalle.cantidad.toString()}
-                                type="number"
                                 className="w-full p-2 border border-gray-300 rounded-md"
                                 onChange={(e) =>
                                   handleEditarDetalles(
                                     index,
                                     "cantidad",
-                                    parseFloat(e.target.value)
+                                    e.target.value === ""
+                                      ? null
+                                      : parseFloat(e.target.value)
                                   )
                                 }
                               />
@@ -816,7 +811,9 @@ const OrdenCompraPage: React.FC = () => {
                                   handleEditarDetalles(
                                     index,
                                     "precio_unitario",
-                                    parseFloat(e.target.value)
+                                    e.target.value === ""
+                                      ? null
+                                      : parseFloat(e.target.value)
                                   )
                                 }
                               />

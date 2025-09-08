@@ -13,6 +13,7 @@ import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
 import Cargando from "@/components/cargando";
 import FamilyPagination from "@/components/FamilyPagination";
+import CrearProducto from "@/components/adquisiciones/crearProducto";
 import { useJwtStore } from "@/store/jwtStore";
 type Producto = {
   id: number;
@@ -38,6 +39,7 @@ const ProductosPage: React.FC = () => {
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
   const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [mensajeConfirmacion, setMensajeConfirmacion] = useState("");
   const [tituloConfirmacion, setTituloConfirmacion] = useState("");
   const [estadoConfirmacion, setEstadoConfirmacion] = useState("");
@@ -255,7 +257,13 @@ const ProductosPage: React.FC = () => {
           onClose={() => setShowCargando(false)}
         />
       )}
-
+      {showCreateProduct && (
+        <CrearProducto
+          isOpen={showCreateProduct}
+          onClose={() => setShowCreateProduct(false)}
+          onProductCreated={() => refetch()}
+        />
+      )}
       <div className="bg-white p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold">Listado de Productos</h1>
@@ -294,6 +302,12 @@ const ProductosPage: React.FC = () => {
               }}
             >
               Ajuste de Inventario
+            </button>
+            <button
+              className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
+              onClick={() => setShowCreateProduct(true)}
+            >
+              Crear Producto
             </button>
           </div>
         </div>

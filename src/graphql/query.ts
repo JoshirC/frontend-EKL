@@ -346,6 +346,17 @@ export const GET_PRODUCTOS_ASOCIADOS_POR_CODIGO = gql`
     }
   }
 `;
+export const BUSCAR_PRODUCTO_SOFTLAND = gql`
+  query BuscarProductoSoftland($codigo: String!) {
+    buscarProductoSoftland(codigo_producto: $codigo) {
+      codigo
+      nombre_producto
+      familia
+      unidad_medida
+      cantidad_softland
+    }
+  }
+`;
 // Query para Orden de Compra
 export const GET_ORDEN_COMPRA = gql`
   query ordenCompra($codigo_orden_compra: String!) {
