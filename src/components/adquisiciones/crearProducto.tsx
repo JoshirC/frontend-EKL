@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Producto } from "@/types/graphql";
 import { useQuery, useMutation } from "@apollo/client";
 import { BUSCAR_PRODUCTO_SOFTLAND } from "@/graphql/query";
@@ -75,6 +75,16 @@ const CrearProducto: React.FC<CrearProductoProps> = ({
       }
     }
   };
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen]);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-8 max-h-[80vh] overflow-y-auto relative">
