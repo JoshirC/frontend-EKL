@@ -112,7 +112,6 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
       setCantidades((prev) => ({ ...prev, [codigo]: 0 }));
       setProductosEnviados((prev) => ({ ...prev, [codigo]: true })); // Marcar como enviado
     } catch (error) {
-      console.error(error);
       setShowAlert(true);
       setAlertType("error");
       setAlertMessage("Error al reemplazar el producto");

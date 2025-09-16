@@ -76,7 +76,6 @@ const CargaSoftlandPage: React.FC = () => {
         window.location.reload();
       }, 3000); // Ocultar alerta después de 3 segundos
     } catch (error) {
-      console.error("Error al actualizar el estado:", error);
       setShowAlert(true);
       setAlertType("error");
       setAlertMessage("Error al actualizar el estado de las guías de entrada.");

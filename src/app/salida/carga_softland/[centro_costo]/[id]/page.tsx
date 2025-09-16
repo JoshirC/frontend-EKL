@@ -74,6 +74,7 @@ const centrosCosto: CentroCosto[] = [
   { codigo: "023-03", nombre: "Aura" },
   { codigo: "023-02", nombre: "Rio Blanco" },
   { codigo: "023-04", nombre: "Unifrutti" },
+  { codigo: "020-01", nombre: "Punitaqui" },
 ];
 
 const CargaGuiaSalidaPage = ({ params }: PageProps) => {

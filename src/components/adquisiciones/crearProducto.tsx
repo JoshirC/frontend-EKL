@@ -67,7 +67,6 @@ const CrearProducto: React.FC<CrearProductoProps> = ({
           variables: { createProductoCode: producto.codigo },
         });
       } catch (err) {
-        console.error("Error al crear el producto:", err);
         setAlertMessage("Error al crear el producto.");
         setTypeAlert("error");
         setShowAlert(true);

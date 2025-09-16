@@ -138,13 +138,6 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
 
     setLoadingState(true);
     try {
-      console.log(
-        "Trazabilidad enviada:",
-        item,
-        id_detalle_orden_acopio,
-        cantidadEnviada,
-        rutUsuario
-      );
       await createEnvioDetalleOrdenAcopio({
         variables: {
           id_detalle_orden_acopio,
@@ -155,7 +148,6 @@ const DropdownTrazabilidad: React.FC<DropdownTrazabilidadProps> = ({
           id_trazabilidad: item.id,
         },
       });
-      console.log("Trazabilidad enviada:", item);
       await updateEstadoEnviado({
         variables: { id: id_detalle_orden_acopio },
       });

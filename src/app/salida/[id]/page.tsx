@@ -6,6 +6,7 @@ import DropdownEnviosDetalleOrdenAcopio from "@/components/salida_acopio/dropdow
 import DropdownTrazabilidad from "@/components/salida_acopio/dropdownTrazabilidad";
 import DropdownDividirEnvio from "@/components/salida_acopio/dropdownDividirEnvio";
 import FamilyFilter from "@/components/FamilyPagination";
+import PalletFilter from "@/components/PalletFilter";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
   UPDATE_CANTIDAD_ENVIO_DETALLE,
@@ -108,6 +109,9 @@ export default function AcopioSalidaIdPage({
   const [familyGroups, setFamilyGroups] = useState<string[]>([]);
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [palletGroups, setPalletGroups] = useState<number[]>([]);
+  const [selectedPallets, setSelectedPallets] = useState<number[]>([]);
+  const [selectedPallet, setSelectedPallet] = useState<number | null>(null);
   const [showCargando, setShowCargando] = useState(false);
   // Query para obtener datos
   const { loading, error, data, refetch } = useQuery(GET_ORDEN_ACOPIO, {
@@ -128,6 +132,18 @@ export default function AcopioSalidaIdPage({
     const families = Object.keys(grouped).sort();
     setFamilyGroups(families); // Actualiza la lista de familias
 
+    // Extraer números de pallet únicos
+    const pallets = new Set<number>();
+    detalles.forEach((detalle) => {
+      detalle.envios.forEach((envio) => {
+        if (envio.pallet?.numero_pallet) {
+          pallets.add(envio.pallet.numero_pallet);
+        }
+      });
+    });
+    const sortedPallets = Array.from(pallets).sort((a, b) => a - b);
+    setPalletGroups(sortedPallets);
+
     // Filtrar por familias seleccionadas
     let filteredItems: DetalleOrdenAcopio[] = [];
     if (selectedFamilies.length > 0) {
@@ -139,6 +155,21 @@ export default function AcopioSalidaIdPage({
     } else {
       // Si no hay familias seleccionadas, mostrar todos los items
       filteredItems = detalles;
+    }
+
+    // Filtrar por pallets seleccionados
+    if (selectedPallet !== null) {
+      filteredItems = filteredItems.filter((detalle) => {
+        // Si el detalle no tiene envíos, no lo mostramos cuando hay filtro de pallets
+        if (detalle.envios.length === 0) return false;
+
+        // Si tiene envíos, verificamos si alguno coincide con el pallet seleccionado
+        return detalle.envios.some(
+          (envio) =>
+            envio.pallet?.numero_pallet &&
+            envio.pallet.numero_pallet === selectedPallet
+        );
+      });
     }
 
     // Filtrar por término de búsqueda
@@ -189,7 +220,7 @@ export default function AcopioSalidaIdPage({
       groupedByFamily: grouped,
       currentItems: sortedItems,
     };
-  }, [data, selectedFamilies, searchTerm]);
+  }, [data, selectedFamilies, searchTerm, selectedPallet]);
 
   // Refetch simplificado
   const stableRefetch = async () => {
@@ -344,7 +375,6 @@ export default function AcopioSalidaIdPage({
         cantidad > 0 ? numeroPallet : 0
       );
     } catch (error) {
-      console.error("Error en envío único:", error);
       setDesactivacionBoton(false);
     }
   };
@@ -412,7 +442,6 @@ export default function AcopioSalidaIdPage({
         },
       });
     } catch (error) {
-      console.error("Error en envío masivo:", error);
     } finally {
       setDesactivacionBoton(false);
     }
@@ -839,20 +868,31 @@ export default function AcopioSalidaIdPage({
         </div>
 
         {/* Filtro de familias y búsqueda */}
-        <div className="mt-4 mb-2">
-          <FamilyFilter
-            familyGroups={familyGroups}
-            selectedFamilies={selectedFamilies}
-            onFamilyChange={setSelectedFamilies}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            placeholder="Filtrar por familias..."
-            searchPlaceholder="Buscar por código o descripción del producto..."
-            disabled={desactivacionBoton}
-            showSearch={true}
-          />
+        <div className="mt-4 mb-2 flex justify-between items-center">
+          <div className="w-full">
+            <FamilyFilter
+              familyGroups={familyGroups}
+              selectedFamilies={selectedFamilies}
+              onFamilyChange={setSelectedFamilies}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              placeholder="Filtrar por familias..."
+              searchPlaceholder="Buscar por código o descripción del producto..."
+              disabled={desactivacionBoton}
+              showSearch={true}
+            />
+          </div>
+          <div className="w-full sm:w-80 ml-0 sm:ml-4 mt-4 sm:mt-0">
+            {/* Reemplazo del select por PalletFilter */}
+            <PalletFilter
+              palletGroups={palletGroups}
+              selectedPallet={selectedPallet}
+              onPalletChange={setSelectedPallet}
+              disabled={desactivacionBoton}
+              placeholder="Todos los pallets"
+            />
+          </div>
         </div>
-
         <div className="overflow-x-auto">
           <table className="table-auto w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
             <thead className="bg-gray-200 ">

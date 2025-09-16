@@ -67,6 +67,8 @@ type HistorialProducto = {
   estado: "agregado" | "eliminado" | "editado";
   cantidad_solicitada: number;
   cantidad_ingresada: number;
+  precio_compra: number;
+  precio_ingreso: number;
 };
 
 const OrdenCompraPage: React.FC = () => {
@@ -150,9 +152,9 @@ const OrdenCompraPage: React.FC = () => {
         setAlertMessage("Guía de entrada creada exitosamente.");
         setShowAlert(true);
         handleEnviarCorreoCambios();
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        //setTimeout(() => {
+        //  window.location.reload();
+        //}, 2000);
       } else {
         setShowCargando(false);
         setAlertType("error");
@@ -246,56 +248,67 @@ const OrdenCompraPage: React.FC = () => {
   ) => {
     const nuevaLista: DetalleOrdenCompra[] = [...detalles];
     const detalleEditado = { ...nuevaLista[index] };
-
     if (valor !== null && !isNaN(valor)) {
       detalleEditado[campo] = valor;
     }
-
     detalleEditado.valor_total =
       (detalleEditado.cantidad || 0) * (detalleEditado.precio_unitario || 0);
-
     nuevaLista[index] = detalleEditado;
     setDetalles(nuevaLista);
 
-    // 🔁 Si editamos cantidad y hay trazabilidad
     if (campo === "cantidad" && valor !== null && !isNaN(valor)) {
       setTrazabilidadProductos((prev) =>
         prev.map((t) =>
           t.codigoProducto === detalleEditado.codigo
-            ? {
-                ...t,
-                datos: { ...t.datos, cantidad_producto: valor },
-              }
+            ? { ...t, datos: { ...t.datos, cantidad_producto: valor } }
             : t
         )
       );
     }
 
-    // Historial de cambios
+    // ==== INICIO CAMBIO: registrar sólo si realmente cambió cantidad o precio ===
     const detalleOriginal = detallesOriginales.find(
       (d) => d.codigo === detalleEditado.codigo
     );
 
+    const cambioCantidad =
+      detalleOriginal?.cantidad !== undefined &&
+      detalleOriginal.cantidad !== detalleEditado.cantidad;
+    const cambioPrecio =
+      detalleOriginal?.precio_unitario !== undefined &&
+      detalleOriginal.precio_unitario !== detalleEditado.precio_unitario;
+
     setHistorialCambiosProductos((prev) => {
-      const filtrado = prev.filter(
-        (item) =>
+      // quitar cualquier registro previo de este producto en estado 'editado'
+      const sinPrevio = prev.filter(
+        (h) =>
           !(
-            item.codigo_producto === detalleEditado.codigo &&
-            item.estado === "editado"
+            h.codigo_producto === detalleEditado.codigo &&
+            h.estado === "editado"
           )
       );
 
+      // si no hubo cambios reales, no agregamos nada (posible reversión)
+      if (!cambioCantidad && !cambioPrecio) {
+        return sinPrevio;
+      }
+
       return [
-        ...filtrado,
+        ...sinPrevio,
         {
           codigo_producto: detalleEditado.codigo,
           nombre: detalleEditado.nombre,
           estado: "editado" as const,
+          // cantidades originales y nuevas
           cantidad_solicitada: detalleOriginal?.cantidad || 0,
           cantidad_ingresada: detalleEditado.cantidad,
+          // precios originales y nuevos (ya estaban en el tipo pero no se enviaban antes)
+          precio_compra: detalleOriginal?.precio_unitario || 0,
+          precio_ingreso: detalleEditado.precio_unitario,
         },
       ];
     });
+    // ==== FIN CAMBIO ===
   };
 
   const handleConfirmacionEliminar = (confirmacion: boolean) => {
@@ -329,6 +342,7 @@ const OrdenCompraPage: React.FC = () => {
       setAlertType("advertencia");
       setAlertMessage("No hay productos para crear la guía de entrada.");
       setShowAlert(true);
+      setBotonCaragar(false);
       return;
     }
 
@@ -340,6 +354,7 @@ const OrdenCompraPage: React.FC = () => {
       setAlertType("error");
       setAlertMessage("Todos los productos deben existir en la DB");
       setShowAlert(true);
+      setBotonCaragar(false);
       return;
     }
 
@@ -359,6 +374,7 @@ const OrdenCompraPage: React.FC = () => {
         "Todos los productos con trazabilidad deben tener datos registrados"
       );
       setShowAlert(true);
+      setBotonCaragar(false);
       return;
     }
 
@@ -398,7 +414,6 @@ const OrdenCompraPage: React.FC = () => {
       fecha_factura: formData.fechaFactura,
       trazabilidad: dataTrazabilidad,
     };
-    console.log("Datos de la guía de entrada:", guiaEntradaData);
     createGuiaEntrada({
       variables: { createGuiaEntradaInput: guiaEntradaData },
     });
@@ -481,11 +496,10 @@ const OrdenCompraPage: React.FC = () => {
   };
 
   const handleEnviarCorreoCambios = async () => {
-    if (historialCambiosProductos.length === 0) {
-      return;
-    }
+    if (historialCambiosProductos.length === 0) return;
 
     try {
+      // ==== INICIO CAMBIO: incluir precios en el payload (si backend lo soporta) ===
       await correoCambios({
         variables: {
           input: {
@@ -496,11 +510,14 @@ const OrdenCompraPage: React.FC = () => {
               estado: prod.estado,
               cantidad_solicitada: prod.cantidad_solicitada,
               cantidad_ingresada: prod.cantidad_ingresada,
+              // nuevos campos (asegúrate que el schema los soporte; si no, eliminar)
+              precio_compra: prod.precio_compra,
+              precio_ingreso: prod.precio_ingreso,
             })),
           },
         },
       });
-      console.log("Correo enviado exitosamente.");
+      // ==== FIN CAMBIO ===
       setHistorialCambiosProductos([]);
     } catch (error: any) {
       console.error("Error al enviar el correo:", error.message);
