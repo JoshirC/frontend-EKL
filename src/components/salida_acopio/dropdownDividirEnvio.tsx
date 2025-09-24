@@ -10,7 +10,7 @@ interface DropdownDividirEnvioProps {
   onProductoEnviado?: () => void;
   id_detalle_orden_acopio: number;
   cantidad_solicitada: number;
-  envios: Envio[];
+
   producto: Producto;
 }
 type Producto = {
@@ -39,7 +39,7 @@ const DropdownDividirEnvio: React.FC<DropdownDividirEnvioProps> = ({
   onProductoEnviado,
   id_detalle_orden_acopio,
   cantidad_solicitada,
-  envios,
+
   producto,
 }) => {
   const [showCambiarProducto, setShowCambiarProducto] = useState(false);

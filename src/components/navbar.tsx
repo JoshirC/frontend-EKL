@@ -197,12 +197,20 @@ const Navbar = () => {
                 </button>
                 {openAdquisiciones && (
                   <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
-                    <Link href="/adquisiciones/acopio">
+                    <Link href="/adquisiciones/consolidado">
                       <div
                         className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
                         Solicitud de Abastecimiento
+                      </div>
+                    </Link>
+                    <Link href="/adquisiciones/acopio">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                        onClick={handleSelectOption}
+                      >
+                        Orden Acopio
                       </div>
                     </Link>
                     <Link href="/adquisiciones/productos">
@@ -458,12 +466,20 @@ const Navbar = () => {
                   </button>
                   {openAdquisiciones && (
                     <div className="pl-4">
+                      <Link href="/adquisiciones/consolidado">
+                        <div
+                          className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          Solicitud de Abastecimiento
+                        </div>
+                      </Link>
                       <Link href="/adquisiciones/acopio">
                         <div
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          Ordenes de Acopio
+                          Orden Acopio
                         </div>
                       </Link>
                       <Link href="/adquisiciones/productos">

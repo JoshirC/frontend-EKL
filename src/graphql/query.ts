@@ -39,9 +39,11 @@ export const GET_ORDENES_ACOPIO = gql`
   query ($estado: String!) {
     ordenAcopiosByEstado(estado: $estado) {
       id
-      centroCosto
-      fecha
+      centro_costo
+      fecha_despacho
+      codigo_centro_costo
       estado
+      tipo
     }
   }
 `;
@@ -52,14 +54,15 @@ export const GET_ORDENES_ACOPIO_DOS_ESTADOS = gql`
       estados: $estados
     ) {
       id
-      centroCosto
-      fecha
+      centro_costo
+      fecha_despacho
       estado
+      tipo
       detalles {
         id
         codigo_producto
+        familia_planilla
         cantidad
-        enviado
         producto {
           codigo
           nombre_producto
@@ -77,14 +80,15 @@ export const GET_ORDENES_ACOPIO_BY_CENTRO_COSTO_Y_ESTADOS = gql`
       estados: $estados
     ) {
       id
-      centroCosto
-      fecha
+      centro_costo
+      fecha_despacho
       estado
+      tipo
       detalles {
         id
         codigo_producto
         cantidad
-        enviado
+        familia_planilla
         producto {
           codigo
           nombre_producto
@@ -97,7 +101,7 @@ export const GET_ORDENES_ACOPIO_BY_CENTRO_COSTO_Y_ESTADOS = gql`
 export const GET_CENTROS_COSTOS = gql`
   query ($estados: [String!]!) {
     ordenAcopioMultiplesEstados(estados: $estados) {
-      centroCosto
+      centro_costo
       Pendiente
       Proceso
       Subir
@@ -111,7 +115,8 @@ export const GET_CENTROS_COSTOS = gql`
 export const GET_ORDENES_ACOPIO_MULTIPLES_ESTADOS = gql`
   query ($estados: [String!]!) {
     ordenAcopioMultiplesEstados(estados: $estados) {
-      centroCosto
+      centro_costo
+      Comprar
       Pendiente
       Proceso
       Subir
@@ -126,14 +131,15 @@ export const GET_ORDEN_ACOPIO = gql`
   query ordenAcopio($id: Float!) {
     ordenAcopio(id: $id) {
     id
-    centroCosto
-    fecha
+    centro_costo
+    fecha_despacho
     estado
+    tipo
     detalles {
       id
       codigo_producto
       cantidad
-      enviado
+      familia_planilla
       producto {
         codigo
         nombre_producto
@@ -165,8 +171,9 @@ export const GET_ORDEN_ACOPIO_BY_ID_AND_ESTADO_PALLET = gql`
   query ordenAcopioByIdAndEstadoPallet($id: Float!, $estado: String) {
     ordenAcopioByIdAndEstadoPallet(id: $id, estado: $estado) {
       id
-      centroCosto
-      fecha
+      centro_costo
+      fecha_despacho
+      tipo
       estado
       detalles {
         id
@@ -207,6 +214,7 @@ export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
     detalleOrdenAcopioID(id: $id) {
       codigo_producto
       cantidad
+      familia_planilla
       producto {
         nombre_producto
         familia
@@ -237,13 +245,14 @@ export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
 export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
   query envioDetalleOrdenAcopioByIdOrden($id_orden_acopio: Float!) {
     envioDetalleOrdenAcopioByIdOrden(id_orden_acopio: $id_orden_acopio) {
-      id
+    id
     codigo_producto_enviado
     cantidad_enviada
     detalleOrdenAcopio {
       id
       codigo_producto
       cantidad
+      familia_planilla
       producto {
         codigo
         nombre_producto

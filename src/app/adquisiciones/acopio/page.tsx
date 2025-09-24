@@ -11,13 +11,7 @@ import {
 import ListaVacia from "@/components/listaVacia";
 import Confirmacion from "@/components/confirmacion";
 import Cargando from "@/components/cargando";
-
-type OrdenAcopio = {
-  id: number;
-  centroCosto: string;
-  fecha: string;
-  estado: string;
-};
+import { OrdenAcopio } from "@/types/graphql";
 const AcopioPage: React.FC = () => {
   const [modalNuevaOrdenAcopio, setModalNuevaOrdenAcopio] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
@@ -34,7 +28,7 @@ const AcopioPage: React.FC = () => {
   const [botonCargando, setBotonCargando] = useState(false);
 
   const { loading, error, data, refetch } = useQuery(GET_ORDENES_ACOPIO, {
-    variables: { estado: "Revision" },
+    variables: { estado: "Comprar" },
   });
 
   const abrirModalNuevaOrdenAcopio = () => {
@@ -244,10 +238,10 @@ const AcopioPage: React.FC = () => {
                     {orden.id}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.centroCosto}
+                    {orden.centro_costo}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.fecha}
+                    {orden.fecha_despacho}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {orden.estado}
