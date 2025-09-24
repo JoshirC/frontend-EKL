@@ -531,3 +531,28 @@ export const GET_GUIAS_SALIDA_BY_IDS = gql`
     }
   }
 `;
+
+// Query para Consolidado
+export const GET_RESUMEN_ORDEN_POR_TIPO = gql`
+  query {
+    resumenTipoOrden {
+      tipo
+      cantidad
+    }
+  }
+`;
+export const CONSOLIDADO_POR_TIPO_ORDEN = gql`
+  query($tipoOrden: String!) {
+    consolidadoPorTipoOrden(tipoOrden: $tipoOrden) {
+      id
+      fecha_inicio
+      fecha_termino
+      estado
+      ordenesAcopio {
+        id
+        tipo
+        estado
+      }
+    }
+  }
+`;
