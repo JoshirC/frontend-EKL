@@ -351,3 +351,16 @@ export const ENVIAR_CORREO_GUIA_SALIDA = gql`
     enviarExcelSalidas(ids: $ids)
   }
 `;
+export const ENVIAR_CORREO_CONSOLIDADO_SS_SR = gql`
+  mutation($id_consolidado: Float!) {
+    generarExcelConsolidadoSSSR(id_consolidado: $id_consolidado)
+  }
+`;
+
+// Mutaciones para consolidado
+
+export const CAMBIAR_ESTADO_ORDENES_ACOPIO_CONSOLIDADO = gql`
+  mutation($id: Int!, $nuevoEstado: String!) {
+    cambiarEstadoOrdenesAcopioByIDConsolidado(id: $id, nuevoEstado: $nuevoEstado)
+  }
+`;

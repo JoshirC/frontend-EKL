@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, use } from "react";
+import React, { useEffect, use, useState } from "react";
 import { CONSOLIDADO_POR_TIPO_ORDEN } from "@/graphql/query";
 import { useQuery } from "@apollo/client";
 import { Consolidado } from "@/types/graphql";
@@ -76,7 +76,9 @@ export default function ConsoliadoPorTipoPage({
                     <button
                       className="bg-orange-400 text-white font-semibold w-full px-3 py-1 rounded hover:bg-orange-500 transition duration-300"
                       onClick={() => {
-                        window.location.href = `/adquisiciones/consolidado/${tipoNormalizado}/${item.id}`;
+                        const tipoUrl =
+                          tipoNormalizado === "SR ES" ? "SS" : tipoNormalizado;
+                        window.location.href = `/adquisiciones/consolidado/${tipoUrl}/${item.id}`;
                       }}
                     >
                       Ver Detalles

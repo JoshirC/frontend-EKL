@@ -556,3 +556,24 @@ export const CONSOLIDADO_POR_TIPO_ORDEN = gql`
     }
   }
 `;
+export const CONSOLIDADO_SS_SR_BY_ID = gql`
+  query($id: Int!) {
+    consolidadoPorId(id: $id) {
+      estado
+      fecha_inicio
+      fecha_termino
+      productos {
+        familia
+        codigo_producto
+        descripcion_producto
+        unidad
+      centros {
+        centro
+        cantidad
+      }
+      total
+    }
+    centrosUnicos
+  }
+}
+`;

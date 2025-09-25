@@ -45,7 +45,7 @@ const ConsolidadoPage: React.FC = () => {
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">
-            Solicitudes de Abastecimiento
+            Solicitudes de Abastecimiento (Pendientes de Compras)
           </div>
           <div className="space-x-2">
             <button

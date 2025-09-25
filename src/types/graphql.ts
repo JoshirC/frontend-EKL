@@ -156,3 +156,22 @@ export type Consolidado = {
   estado: string;
   ordenesAcopio?: OrdenAcopio[];
 }
+
+export type ConsolidadoPorIdResponseSSSR = {
+      estado: string;
+      fecha_inicio: string;
+      fecha_termino: string;
+      productos: {
+        familia: string;
+        codigo_producto: string;
+        descripcion_producto: string;
+        unidad: string;
+        centros: {
+          centro: string;
+          cantidad: number;
+        }[];
+        total: number;
+      }[];
+      centrosUnicos: string[];
+};
+ 
