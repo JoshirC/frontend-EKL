@@ -577,3 +577,55 @@ export const CONSOLIDADO_SS_SR_BY_ID = gql`
   }
 }
 `;
+
+export const CONSOLIDADO_CL_BY_ID = gql`
+  query GetConsolidadoSolicitudPorId($id: Int!) {
+      consolidadoSolicitudPorId(id: $id) {
+        id
+        estado
+        fecha_inicio
+        fecha_termino
+        centros {
+          centro
+          productos {
+            familia
+            codigo_producto
+            descripcion_producto
+            unidad
+            Lu
+            Ma
+            Mi
+            Ju
+            Vi
+            Sa
+            total
+        }
+      }
+    }
+  }
+`;
+export const CONSOLIDADO_SM_BY_ID = gql`
+query GetConsolidadoSolicitudSemanasPorId($id: Int!) {
+    consolidadoSolicitudSemanasPorId(id: $id) {
+      id
+      estado
+      fecha_inicio
+      fecha_termino
+      centros {
+        centro
+        productos {
+          familia
+          codigo_producto
+          descripcion_producto
+          unidad
+          Semana1
+          Semana2
+          Semana3
+          Semana4
+          Semana5
+          total
+        }
+      }
+    }
+  }
+`;

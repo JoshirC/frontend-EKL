@@ -215,16 +215,16 @@ export default function SsPage({ params }: ss_page_Props) {
             <table className="table-auto text-center w-full border-collapse border border-gray-200 text-sm sm:text-base">
               <thead className="bg-gray-200">
                 <tr>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                     FAMILIA
                   </th>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                     COD. PRODUCTO
                   </th>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                     DESCRIPCION
                   </th>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                     UNIDAD
                   </th>
 
@@ -255,13 +255,13 @@ export default function SsPage({ params }: ss_page_Props) {
                     key={prod.codigo_producto}
                     className="hover:bg-gray-100 transition-colors"
                   >
-                    <td className="border border-gray-300 px-2 py-1">
+                    <td className="border border-gray-300 px-2 py-1 text-left">
                       {prod.familia}
                     </td>
-                    <td className="border border-gray-300 px-2 py-1">
+                    <td className="border border-gray-300 px-2 py-1 text-left">
                       {prod.codigo_producto}
                     </td>
-                    <td className="border border-gray-300 px-2 py-1">
+                    <td className="border border-gray-300 px-2 py-1 text-left">
                       {prod.descripcion_producto}
                     </td>
                     <td className="border border-gray-300 px-2 py-1">
@@ -270,7 +270,7 @@ export default function SsPage({ params }: ss_page_Props) {
 
                     {/* Cantidades por centro */}
                     {consolidado.centrosUnicos.map((centro) => {
-                      const centroData = prod.centros.find(
+                      const centroData = prod.centros?.find(
                         (c) => c.centro === centro
                       );
                       return (
@@ -283,7 +283,7 @@ export default function SsPage({ params }: ss_page_Props) {
                       );
                     })}
 
-                    <td className="border border-gray-300 px-2 py-1 text-orange-400 font-semibold">
+                    <td className="border border-gray-300 px-2 py-1 text-orange-500">
                       {prod.total}
                     </td>
                     <td className="border border-gray-300 px-2 py-1">-</td>

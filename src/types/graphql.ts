@@ -174,4 +174,46 @@ export type ConsolidadoPorIdResponseSSSR = {
       }[];
       centrosUnicos: string[];
 };
- 
+export type ConsolidadoCLPorIdResponse = {
+  id: number;
+  estado: string;
+  fecha_inicio: string;
+  fecha_termino: string;
+  centros: {
+    centro: string;
+    productos: {
+      familia: string;
+      codigo_producto: string;
+      descripcion_producto: string;
+      unidad: string;
+      Lu: number;
+      Ma: number;
+      Mi: number;
+      Ju: number;
+      Vi: number;
+      Sa: number;
+      total: number;
+    }[];
+  }[];
+};
+export type ConsolidadoSolicitudSemanasPorIdResponse = {
+  id: number;
+  estado: string;
+  fecha_inicio: string;
+  fecha_termino: string;
+  centros: {
+    centro: string;
+    productos: {
+      familia: string;
+      codigo_producto: string;
+      descripcion_producto: string;
+      unidad: string;
+      Semana1: number;
+      Semana2: number;
+      Semana3: number;
+      Semana4: number;
+      Semana5: number;
+      total: number;
+    }[];
+  }[];
+};

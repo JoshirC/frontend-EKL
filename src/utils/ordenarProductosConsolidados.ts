@@ -5,8 +5,9 @@ export type Producto = {
   codigo_producto: string;
   descripcion_producto: string;
   unidad: string;
-  centros: { centro: string; cantidad: number }[];
-  total: number;
+  centros?: { centro: string; cantidad: number }[];
+  total?: number;
+  [key: string]: any;
 };
 
 const cat_1 = [

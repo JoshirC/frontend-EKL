@@ -356,11 +356,40 @@ export const ENVIAR_CORREO_CONSOLIDADO_SS_SR = gql`
     generarExcelConsolidadoSSSR(id_consolidado: $id_consolidado)
   }
 `;
-
+export const ENVIAR_CORREO_CONSOLIDADO_CL = gql`
+  mutation GenerarExcelConsolidadoSolicitudCL($id_consolidado: Float!) {
+    generarExcelConsolidadoSolicitudCL(id_consolidado: $id_consolidado)
+  }
+`;
+export const ENVIAR_CORREO_CONSOLIDADO_SM = gql`
+mutation GenerarExcelConsolidadoSolicitudSM($id_consolidado: Float!) {
+    generarExcelConsolidadoSolicitudSM(id_consolidado: $id_consolidado)
+  }
+`;
 // Mutaciones para consolidado
 
 export const CAMBIAR_ESTADO_ORDENES_ACOPIO_CONSOLIDADO = gql`
   mutation($id: Int!, $nuevoEstado: String!) {
     cambiarEstadoOrdenesAcopioByIDConsolidado(id: $id, nuevoEstado: $nuevoEstado)
+  }
+`;
+export const CREAR_CONSOLIDADO_SEMANA1_SM = gql`mutation CrearConsolidadoSemana1SM($id: Int!) {
+    crearConsolidadoSemana1SM(id: $id) {
+      id
+      fecha_inicio
+      fecha_termino
+      estado
+      ordenesAcopio {
+        id
+        fecha_despacho
+        centro_costo
+        estado
+        tipo
+        detalles  { 
+          codigo_producto
+          cantidad
+        }
+      }
+    }
   }
 `;
