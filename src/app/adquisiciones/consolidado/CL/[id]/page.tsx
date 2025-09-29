@@ -190,16 +190,16 @@ export default function ClPage({ params }: cl_page_Props) {
             <thead className="bg-gray-200">
               <tr>
                 <th className="px-4 py-2 border border-gray-300 text-left">
-                  FAMILIA
+                  Familia
                 </th>
                 <th className="px-4 py-2 border border-gray-300 text-left">
-                  COD. PRODUCTO
+                  Cod. Producto
                 </th>
                 <th className="px-4 py-2 border border-gray-300 text-left">
-                  DESCRIPCIÓN
+                  Descripción
                 </th>
                 <th className="px-4 py-2 border border-gray-300 text-left">
-                  UNIDAD
+                  Unidad
                 </th>
                 <th className="px-4 py-2 border border-gray-300">LU</th>
                 <th className="px-4 py-2 border border-gray-300">MA</th>
@@ -207,7 +207,7 @@ export default function ClPage({ params }: cl_page_Props) {
                 <th className="px-4 py-2 border border-gray-300">JU</th>
                 <th className="px-4 py-2 border border-gray-300">VI</th>
                 <th className="px-4 py-2 border border-gray-300">SA</th>
-                <th className="px-4 py-2 border border-gray-300">TOTAL</th>
+                <th className="px-4 py-2 border border-gray-300">Total</th>
               </tr>
             </thead>
             <tbody>

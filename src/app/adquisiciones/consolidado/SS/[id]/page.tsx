@@ -216,16 +216,16 @@ export default function SsPage({ params }: ss_page_Props) {
               <thead className="bg-gray-200">
                 <tr>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
-                    FAMILIA
+                    Familia
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
-                    COD. PRODUCTO
+                    Cod. Producto
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
-                    DESCRIPCION
+                    Descripción
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
-                    UNIDAD
+                    Unidad
                   </th>
 
                   {/* Cabeceras dinámicas por centro */}
@@ -239,13 +239,16 @@ export default function SsPage({ params }: ss_page_Props) {
                   ))}
 
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    TOTAL
+                    Total
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    STOCK ACTUAL
+                    Stock Actual
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    COMPRA RECOMENDADA
+                    Stock Pendiente
+                  </th>
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                    Compra Recomendada
                   </th>
                 </tr>
               </thead>
@@ -286,8 +289,17 @@ export default function SsPage({ params }: ss_page_Props) {
                     <td className="border border-gray-300 px-2 py-1 text-orange-500">
                       {prod.total}
                     </td>
-                    <td className="border border-gray-300 px-2 py-1">-</td>
-                    <td className="border border-gray-300 px-2 py-1">-</td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      {prod.stock_actual}
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      {prod.stock_oc}
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      {parseInt(prod.compra_recomendada) > 0
+                        ? prod.compra_recomendada
+                        : 0}
+                    </td>
                   </tr>
                 ))}
               </tbody>

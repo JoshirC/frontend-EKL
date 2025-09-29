@@ -336,6 +336,8 @@ export const GET_PRODUCTOS = gql`
       unidad_medida
       cantidad
       cantidad_softland
+      cantidad_emergencia
+      cantidad_oc
       trazabilidad
       precio_unitario
     }
@@ -567,6 +569,11 @@ export const CONSOLIDADO_SS_SR_BY_ID = gql`
         codigo_producto
         descripcion_producto
         unidad
+        stock_actual
+        stock_emergencia
+        stock_oc
+        cantidad_a_enviar
+        compra_recomendada
       centros {
         centro
         cantidad

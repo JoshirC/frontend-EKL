@@ -327,6 +327,11 @@ export const ACTUALIZAR_GUIAS_POR_ORDEN = gql`
     }
   }
 `;
+export const ACTUALIZAR_STOCK_PENDIENTE_OC = gql`
+  mutation calculoStockOC {
+    calculoStockOC
+  }
+`;
 // Mutaciones para detalle orden de acopio
 export const EDITAR_CANTIDAD_DETALLE_ORDEN_ACOPIO = gql`
   mutation updateDetalleProducto($id: Int!, $cantidad: Float!) {

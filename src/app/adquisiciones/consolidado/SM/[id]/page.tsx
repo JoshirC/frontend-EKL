@@ -181,23 +181,23 @@ export default function SsPage({ params }: ss_page_Props) {
             <thead className="bg-gray-200">
               <tr>
                 <th className="px-4 py-2 border border-gray-300 text-left">
-                  FAMILIA
+                  Familia
                 </th>
                 <th className="px-4 py-2 border border-gray-300 text-left">
-                  COD. PRODUCTO
+                  Cod. Producto
                 </th>
                 <th className="px-4 py-2 border border-gray-300 text-left">
-                  DESCRIPCIÓN
+                  Descripción
                 </th>
                 <th className="px-4 py-2 border border-gray-300 text-left">
-                  UNIDAD
+                  Unidad
                 </th>
                 <th className="px-4 py-2 border border-gray-300">Semana 1</th>
                 <th className="px-4 py-2 border border-gray-300">Semana 2</th>
                 <th className="px-4 py-2 border border-gray-300">Semana 3</th>
                 <th className="px-4 py-2 border border-gray-300">Semana 4</th>
                 <th className="px-4 py-2 border border-gray-300">Semana 5</th>
-                <th className="px-4 py-2 border border-gray-300">TOTAL</th>
+                <th className="px-4 py-2 border border-gray-300">Total</th>
               </tr>
             </thead>
             <tbody>

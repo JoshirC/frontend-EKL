@@ -20,6 +20,9 @@ export type Producto = {
   precio_unitario?: number;
   cantidad: number;
   cantidad_softland: number;
+  cantidad_emergencia?: number;
+  cantidad_oc?: number;
+  cantidad_a_enviar?: number;
   trazabilidad: boolean;
   detallesOrden: DetalleOrdenAcopio[]; // renombrado según entity
   enviosDetalle?: EnvioDetalleOrdenAcopio[]; // renombrado según entity
@@ -166,6 +169,10 @@ export type ConsolidadoPorIdResponseSSSR = {
         codigo_producto: string;
         descripcion_producto: string;
         unidad: string;
+        stock_actual: number;
+        stock_emergencia: number;
+        stock_oc: number;
+        compra_recomendada: number;
         centros: {
           centro: string;
           cantidad: number;
