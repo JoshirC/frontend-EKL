@@ -224,3 +224,15 @@ export type ConsolidadoSolicitudSemanasPorIdResponse = {
     }[];
   }[];
 };
+export type OCDetalleDto = {
+  CodProd: string;
+  DetProd: string;
+  Cantidad: number;
+  PrecioUnit: number;
+};
+export type ListadoOCDto = {
+  NumInterOC: number;
+  NumOC: string;
+  FecFinalOC: string;
+  NomCon: string;
+};

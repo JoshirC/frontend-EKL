@@ -218,9 +218,24 @@ export const ACTUALIZAR_PRODUCTOS_SOFTLAND = gql`
     sincronizarProductosDesdeSoftland
   }
 `;
+export const ACTUALIZAR_INFO_PRODUCTOS_SOFTLAND = gql`
+mutation {
+    actualizarInformacionProductos
+  }
+`;
 export const AJUSTE_DE_INVENTARIO = gql`
   mutation{
     ajusteDeInventarioSoftland
+  }
+`;
+export const UPDATE_STOCK_EMERGENCIA = gql`
+  mutation updateStockEmergencia($codigo: String!, $nuevaCantidad: Int!) {
+    updateStockEmergencia(codigo: $codigo, nuevaCantidad: $nuevaCantidad) {
+      id
+      codigo
+      nombre_producto
+      cantidad_emergencia
+    }
   }
 `;
 // Mutaciones para guia de entrada

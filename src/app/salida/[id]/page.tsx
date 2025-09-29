@@ -20,6 +20,7 @@ import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
 import Cargando from "@/components/cargando";
 import ModalSelectorPallets from "@/components/salida_acopio/modalSelectorPallets";
+import { ordenarProductos } from "@/utils/ordenarProductosConsolidados";
 import {
   OrdenAcopio,
   Producto,
@@ -96,7 +97,7 @@ export default function AcopioSalidaIdPage({
     const detalles: DetalleOrdenAcopio[] = data?.ordenAcopio?.detalles || [];
 
     const grouped = detalles.reduce((acc, detalle) => {
-      const familia = detalle.producto.familia;
+      const familia = detalle.familia_planilla;
       if (!acc[familia]) acc[familia] = [];
       acc[familia].push(detalle);
       return acc;
@@ -159,7 +160,7 @@ export default function AcopioSalidaIdPage({
     }
 
     // Crear una copia del array y ordenar productos: primero por estado de envío, luego alfabéticamente
-    const sortedItems = [...filteredItems].sort((a, b) => {
+    let sortedItems = [...filteredItems].sort((a, b) => {
       // Verificar si los pallets están cerrados
       const aPalletCerrado = a.envios?.some(
         (envio) => envio.pallet?.estado === "Cerrado"
@@ -187,6 +188,24 @@ export default function AcopioSalidaIdPage({
         "es",
         { sensitivity: "base" }
       );
+    });
+
+    // Ordenar productos según el utilitario ordenarProductosConsolidados
+    sortedItems = ordenarProductos(
+      sortedItems.map((detalle) => ({
+        ...detalle,
+        familia: detalle.familia_planilla,
+        descripcion_producto: detalle.producto.nombre_producto,
+        unidad: detalle.producto.unidad_medida,
+        // Se pueden agregar más campos si el utilitario los requiere
+      }))
+    ).map((prodOrdenado) => {
+      // Reasociar el objeto ordenado con el detalle original
+      return sortedItems.find(
+        (d) =>
+          d.codigo_producto === prodOrdenado.codigo_producto &&
+          d.familia_planilla === prodOrdenado.familia
+      )!;
     });
 
     return {
@@ -872,16 +891,16 @@ export default function AcopioSalidaIdPage({
           <table className="table-auto w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
             <thead className="bg-gray-200 ">
               <tr>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                   Familia
                 </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                   Código
                 </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                   Descripción
                 </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                   Unidad
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -913,7 +932,7 @@ export default function AcopioSalidaIdPage({
                     }`}
                   >
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.producto.familia}
+                      {detalle.familia_planilla}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.codigo_producto}

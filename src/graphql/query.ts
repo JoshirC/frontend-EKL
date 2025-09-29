@@ -392,6 +392,26 @@ export const GET_ORDEN_COMPRA = gql`
     }
   }
 `;
+export const GET_OC_EN_SEMANA = gql`
+  query {
+    obtenerOCenSemana {
+      NumInterOC
+      NumOC
+      FecFinalOC
+      NomCon
+    }
+  }
+`;
+export const GET_DETALLE_OC_BY_ID = gql`
+  query DetalleOC($numInterOC: Int!) {
+    detalleOC(numInterOC: $numInterOC) {
+      CodProd
+      DetProd
+      Cantidad
+      PrecioUnit
+    }
+  }
+`;
 // Query para Guia de Entrada
 export const GET_GUIA_ENTRADA_BY_ESTADO = gql`
   query guiaEntradaByEstado($estado: String!) {

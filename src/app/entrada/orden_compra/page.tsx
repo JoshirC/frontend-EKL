@@ -152,9 +152,9 @@ const OrdenCompraPage: React.FC = () => {
         setAlertMessage("Guía de entrada creada exitosamente.");
         setShowAlert(true);
         handleEnviarCorreoCambios();
-        //setTimeout(() => {
-        //  window.location.reload();
-        //}, 2000);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } else {
         setShowCargando(false);
         setAlertType("error");

@@ -5,10 +5,11 @@ import { GET_PRODUCTOS } from "@/graphql/query";
 import {
   UPDATE_TRAZABILIDAD,
   ACTUALIZAR_STOCK_SOFTLAND,
-  ACTUALIZAR_PRODUCTOS_SOFTLAND,
+  ACTUALIZAR_INFO_PRODUCTOS_SOFTLAND,
   AJUSTE_DE_INVENTARIO,
   CORREO_AJUSTE_DE_INVENTARIO,
   ACTUALIZAR_STOCK_PENDIENTE_OC,
+  UPDATE_STOCK_EMERGENCIA,
 } from "@/graphql/mutations";
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
@@ -38,6 +39,7 @@ const ProductosPage: React.FC = () => {
   const [showCargando, setShowCargando] = useState(false);
   const [cargandoMensaje, setCargandoMensaje] = useState("");
   const [botonCargando, setBotonCargando] = useState(false);
+  const [nuevaCantidad, setNuevaCantidad] = useState<number>(0.0);
   const [editTrazabilidad] = useMutation(UPDATE_TRAZABILIDAD, {
     onCompleted: () => {
       refetch();
@@ -108,7 +110,7 @@ const ProductosPage: React.FC = () => {
     },
   });
   const [actualizarProductosSoftland] = useMutation(
-    ACTUALIZAR_PRODUCTOS_SOFTLAND,
+    ACTUALIZAR_INFO_PRODUCTOS_SOFTLAND,
     {
       onCompleted: () => {
         setShowCargando(false);
@@ -151,6 +153,29 @@ const ProductosPage: React.FC = () => {
       },
     }
   );
+  const [updateStockEmergencia] = useMutation(UPDATE_STOCK_EMERGENCIA, {
+    onCompleted: () => {
+      setShowCargando(false);
+      setBotonCargando(false);
+      setAlertType("exitoso");
+      setAlertMessage("Stock de emergencia actualizado correctamente");
+      setShowAlert(true);
+      refetch();
+      setNuevaCantidad(0);
+      setSelectedProduct(null);
+    },
+    onError: (error) => {
+      setShowCargando(false);
+      setBotonCargando(false);
+      setAlertType("error");
+      setAlertMessage(
+        `Error al actualizar stock de emergencia: ${error.message}`
+      );
+      setShowAlert(true);
+      setNuevaCantidad(0);
+      setSelectedProduct(null);
+    },
+  });
   useEffect(() => {
     if (data?.productos) {
       const filtered = data.productos
@@ -248,6 +273,19 @@ const ProductosPage: React.FC = () => {
     setBotonCargando(true);
     setCargandoMensaje("Actualizando stock pendiente (OC)");
     actualizarStockPendienteOC();
+  };
+  const handleActualizarStockEmergencia = (producto: Producto | null) => {
+    if (producto) {
+      setShowCargando(true);
+      setBotonCargando(true);
+      setCargandoMensaje("Actualizando stock de emergencia");
+      updateStockEmergencia({
+        variables: {
+          codigo: producto.codigo,
+          nuevaCantidad: nuevaCantidad,
+        },
+      });
+    }
   };
 
   return (
@@ -429,7 +467,61 @@ const ProductosPage: React.FC = () => {
                       {producto.cantidad_softland}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {producto.cantidad_emergencia || 0}
+                      <div className="flex items-center justify-between space-x-2">
+                        {selectedProduct?.codigo === producto.codigo &&
+                        estadoConfirmacion === "stockEmergencia" ? (
+                          <>
+                            <input
+                              type="number"
+                              className="w-20 border p-3 rounded text-center"
+                              value={nuevaCantidad}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setNuevaCantidad(
+                                  value === "" ? 0 : parseFloat(value)
+                                );
+                              }}
+                            />
+                            <button
+                              className="bg-blue-400 hover:bg-blue-500 text-white font-semibold p-3 rounded"
+                              onClick={() => {
+                                handleActualizarStockEmergencia(
+                                  selectedProduct
+                                );
+                                setSelectedProduct(null);
+                                setEstadoConfirmacion("");
+                              }}
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              className="bg-red-400 hover:bg-red-500 text-white font-semibold p-3 rounded"
+                              onClick={() => {
+                                setSelectedProduct(null);
+                                setEstadoConfirmacion("");
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span>{producto.cantidad_emergencia || 0}</span>
+                            <button
+                              className="bg-orange-400 hover:bg-orange-500 text-white font-semibold p-3 rounded"
+                              onClick={() => {
+                                setSelectedProduct(producto);
+                                setEstadoConfirmacion("stockEmergencia");
+                                setNuevaCantidad(
+                                  producto.cantidad_emergencia || 0
+                                );
+                              }}
+                            >
+                              Editar
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {producto.cantidad_a_enviar || 0}
@@ -439,7 +531,7 @@ const ProductosPage: React.FC = () => {
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       <button
-                        className={`text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
+                        className={`text-white font-semibold p-2 sm:p-3 rounded w-full whitespace-nowrap ${
                           botonCargando
                             ? "bg-gray-400 cursor-not-allowed"
                             : producto.trazabilidad
