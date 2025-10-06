@@ -51,7 +51,7 @@ const NuevaOrdenAcopio: React.FC<ModalProps> = ({
     try {
       setIsUploading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_PYTHON_API}/api/v1/upload-excel/`,
+        `${process.env.NEXT_PUBLIC_PYTHON_API}/excel/upload-excel/`,
         {
           method: "POST",
           body: formData,

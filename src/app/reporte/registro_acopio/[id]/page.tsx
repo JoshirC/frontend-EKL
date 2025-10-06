@@ -4,38 +4,7 @@ import React, { use, useState, useEffect } from "react";
 import { GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN } from "@/graphql/query";
 import { useQuery } from "@apollo/client";
 import Alert from "@/components/Alert";
-
-type Producto = {
-  nombre_producto: string;
-  codigo: string;
-  familia: string;
-  unidad_medida: string;
-};
-type Usuario = {
-  id: number;
-  rut: string;
-  nombre: string;
-};
-
-type DetalleOrdenAcopio = {
-  id: number;
-  id_orden_acopio: number;
-  producto: Producto;
-  cantidad: number;
-  enviado: boolean;
-};
-
-type Envio = {
-  id: number;
-  detalleOrdenAcopio: DetalleOrdenAcopio;
-  usuario: Usuario;
-  producto: Producto;
-  codigo_producto_enviado: string;
-  cantidad_enviada: number;
-  guiaSalida?: {
-    numero_folio: string;
-  };
-};
+import { EnvioDetalleOrdenAcopio } from "@/types/graphql";
 
 export default function RegistroAcopioIdPage({
   params,
@@ -76,7 +45,8 @@ export default function RegistroAcopioIdPage({
     );
   }
 
-  const detalleEnvio: Envio[] = data?.envioDetalleOrdenAcopioByIdOrden ?? [];
+  const detalleEnvio: EnvioDetalleOrdenAcopio[] =
+    data?.envioDetalleOrdenAcopioByIdOrden ?? [];
 
   return (
     <div className="p-4 sm:p-10">

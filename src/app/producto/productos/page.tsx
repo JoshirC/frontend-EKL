@@ -5,9 +5,11 @@ import { GET_PRODUCTOS } from "@/graphql/query";
 import {
   UPDATE_TRAZABILIDAD,
   ACTUALIZAR_STOCK_SOFTLAND,
-  ACTUALIZAR_PRODUCTOS_SOFTLAND,
+  ACTUALIZAR_INFO_PRODUCTOS_SOFTLAND,
   AJUSTE_DE_INVENTARIO,
   CORREO_AJUSTE_DE_INVENTARIO,
+  ACTUALIZAR_STOCK_PENDIENTE_OC,
+  UPDATE_STOCK_EMERGENCIA,
 } from "@/graphql/mutations";
 import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
@@ -15,17 +17,7 @@ import Cargando from "@/components/cargando";
 import FamilyPagination from "@/components/FamilyPagination";
 import CrearProducto from "@/components/adquisiciones/crearProducto";
 import { useJwtStore } from "@/store/jwtStore";
-type Producto = {
-  id: number;
-  codigo: string;
-  nombre_producto: string;
-  familia: string;
-  unidad_medida: string;
-  cantidad: number;
-  cantidad_softland: number;
-  precio_unitario: number;
-  trazabilidad: boolean;
-};
+import { Producto } from "@/types/graphql";
 
 const ProductosPage: React.FC = () => {
   const { loading, error, data, refetch } = useQuery(GET_PRODUCTOS);
@@ -47,6 +39,7 @@ const ProductosPage: React.FC = () => {
   const [showCargando, setShowCargando] = useState(false);
   const [cargandoMensaje, setCargandoMensaje] = useState("");
   const [botonCargando, setBotonCargando] = useState(false);
+  const [nuevaCantidad, setNuevaCantidad] = useState<number>(0.0);
   const [editTrazabilidad] = useMutation(UPDATE_TRAZABILIDAD, {
     onCompleted: () => {
       refetch();
@@ -117,7 +110,7 @@ const ProductosPage: React.FC = () => {
     },
   });
   const [actualizarProductosSoftland] = useMutation(
-    ACTUALIZAR_PRODUCTOS_SOFTLAND,
+    ACTUALIZAR_INFO_PRODUCTOS_SOFTLAND,
     {
       onCompleted: () => {
         setShowCargando(false);
@@ -138,6 +131,51 @@ const ProductosPage: React.FC = () => {
       },
     }
   );
+  const [actualizarStockPendienteOC] = useMutation(
+    ACTUALIZAR_STOCK_PENDIENTE_OC,
+    {
+      onCompleted: () => {
+        refetch();
+        setShowCargando(false);
+        setAlertType("exitoso");
+        setAlertMessage("Stock pendiente (OC) actualizado correctamente");
+        setShowAlert(true);
+        setBotonCargando(false);
+      },
+      onError: (error) => {
+        setBotonCargando(false);
+        setShowCargando(false);
+        setAlertType("error");
+        setAlertMessage(
+          `Error al actualizar stock pendiente (OC): ${error.message}`
+        );
+        setShowAlert(true);
+      },
+    }
+  );
+  const [updateStockEmergencia] = useMutation(UPDATE_STOCK_EMERGENCIA, {
+    onCompleted: () => {
+      setShowCargando(false);
+      setBotonCargando(false);
+      setAlertType("exitoso");
+      setAlertMessage("Stock de emergencia actualizado correctamente");
+      setShowAlert(true);
+      refetch();
+      setNuevaCantidad(0);
+      setSelectedProduct(null);
+    },
+    onError: (error) => {
+      setShowCargando(false);
+      setBotonCargando(false);
+      setAlertType("error");
+      setAlertMessage(
+        `Error al actualizar stock de emergencia: ${error.message}`
+      );
+      setShowAlert(true);
+      setNuevaCantidad(0);
+      setSelectedProduct(null);
+    },
+  });
   useEffect(() => {
     if (data?.productos) {
       const filtered = data.productos
@@ -230,6 +268,25 @@ const ProductosPage: React.FC = () => {
       },
     });
   };
+  const handleActualizarStockPendienteOC = () => {
+    setShowCargando(true);
+    setBotonCargando(true);
+    setCargandoMensaje("Actualizando stock pendiente (OC)");
+    actualizarStockPendienteOC();
+  };
+  const handleActualizarStockEmergencia = (producto: Producto | null) => {
+    if (producto) {
+      setShowCargando(true);
+      setBotonCargando(true);
+      setCargandoMensaje("Actualizando stock de emergencia");
+      updateStockEmergencia({
+        variables: {
+          codigo: producto.codigo,
+          nuevaCantidad: nuevaCantidad,
+        },
+      });
+    }
+  };
 
   return (
     <div className="p-4 sm:p-10">
@@ -283,7 +340,7 @@ const ProductosPage: React.FC = () => {
               className={`font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap ${
                 loading || botonCargando
                   ? "bg-gray-400 text-white cursor-not-allowed"
-                  : "bg-blue-400 text-white hover:bg-blue-500"
+                  : "bg-orange-400 text-white hover:bg-orange-500"
               }`}
               onClick={() => handleActualizarStockSoftland()}
               disabled={loading || botonCargando}
@@ -291,7 +348,32 @@ const ProductosPage: React.FC = () => {
               Actualizar Stock Softland
             </button>
             <button
-              className="bg-gray-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-gray-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
+              className={`font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap ${
+                loading || botonCargando
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-orange-400 text-white hover:bg-orange-500"
+              }`}
+              onClick={() => handleActualizarStockPendienteOC()}
+              disabled={loading || botonCargando}
+            >
+              Actualizar Stock Pendiente (OC)
+            </button>
+            <button
+              className={`font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap ${
+                loading || botonCargando
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-blue-400 text-white hover:bg-blue-500"
+              }`}
+              onClick={() => setShowCreateProduct(true)}
+            >
+              Crear Producto
+            </button>
+            <button
+              className={`font-semibold p-3 sm:p-4 rounded transition duration-300 w-full sm:w-auto whitespace-nowrap ${
+                loading || botonCargando
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-blue-400 text-white hover:bg-blue-500"
+              }`}
               onClick={() => {
                 setTituloConfirmacion("Ajuste de Inventario");
                 setMensajeConfirmacion(
@@ -302,12 +384,6 @@ const ProductosPage: React.FC = () => {
               }}
             >
               Ajuste de Inventario
-            </button>
-            <button
-              className="bg-orange-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-orange-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
-              onClick={() => setShowCreateProduct(true)}
-            >
-              Crear Producto
             </button>
           </div>
         </div>
@@ -330,26 +406,35 @@ const ProductosPage: React.FC = () => {
           <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
             <thead className="bg-gray-200">
               <tr>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Código
-                </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Descripción
-                </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                   Familia
                 </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Unidad Medida
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
+                  Código
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
+                  Descripción
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
+                  Unidad
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Precio Unitario
+                  Precio
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Cantidad
+                  Stock Sistema
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                  Cantidad Softland
+                  Stock Softland
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Stock Emergencia
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Stock Pendiente
+                </th>
+                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                  Stock a Enviar
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
                   Trazabilidad
@@ -360,16 +445,16 @@ const ProductosPage: React.FC = () => {
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((producto) => (
                   <tr key={producto.id} className="hover:bg-gray-100">
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {producto.codigo}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {producto.nombre_producto}
-                    </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                       {producto.familia}
                     </td>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
+                      {producto.codigo}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
+                      {producto.nombre_producto}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                       {producto.unidad_medida}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -382,8 +467,71 @@ const ProductosPage: React.FC = () => {
                       {producto.cantidad_softland}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      <div className="flex items-center justify-between space-x-2">
+                        {selectedProduct?.codigo === producto.codigo &&
+                        estadoConfirmacion === "stockEmergencia" ? (
+                          <>
+                            <input
+                              type="number"
+                              className="w-20 border p-3 rounded text-center"
+                              value={nuevaCantidad}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setNuevaCantidad(
+                                  value === "" ? 0 : parseFloat(value)
+                                );
+                              }}
+                            />
+                            <button
+                              className="bg-blue-400 hover:bg-blue-500 text-white font-semibold p-3 rounded"
+                              onClick={() => {
+                                handleActualizarStockEmergencia(
+                                  selectedProduct
+                                );
+                                setSelectedProduct(null);
+                                setEstadoConfirmacion("");
+                              }}
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              className="bg-red-400 hover:bg-red-500 text-white font-semibold p-3 rounded"
+                              onClick={() => {
+                                setSelectedProduct(null);
+                                setEstadoConfirmacion("");
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span>{producto.cantidad_emergencia || 0}</span>
+                            <button
+                              className="bg-orange-400 hover:bg-orange-500 text-white font-semibold p-3 rounded"
+                              onClick={() => {
+                                setSelectedProduct(producto);
+                                setEstadoConfirmacion("stockEmergencia");
+                                setNuevaCantidad(
+                                  producto.cantidad_emergencia || 0
+                                );
+                              }}
+                            >
+                              Editar
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {producto.cantidad_a_enviar || 0}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {producto.cantidad_oc || 0}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       <button
-                        className={`text-white font-semibold p-3 sm:p-4 rounded w-full whitespace-nowrap ${
+                        className={`text-white font-semibold p-2 sm:p-3 rounded w-full whitespace-nowrap ${
                           botonCargando
                             ? "bg-gray-400 cursor-not-allowed"
                             : producto.trazabilidad
@@ -413,7 +561,7 @@ const ProductosPage: React.FC = () => {
               ) : (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={11}
                     className="border border-gray-300 px-4 py-6 text-center text-gray-500"
                   >
                     No se encontraron productos que coincidan con la búsqueda

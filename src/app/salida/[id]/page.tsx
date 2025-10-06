@@ -20,36 +20,15 @@ import Alert from "@/components/Alert";
 import Confirmacion from "@/components/confirmacion";
 import Cargando from "@/components/cargando";
 import ModalSelectorPallets from "@/components/salida_acopio/modalSelectorPallets";
+import { ordenarProductos } from "@/utils/ordenarProductosConsolidados";
+import {
+  OrdenAcopio,
+  Producto,
+  EnvioDetalleOrdenAcopio,
+  DetalleOrdenAcopio,
+  Pallet,
+} from "@/types/graphql";
 
-type Producto = {
-  codigo: string;
-  nombre_producto: string;
-  unidad_medida: string;
-  familia: string;
-  cantidad: number;
-  trazabilidad: boolean;
-};
-type Envio = {
-  id: number;
-  id_detalle_orden_acopio: number;
-  cantidad_enviada: number;
-  codigo_producto_enviado: string;
-  pallet: Pallet;
-  producto: Producto;
-};
-
-type DetalleOrdenAcopio = {
-  id: number;
-  id_orden_acopio: number;
-  familia_producto: string;
-  nombre_producto: string;
-  codigo_producto: string;
-  cantidad: number;
-  unidad: string;
-  enviado: boolean;
-  producto: Producto;
-  envios: Envio[];
-};
 type CreateMultipleEnviosResponse = {
   creados: { id: number }[];
   fallidos: {
@@ -57,11 +36,6 @@ type CreateMultipleEnviosResponse = {
     codigo_producto_enviado: string;
     motivo: string;
   }[];
-};
-type Pallet = {
-  id: number;
-  numero_pallet: number;
-  estado: string;
 };
 
 export default function AcopioSalidaIdPage({
@@ -123,7 +97,7 @@ export default function AcopioSalidaIdPage({
     const detalles: DetalleOrdenAcopio[] = data?.ordenAcopio?.detalles || [];
 
     const grouped = detalles.reduce((acc, detalle) => {
-      const familia = detalle.producto.familia;
+      const familia = detalle.familia_planilla;
       if (!acc[familia]) acc[familia] = [];
       acc[familia].push(detalle);
       return acc;
@@ -135,7 +109,7 @@ export default function AcopioSalidaIdPage({
     // Extraer números de pallet únicos
     const pallets = new Set<number>();
     detalles.forEach((detalle) => {
-      detalle.envios.forEach((envio) => {
+      detalle.envios?.forEach((envio) => {
         if (envio.pallet?.numero_pallet) {
           pallets.add(envio.pallet.numero_pallet);
         }
@@ -161,10 +135,10 @@ export default function AcopioSalidaIdPage({
     if (selectedPallet !== null) {
       filteredItems = filteredItems.filter((detalle) => {
         // Si el detalle no tiene envíos, no lo mostramos cuando hay filtro de pallets
-        if (detalle.envios.length === 0) return false;
+        if (detalle.envios?.length === 0) return false;
 
         // Si tiene envíos, verificamos si alguno coincide con el pallet seleccionado
-        return detalle.envios.some(
+        return detalle.envios?.some(
           (envio) =>
             envio.pallet?.numero_pallet &&
             envio.pallet.numero_pallet === selectedPallet
@@ -186,12 +160,12 @@ export default function AcopioSalidaIdPage({
     }
 
     // Crear una copia del array y ordenar productos: primero por estado de envío, luego alfabéticamente
-    const sortedItems = [...filteredItems].sort((a, b) => {
+    let sortedItems = [...filteredItems].sort((a, b) => {
       // Verificar si los pallets están cerrados
-      const aPalletCerrado = a.envios.some(
+      const aPalletCerrado = a.envios?.some(
         (envio) => envio.pallet?.estado === "Cerrado"
       );
-      const bPalletCerrado = b.envios.some(
+      const bPalletCerrado = b.envios?.some(
         (envio) => envio.pallet?.estado === "Cerrado"
       );
 
@@ -201,8 +175,8 @@ export default function AcopioSalidaIdPage({
 
       // Si ambos tienen el mismo estado de pallet cerrado, continuar con el ordenamiento original
       // Determinar si los productos fueron enviados
-      const aEnviado = a.envios.length > 0;
-      const bEnviado = b.envios.length > 0;
+      const aEnviado = (a.envios ?? []).length > 0;
+      const bEnviado = (b.envios ?? []).length > 0;
 
       // Si uno está enviado y el otro no, el no enviado va primero
       if (aEnviado && !bEnviado) return 1;
@@ -214,6 +188,24 @@ export default function AcopioSalidaIdPage({
         "es",
         { sensitivity: "base" }
       );
+    });
+
+    // Ordenar productos según el utilitario ordenarProductosConsolidados
+    sortedItems = ordenarProductos(
+      sortedItems.map((detalle) => ({
+        ...detalle,
+        familia: detalle.familia_planilla,
+        descripcion_producto: detalle.producto.nombre_producto,
+        unidad: detalle.producto.unidad_medida,
+        // Se pueden agregar más campos si el utilitario los requiere
+      }))
+    ).map((prodOrdenado) => {
+      // Reasociar el objeto ordenado con el detalle original
+      return sortedItems.find(
+        (d) =>
+          d.codigo_producto === prodOrdenado.codigo_producto &&
+          d.familia_planilla === prodOrdenado.familia
+      )!;
     });
 
     return {
@@ -544,9 +536,9 @@ export default function AcopioSalidaIdPage({
 
   const handleEditClick = (detalle: DetalleOrdenAcopio) => {
     setEditingId(detalle.id);
-    setEditValue(detalle.envios[0]?.cantidad_enviada?.toString() || "");
+    setEditValue(detalle.envios?.[0]?.cantidad_enviada?.toString() || "");
     setEditPalletValue(
-      detalle.envios[0]?.pallet?.numero_pallet?.toString() || ""
+      detalle.envios?.[0]?.pallet?.numero_pallet?.toString() || ""
     );
   };
 
@@ -558,7 +550,7 @@ export default function AcopioSalidaIdPage({
     cantidad_enviada = parseFloat(Number(cantidad_enviada).toFixed(2));
     const detalle = currentItems.find((d) => d.id === detalleId);
     const cantidadSolicitada = detalle?.producto.cantidad ?? 0;
-    const numeroPalletActual = detalle?.envios[0]?.pallet?.numero_pallet;
+    const numeroPalletActual = detalle?.envios?.[0]?.pallet?.numero_pallet;
 
     if (!editValue || isNaN(Number(editValue))) {
       setAlertType("advertencia");
@@ -727,7 +719,9 @@ export default function AcopioSalidaIdPage({
 
   // Función helper para verificar si un pallet está cerrado
   const isPalletCerrado = (detalle: DetalleOrdenAcopio): boolean => {
-    return detalle.envios.some((envio) => envio.pallet?.estado === "Cerrado");
+    return !!detalle.envios?.some(
+      (envio) => envio.pallet?.estado === "Cerrado"
+    );
   };
 
   if (loading) {
@@ -840,7 +834,7 @@ export default function AcopioSalidaIdPage({
               <div>
                 <p className="text-sm font-medium">Centro de Costo</p>
                 <p className="font-semibold text-gray-800">
-                  {data?.ordenAcopio.centroCosto ?? "N/A"}
+                  {data?.ordenAcopio.centro_costo ?? "N/A"}
                 </p>
               </div>
             </div>
@@ -850,7 +844,7 @@ export default function AcopioSalidaIdPage({
               <div>
                 <p className="text-sm font-medium">Fecha Despacho</p>
                 <p className="font-semibold text-gray-800">
-                  {data?.ordenAcopio.fechaDespacho ?? "N/A"}
+                  {data?.ordenAcopio.fecha_despacho ?? "N/A"}
                 </p>
               </div>
             </div>
@@ -897,16 +891,16 @@ export default function AcopioSalidaIdPage({
           <table className="table-auto w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
             <thead className="bg-gray-200 ">
               <tr>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                   Familia
                 </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                   Código
                 </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                   Descripción
                 </th>
-                <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                   Unidad
                 </th>
                 <th className="border border-gray-300 px-2 sm:px-4 py-2">
@@ -930,15 +924,15 @@ export default function AcopioSalidaIdPage({
                     className={`${
                       isPalletCerrado(detalle)
                         ? "bg-gray-200 border-l-4 border-gray-500"
-                        : detalle.envios[0]?.cantidad_enviada === 0
+                        : detalle.envios?.[0]?.cantidad_enviada === 0
                         ? "bg-red-100 border-l-4 border-red-500"
-                        : detalle.envios.length > 0
+                        : (detalle.envios?.length ?? 0) > 0
                         ? "bg-orange-100 border-l-4 border-orange-500"
                         : ""
                     }`}
                   >
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                      {detalle.producto.familia}
+                      {detalle.familia_planilla}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.codigo_producto}
@@ -953,7 +947,7 @@ export default function AcopioSalidaIdPage({
                       {detalle.cantidad}
                     </td>
 
-                    {detalle.envios.length === 0 ? (
+                    {detalle.envios?.length === 0 ? (
                       <>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           {detalle.producto.trazabilidad ? (
@@ -1064,7 +1058,7 @@ export default function AcopioSalidaIdPage({
                           </div>
                         </td>
                       </>
-                    ) : detalle.envios.length > 1 ? (
+                    ) : (detalle.envios?.length ?? 0) > 1 ? (
                       <>
                         <td
                           className="border border-gray-300 px-2 sm:px-4 py-2"
@@ -1087,13 +1081,13 @@ export default function AcopioSalidaIdPage({
                         </td>
                       </>
                     ) : detalle.codigo_producto !==
-                      detalle.envios[0].codigo_producto_enviado ? (
+                      detalle.envios?.[0]?.codigo_producto_enviado ? (
                       <>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2 font-semibold">
-                          {detalle.envios[0]?.cantidad_enviada || "N/A"}
+                          {detalle.envios?.[0]?.cantidad_enviada || "N/A"}
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2 font-semibold">
-                          {detalle.envios[0]?.pallet?.numero_pallet || "N/A"}
+                          {detalle.envios?.[0]?.pallet?.numero_pallet || "N/A"}
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
@@ -1152,8 +1146,8 @@ export default function AcopioSalidaIdPage({
                                 onClick={() =>
                                   handleSaveEdit(
                                     detalle.id,
-                                    detalle.envios[0].id,
-                                    detalle.envios[0].cantidad_enviada
+                                    detalle.envios?.[0]?.id || 0,
+                                    detalle.envios?.[0]?.cantidad_enviada || 0
                                   )
                                 }
                                 disabled={editLoading === detalle.id}
@@ -1218,7 +1212,9 @@ export default function AcopioSalidaIdPage({
                                 }`}
                                 onClick={() => {
                                   setShowConfirmacion(true);
-                                  setIdEnvioEliminar(detalle.envios[0].id);
+                                  setIdEnvioEliminar(
+                                    detalle.envios?.[0]?.id || 0
+                                  );
                                 }}
                                 disabled={loadingSave === detalle.id}
                               >
@@ -1303,7 +1299,6 @@ export default function AcopioSalidaIdPage({
                           onProductoEnviado={stableRefetch}
                           id_detalle_orden_acopio={detalle.id}
                           cantidad_solicitada={detalle.cantidad}
-                          envios={detalle.envios}
                           producto={detalle.producto}
                         />
                       </td>

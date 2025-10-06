@@ -3,13 +3,7 @@ import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_ORDENES_ACOPIO } from "@/graphql/query";
 import Alert from "@/components/Alert";
-
-type OrdenAcopio = {
-  id: number;
-  centroCosto: string;
-  fecha: string;
-  estado: string;
-};
+import { OrdenAcopio } from "@/types/graphql";
 const RegistroPage: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
@@ -76,10 +70,10 @@ const RegistroPage: React.FC = () => {
                     {orden.id}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.centroCosto}
+                    {orden.centro_costo}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.fecha}
+                    {orden.fecha_despacho}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {orden.estado}

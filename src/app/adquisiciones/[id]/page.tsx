@@ -12,18 +12,7 @@ import {
   ELIMINAR_PRODUCTO_DETALLE_ORDEN_ACOPIO,
 } from "@/graphql/mutations";
 import Confirmacion from "@/components/confirmacion";
-type Producto = {
-  codigo: string;
-  nombre_producto: string;
-  unidad_medida: string;
-  familia: string;
-};
-type DetalleOrdenAcopio = {
-  id: number;
-  codigo_producto: string;
-  cantidad: number;
-  producto: Producto;
-};
+import { OrdenAcopio, DetalleOrdenAcopio } from "@/types/graphql";
 
 export default function AcopioIdPage({
   params,
@@ -250,7 +239,8 @@ export default function AcopioIdPage({
     );
   }
 
-  const { detalles } = data.ordenAcopio;
+  const ordenAcopio: OrdenAcopio = data.ordenAcopio;
+  const detalles: DetalleOrdenAcopio[] = ordenAcopio.detalles;
 
   // Extraer familias únicas de los detalles
   const familyGroups: string[] =

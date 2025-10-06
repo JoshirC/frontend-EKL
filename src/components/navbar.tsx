@@ -11,6 +11,7 @@ const Navbar = () => {
   const [openSalida, setOpenSalida] = useState(false);
   const [openMenuUsuario, setOpenMenuUsuario] = useState(false);
   const [openAdquisiciones, setOpenAdquisiciones] = useState(false);
+  const [openProductos, setOpenProductos] = useState(false);
   const [modalCambiarContraseña, setModalCambiarContraseña] = useState(false);
   const [openReporte, setOpenReporte] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -37,6 +38,7 @@ const Navbar = () => {
     setOpenMenuUsuario(false);
     setOpenAdquisiciones(false);
     setOpenReporte(false);
+    setOpenProductos(false);
   };
 
   const handleOpenSalida = () => {
@@ -45,6 +47,7 @@ const Navbar = () => {
     setOpenMenuUsuario(false);
     setOpenAdquisiciones(false);
     setOpenReporte(false);
+    setOpenProductos(false);
   };
 
   const handleOpenMenuUsuario = () => {
@@ -53,6 +56,7 @@ const Navbar = () => {
     setOpenSalida(false);
     setOpenAdquisiciones(false);
     setOpenReporte(false);
+    setOpenProductos(false);
   };
 
   const handleOpenAdquisiciones = () => {
@@ -60,6 +64,15 @@ const Navbar = () => {
     setOpenEntrada(false);
     setOpenSalida(false);
     setOpenMenuUsuario(false);
+    setOpenReporte(false);
+    setOpenProductos(false);
+  };
+  const handleOpenProductos = () => {
+    setOpenProductos(!openProductos);
+    setOpenEntrada(false);
+    setOpenSalida(false);
+    setOpenMenuUsuario(false);
+    setOpenAdquisiciones(false);
     setOpenReporte(false);
   };
 
@@ -69,6 +82,7 @@ const Navbar = () => {
     setOpenSalida(false);
     setOpenMenuUsuario(false);
     setOpenAdquisiciones(false);
+    setOpenProductos(false);
   };
 
   const handleCloseMenu = () => {
@@ -77,6 +91,7 @@ const Navbar = () => {
     setOpenMenuUsuario(false);
     setOpenAdquisiciones(false);
     setOpenReporte(false);
+    setOpenProductos(false);
   };
 
   const handleSelectOption = () => {
@@ -197,7 +212,7 @@ const Navbar = () => {
                 </button>
                 {openAdquisiciones && (
                   <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
-                    <Link href="/adquisiciones/acopio">
+                    <Link href="/adquisiciones/consolidado">
                       <div
                         className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
@@ -205,12 +220,12 @@ const Navbar = () => {
                         Solicitud de Abastecimiento
                       </div>
                     </Link>
-                    <Link href="/adquisiciones/productos">
+                    <Link href="/adquisiciones/acopio">
                       <div
                         className="block px-4 py-2 hover:bg-orange-200 rounded-md"
                         onClick={handleSelectOption}
                       >
-                        Productos
+                        Orden Acopio
                       </div>
                     </Link>
                     <Link href="/adquisiciones/guias_entrada">
@@ -219,6 +234,52 @@ const Navbar = () => {
                         onClick={handleSelectOption}
                       >
                         Guías de Entrada
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Productos */}
+            {!["Bodeguero"].includes(rolUsuario ?? "") && (
+              <div className="relative flex justify-center">
+                <button
+                  onClick={handleOpenProductos}
+                  className="text-black font-semibold hover:text-gray-100 transition duration-300 flex items-center gap-1"
+                >
+                  Productos
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      openProductos ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                {openProductos && (
+                  <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
+                    <Link href="/producto/productos">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                        onClick={handleSelectOption}
+                      >
+                        Productos
+                      </div>
+                    </Link>
+                    <Link href="/producto/orden_compra">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                        onClick={handleSelectOption}
+                      >
+                        Ordenes de Compra
                       </div>
                     </Link>
                   </div>
@@ -458,12 +519,20 @@ const Navbar = () => {
                   </button>
                   {openAdquisiciones && (
                     <div className="pl-4">
+                      <Link href="/adquisiciones/consolidado">
+                        <div
+                          className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
+                          onClick={handleSelectOption}
+                        >
+                          Solicitud de Abastecimiento
+                        </div>
+                      </Link>
                       <Link href="/adquisiciones/acopio">
                         <div
                           className="block px-3 py-2 text-base font-medium text-black hover:bg-orange-300 rounded-md"
                           onClick={handleSelectOption}
                         >
-                          Ordenes de Acopio
+                          Orden Acopio
                         </div>
                       </Link>
                       <Link href="/adquisiciones/productos">

@@ -218,9 +218,24 @@ export const ACTUALIZAR_PRODUCTOS_SOFTLAND = gql`
     sincronizarProductosDesdeSoftland
   }
 `;
+export const ACTUALIZAR_INFO_PRODUCTOS_SOFTLAND = gql`
+mutation {
+    actualizarInformacionProductos
+  }
+`;
 export const AJUSTE_DE_INVENTARIO = gql`
   mutation{
     ajusteDeInventarioSoftland
+  }
+`;
+export const UPDATE_STOCK_EMERGENCIA = gql`
+  mutation updateStockEmergencia($codigo: String!, $nuevaCantidad: Int!) {
+    updateStockEmergencia(codigo: $codigo, nuevaCantidad: $nuevaCantidad) {
+      id
+      codigo
+      nombre_producto
+      cantidad_emergencia
+    }
   }
 `;
 // Mutaciones para guia de entrada
@@ -327,6 +342,11 @@ export const ACTUALIZAR_GUIAS_POR_ORDEN = gql`
     }
   }
 `;
+export const ACTUALIZAR_STOCK_PENDIENTE_OC = gql`
+  mutation calculoStockOC {
+    calculoStockOC
+  }
+`;
 // Mutaciones para detalle orden de acopio
 export const EDITAR_CANTIDAD_DETALLE_ORDEN_ACOPIO = gql`
   mutation updateDetalleProducto($id: Int!, $cantidad: Float!) {
@@ -349,5 +369,47 @@ export const ENVIAR_CORREO_GUIA_ENTRADA = gql`
 export const ENVIAR_CORREO_GUIA_SALIDA = gql`
   mutation EnviarExcelSalidas($ids: [Float!]!) {
     enviarExcelSalidas(ids: $ids)
+  }
+`;
+export const ENVIAR_CORREO_CONSOLIDADO_SS_SR = gql`
+  mutation($id_consolidado: Float!) {
+    generarExcelConsolidadoSSSR(id_consolidado: $id_consolidado)
+  }
+`;
+export const ENVIAR_CORREO_CONSOLIDADO_CL = gql`
+  mutation GenerarExcelConsolidadoSolicitudCL($id_consolidado: Float!) {
+    generarExcelConsolidadoSolicitudCL(id_consolidado: $id_consolidado)
+  }
+`;
+export const ENVIAR_CORREO_CONSOLIDADO_SM = gql`
+mutation GenerarExcelConsolidadoSolicitudSM($id_consolidado: Float!) {
+    generarExcelConsolidadoSolicitudSM(id_consolidado: $id_consolidado)
+  }
+`;
+// Mutaciones para consolidado
+
+export const CAMBIAR_ESTADO_ORDENES_ACOPIO_CONSOLIDADO = gql`
+  mutation($id: Int!, $nuevoEstado: String!) {
+    cambiarEstadoOrdenesAcopioByIDConsolidado(id: $id, nuevoEstado: $nuevoEstado)
+  }
+`;
+export const CREAR_CONSOLIDADO_SEMANA1_SM = gql`mutation CrearConsolidadoSemana1SM($id: Int!) {
+    crearConsolidadoSemana1SM(id: $id) {
+      id
+      fecha_inicio
+      fecha_termino
+      estado
+      ordenesAcopio {
+        id
+        fecha_despacho
+        centro_costo
+        estado
+        tipo
+        detalles  { 
+          codigo_producto
+          cantidad
+        }
+      }
+    }
   }
 `;
