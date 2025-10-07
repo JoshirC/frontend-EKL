@@ -34,7 +34,6 @@ const cat_2 = [
   "CERDOS",
   "VACUNO",
   "HUEVOS Y LACTEOS",
-  "X",
 ];
 
 /**

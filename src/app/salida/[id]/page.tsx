@@ -11,7 +11,6 @@ import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
   UPDATE_CANTIDAD_ENVIO_DETALLE,
   REMOVE_ENVIO_DETALLE_ORDEN_ACOPIO,
-  CREATE_MULTIPLE_ENVIOS_DETALLE,
   UPDATE_ESTADO_ORDEN_ACOPIO,
 } from "@/graphql/mutations";
 import { GET_ORDEN_ACOPIO } from "@/graphql/query";
@@ -21,13 +20,7 @@ import Confirmacion from "@/components/confirmacion";
 import Cargando from "@/components/cargando";
 import ModalSelectorPallets from "@/components/salida_acopio/modalSelectorPallets";
 import { ordenarProductos } from "@/utils/ordenarProductosConsolidados";
-import {
-  OrdenAcopio,
-  Producto,
-  EnvioDetalleOrdenAcopio,
-  DetalleOrdenAcopio,
-  Pallet,
-} from "@/types/graphql";
+import { DetalleOrdenAcopio } from "@/types/graphql";
 
 type CreateMultipleEnviosResponse = {
   creados: { id: number }[];
@@ -96,6 +89,7 @@ export default function AcopioSalidaIdPage({
   const { groupedByFamily, currentItems } = useMemo(() => {
     const detalles: DetalleOrdenAcopio[] = data?.ordenAcopio?.detalles || [];
 
+    // 1️⃣ Agrupar por familia
     const grouped = detalles.reduce((acc, detalle) => {
       const familia = detalle.familia_planilla;
       if (!acc[familia]) acc[familia] = [];
@@ -104,113 +98,102 @@ export default function AcopioSalidaIdPage({
     }, {} as Record<string, DetalleOrdenAcopio[]>);
 
     const families = Object.keys(grouped).sort();
-    setFamilyGroups(families); // Actualiza la lista de familias
+    setFamilyGroups(families);
 
-    // Extraer números de pallet únicos
+    // 2️⃣ Obtener pallets únicos
     const pallets = new Set<number>();
     detalles.forEach((detalle) => {
       detalle.envios?.forEach((envio) => {
-        if (envio.pallet?.numero_pallet) {
+        if (envio.pallet?.numero_pallet)
           pallets.add(envio.pallet.numero_pallet);
-        }
       });
     });
-    const sortedPallets = Array.from(pallets).sort((a, b) => a - b);
-    setPalletGroups(sortedPallets);
+    setPalletGroups(Array.from(pallets).sort((a, b) => a - b));
 
-    // Filtrar por familias seleccionadas
+    // 3️⃣ Filtrado por familia seleccionada
     let filteredItems: DetalleOrdenAcopio[] = [];
     if (selectedFamilies.length > 0) {
       selectedFamilies.forEach((familia) => {
-        if (grouped[familia]) {
+        if (grouped[familia])
           filteredItems = filteredItems.concat(grouped[familia]);
-        }
       });
     } else {
-      // Si no hay familias seleccionadas, mostrar todos los items
       filteredItems = detalles;
     }
 
-    // Filtrar por pallets seleccionados
+    // 4️⃣ Filtrado por pallet
     if (selectedPallet !== null) {
-      filteredItems = filteredItems.filter((detalle) => {
-        // Si el detalle no tiene envíos, no lo mostramos cuando hay filtro de pallets
-        if (detalle.envios?.length === 0) return false;
-
-        // Si tiene envíos, verificamos si alguno coincide con el pallet seleccionado
-        return detalle.envios?.some(
-          (envio) =>
-            envio.pallet?.numero_pallet &&
-            envio.pallet.numero_pallet === selectedPallet
-        );
-      });
+      filteredItems = filteredItems.filter((detalle) =>
+        detalle.envios?.some((e) => e.pallet?.numero_pallet === selectedPallet)
+      );
     }
 
-    // Filtrar por término de búsqueda
+    // 5️⃣ Filtrado por búsqueda
     if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
       filteredItems = filteredItems.filter(
         (detalle) =>
-          detalle.codigo_producto
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          detalle.producto.nombre_producto
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
+          detalle.codigo_producto.toLowerCase().includes(term) ||
+          detalle.producto.nombre_producto.toLowerCase().includes(term)
       );
     }
 
-    // Crear una copia del array y ordenar productos: primero por estado de envío, luego alfabéticamente
-    let sortedItems = [...filteredItems].sort((a, b) => {
-      // Verificar si los pallets están cerrados
-      const aPalletCerrado = a.envios?.some(
-        (envio) => envio.pallet?.estado === "Cerrado"
-      );
-      const bPalletCerrado = b.envios?.some(
-        (envio) => envio.pallet?.estado === "Cerrado"
-      );
+    // 6️⃣ Función para calcular prioridad global (ahora incluye rojo)
+    const getPrioridad = (d: DetalleOrdenAcopio) => {
+      const solicitada = d.cantidad ?? 0;
+      const enviada =
+        d.envios?.reduce((sum, e) => sum + (e.cantidad_enviada ?? 0), 0) ?? 0;
+      const tieneEnvios = (d.envios?.length ?? 0) > 0;
+      const cerrado = d.envios?.some((e) => e.pallet?.estado === "Cerrado");
 
-      // Si uno tiene pallet cerrado y el otro no, el que no tiene pallet cerrado va primero
-      if (aPalletCerrado && !bPalletCerrado) return 1;
-      if (!aPalletCerrado && bPalletCerrado) return -1;
+      // 🔹 0: normal / 1: cerrado / 2: con envíos / 3: incompleto / 4: envío = 0
+      if (tieneEnvios && enviada === 0) return 4; // rojo
+      if (tieneEnvios && enviada < solicitada) return 3; // azul
+      if (tieneEnvios) return 2; // naranjo
+      if (cerrado) return 1; // gris
+      return 0; // normal
+    };
 
-      // Si ambos tienen el mismo estado de pallet cerrado, continuar con el ordenamiento original
-      // Determinar si los productos fueron enviados
-      const aEnviado = (a.envios ?? []).length > 0;
-      const bEnviado = (b.envios ?? []).length > 0;
-
-      // Si uno está enviado y el otro no, el no enviado va primero
-      if (aEnviado && !bEnviado) return 1;
-      if (!aEnviado && bEnviado) return -1;
-
-      // Si ambos tienen el mismo estado de envío, ordenar alfabéticamente por nombre del producto
-      return a.producto.nombre_producto.localeCompare(
-        b.producto.nombre_producto,
-        "es",
-        { sensitivity: "base" }
-      );
+    // 7️⃣ Agrupar por familia (para mantener orden del negocio)
+    const agrupadosPorFamilia: Record<string, DetalleOrdenAcopio[]> = {};
+    filteredItems.forEach((d) => {
+      const f = d.familia_planilla;
+      if (!agrupadosPorFamilia[f]) agrupadosPorFamilia[f] = [];
+      agrupadosPorFamilia[f].push(d);
     });
 
-    // Ordenar productos según el utilitario ordenarProductosConsolidados
-    sortedItems = ordenarProductos(
-      sortedItems.map((detalle) => ({
-        ...detalle,
-        familia: detalle.familia_planilla,
-        descripcion_producto: detalle.producto.nombre_producto,
-        unidad: detalle.producto.unidad_medida,
-        // Se pueden agregar más campos si el utilitario los requiere
+    // 8️⃣ Ordenar familias según el utilitario
+    const familiasOrdenadas = ordenarProductos(
+      Object.keys(agrupadosPorFamilia).map((familia) => ({
+        familia,
+        codigo_producto: "",
+        descripcion_producto: "",
+        unidad: "",
       }))
-    ).map((prodOrdenado) => {
-      // Reasociar el objeto ordenado con el detalle original
-      return sortedItems.find(
-        (d) =>
-          d.codigo_producto === prodOrdenado.codigo_producto &&
-          d.familia_planilla === prodOrdenado.familia
-      )!;
-    });
+    ).map((f) => f.familia);
+
+    // 9️⃣ Reconstruir lista manteniendo orden de familia
+    let resultadoFinal: DetalleOrdenAcopio[] = [];
+    for (const f of familiasOrdenadas) {
+      const productos = agrupadosPorFamilia[f] || [];
+      productos.sort((a, b) =>
+        a.producto.nombre_producto.localeCompare(
+          b.producto.nombre_producto,
+          "es",
+          {
+            sensitivity: "base",
+          }
+        )
+      );
+      resultadoFinal = resultadoFinal.concat(productos);
+    }
+
+    // 🔟 Orden global final por prioridad
+    resultadoFinal.sort((a, b) => getPrioridad(a) - getPrioridad(b));
 
     return {
       groupedByFamily: grouped,
-      currentItems: sortedItems,
+      currentItems: resultadoFinal,
     };
   }, [data, selectedFamilies, searchTerm, selectedPallet]);
 
@@ -220,19 +203,6 @@ export default function AcopioSalidaIdPage({
   };
 
   // Mutaciones
-
-  const [createManyEnvios] = useMutation(CREATE_MULTIPLE_ENVIOS_DETALLE, {
-    onCompleted: (data) =>
-      handleEnvioMasivoCompleted(data, () => {
-        setCantidadesTemporales({});
-        setNumerosPallet({});
-      }),
-    onError: (error) => {
-      setAlertType("error");
-      setAlertMessage("Error general al enviar productos: " + error.message);
-      setShowAlert(true);
-    },
-  });
 
   const [createEnvioDetalleOrdenAcopio] = useMutation(
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
@@ -370,109 +340,6 @@ export default function AcopioSalidaIdPage({
       setDesactivacionBoton(false);
     }
   };
-  const handleCrearEnviosMasivos = async () => {
-    // Productos con cantidad válida (>= 0)
-    const productosConCantidad = currentItems.filter(
-      (d) =>
-        !d.producto.trazabilidad &&
-        cantidadesTemporales[d.id] !== undefined &&
-        cantidadesTemporales[d.id] !== null &&
-        cantidadesTemporales[d.id] >= 0
-    );
-
-    if (productosConCantidad.length === 0) {
-      setAlertType("advertencia");
-      setAlertMessage(
-        "Debe ingresar una cantidad válida para al menos un producto."
-      );
-      setShowAlert(true);
-      return;
-    }
-
-    // Validar que productos con cantidad > 0 tengan número de pallet
-    const productosSinPallet = productosConCantidad.filter(
-      (d) =>
-        cantidadesTemporales[d.id] > 0 &&
-        (numerosPallet[d.id] === undefined ||
-          numerosPallet[d.id] === null ||
-          numerosPallet[d.id] <= 0)
-    );
-
-    if (productosSinPallet.length > 0) {
-      setAlertType("advertencia");
-      setAlertMessage(
-        "Los productos con cantidad mayor a 0 deben tener un número de pallet válido."
-      );
-      setShowAlert(true);
-      return;
-    }
-
-    const productosFiltrados = productosConCantidad.map((d) => {
-      const objeto = {
-        id_detalle_orden_acopio: d.id,
-        cantidad_enviada: Number(cantidadesTemporales[d.id]),
-        codigo_producto_enviado: d.codigo_producto,
-      };
-
-      // Solo agregar numero_pallet si la cantidad es mayor a 0
-      if (cantidadesTemporales[d.id] > 0) {
-        (objeto as any).numero_pallet = Number(numerosPallet[d.id]);
-      }
-
-      return objeto;
-    });
-
-    setDesactivacionBoton(true);
-
-    try {
-      await createManyEnvios({
-        variables: {
-          input: {
-            usuario_rut: rutUsuario,
-            productos: productosFiltrados,
-          },
-        },
-      });
-    } catch (error) {
-    } finally {
-      setDesactivacionBoton(false);
-    }
-  };
-  const handleEnvioMasivoCompleted = (
-    data: { createManyEnvios: CreateMultipleEnviosResponse },
-    resetCantidades: () => void
-  ) => {
-    const response = data?.createManyEnvios;
-    const creados = Array.isArray(response?.creados) ? response.creados : [];
-    const fallidos = Array.isArray(response?.fallidos) ? response.fallidos : [];
-
-    if (fallidos.length > 0) {
-      const mensajes = fallidos
-        .map((f) => {
-          const codigo = f?.codigo_producto_enviado ?? "Desconocido";
-          const motivo = f?.motivo ?? "Motivo no especificado";
-          return `• ${codigo}: ${motivo}`;
-        })
-        .join("\n");
-
-      setAlertType("advertencia");
-      setAlertMessage(
-        `Algunos productos no fueron enviados correctamente: ${mensajes}`
-      );
-      setShowAlert(true);
-      resetCantidades();
-    }
-
-    if (creados.length > 0 && fallidos.length === 0) {
-      setAlertType("exitoso");
-      setAlertMessage("Todos los productos fueron enviados correctamente");
-      setShowAlert(true);
-      resetCantidades(); // Aquí limpias cantidades temporales
-    }
-
-    stableRefetch();
-  };
-
   const handleCrearEnvioDetalle = async (
     id_detalle: number,
     cantidad: number,
@@ -921,15 +788,32 @@ export default function AcopioSalidaIdPage({
               {currentItems.map((detalle) => (
                 <React.Fragment key={detalle.id}>
                   <tr
-                    className={`${
-                      isPalletCerrado(detalle)
-                        ? "bg-gray-200 border-l-4 border-gray-500"
-                        : detalle.envios?.[0]?.cantidad_enviada === 0
-                        ? "bg-red-100 border-l-4 border-red-500"
-                        : (detalle.envios?.length ?? 0) > 0
-                        ? "bg-orange-100 border-l-4 border-orange-500"
-                        : ""
-                    }`}
+                    className={(() => {
+                      const cantidadSolicitada = detalle.cantidad ?? 0;
+                      const cantidadEnviada =
+                        detalle.envios?.reduce(
+                          (sum, e) => sum + (e.cantidad_enviada ?? 0),
+                          0
+                        ) ?? 0;
+                      const tieneEnvios = (detalle.envios?.length ?? 0) > 0;
+                      const palletCerrado = detalle.envios?.some(
+                        (e) => e.pallet?.estado === "Cerrado"
+                      );
+
+                      let rowClass = "";
+                      if (tieneEnvios && cantidadEnviada === 0)
+                        rowClass = "bg-red-100 border-l-4 border-red-500";
+                      else if (
+                        tieneEnvios &&
+                        cantidadEnviada < cantidadSolicitada
+                      )
+                        rowClass = "bg-blue-100 border-l-4 border-blue-400";
+                      else if (palletCerrado)
+                        rowClass = "bg-gray-200 border-l-4 border-gray-500";
+                      else if (tieneEnvios)
+                        rowClass = "bg-orange-100 border-l-4 border-orange-500";
+                      return rowClass;
+                    })()}
                   >
                     <td className="border border-gray-300 px-2 sm:px-4 py-2">
                       {detalle.familia_planilla}
@@ -1087,7 +971,7 @@ export default function AcopioSalidaIdPage({
                           {detalle.envios?.[0]?.cantidad_enviada || "N/A"}
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2 font-semibold">
-                          {detalle.envios?.[0]?.pallet?.numero_pallet || "N/A"}
+                          {detalle.envios?.[0]?.pallet?.numero_pallet || "X"}
                         </td>
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <button
@@ -1308,21 +1192,6 @@ export default function AcopioSalidaIdPage({
               ))}
             </tbody>
           </table>
-          {/**
-           * <div className="flex justify-end mt-6">
-            <button
-              className={`bg-blue-400 text-white font-semibold py-2 px-6 rounded transition duration-200 ${
-                desactivacionBoton
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "hover:bg-blue-500"
-              }`}
-              onClick={handleCrearEnviosMasivos}
-              disabled={desactivacionBoton}
-            >
-              Enviar Múltiples Productos
-            </button>
-          </div>
-           */}
         </div>
       </div>
     </div>

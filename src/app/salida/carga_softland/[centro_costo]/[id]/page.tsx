@@ -7,49 +7,18 @@ import { CREAR_GUIAS_POR_PALLETS } from "@/graphql/mutations";
 import Alert from "@/components/Alert";
 import ListaVacia from "@/components/listaVacia";
 import GuiaSalidaModal from "@/components/salida_acopio/guiaSalida";
-
-type Producto = {
-  codigo: string;
-  nombre_producto: string;
-  familia: string;
-  unidad_medida: string;
-  precio_unitario: number;
-  cantidad: number;
-};
-
-type Pallet = {
-  id: number;
-  estado: string;
-  numero_pallet: number;
-};
-
-type Envio = {
-  id: number;
-  cantidad_enviada: number;
-  producto: Producto;
-  pallet: Pallet;
-};
-
-type DetalleOrdenAcopio = {
-  id: number;
-  cantidad: number;
-  producto: Producto;
-  envios: Envio[];
-};
-
-type OrdenAcopio = {
-  id: number;
-  centroCosto: string;
-  fecha: string;
-  estado: string;
-  detalles: DetalleOrdenAcopio[];
-};
+import {
+  OrdenAcopio,
+  EnvioDetalleOrdenAcopio,
+  Producto,
+  DetalleOrdenAcopio,
+} from "@/types/graphql";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-type EnvioConProducto = Envio & {
+type EnvioConProducto = EnvioDetalleOrdenAcopio & {
   producto: Producto;
   detalle: DetalleOrdenAcopio;
 };
@@ -172,7 +141,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
 
     // Recorrer todos los detalles y sus envíos
     orden.detalles.forEach((detalle) => {
-      detalle.envios.forEach((envio) => {
+      detalle?.envios?.forEach((envio) => {
         if (envio.pallet) {
           envios.push({
             ...envio,
@@ -185,7 +154,8 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
 
     // Ordenar por número de pallet y luego por nombre de producto
     return envios.sort((a, b) => {
-      const palletCompare = a.pallet.numero_pallet - b.pallet.numero_pallet;
+      const palletCompare =
+        (a.pallet?.numero_pallet ?? 0) - (b.pallet?.numero_pallet ?? 0);
       if (palletCompare !== 0) return palletCompare;
       return a.producto.nombre_producto.localeCompare(
         b.producto.nombre_producto
@@ -195,7 +165,9 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
 
   // Obtener lista única de pallets para el filtro
   const palletsDisponibles = useMemo(() => {
-    const pallets = todosLosEnvios.map((envio) => envio.pallet.numero_pallet);
+    const pallets = todosLosEnvios
+      .map((envio) => envio.pallet?.numero_pallet)
+      .filter((numero): numero is number => typeof numero === "number");
     return [...new Set(pallets)].sort((a, b) => a - b);
   }, [todosLosEnvios]);
 
@@ -212,8 +184,10 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
 
     // Filtrar por pallets seleccionados
     if (palletsSeleccionados.length > 0) {
-      enviosFiltrados = enviosFiltrados.filter((envio) =>
-        palletsSeleccionados.includes(envio.pallet.numero_pallet)
+      enviosFiltrados = enviosFiltrados.filter(
+        (envio) =>
+          envio.pallet?.numero_pallet !== undefined &&
+          palletsSeleccionados.includes(envio.pallet.numero_pallet)
       );
     }
 
@@ -307,7 +281,8 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
 
     // Obtener los IDs de los pallets desde los envíos filtrados
     const palletIds = enviosFiltrados
-      .map((envio) => envio.pallet.id)
+      .map((envio) => envio.pallet?.id)
+      .filter((id): id is number => typeof id === "number")
       .filter((id, index, array) => array.indexOf(id) === index); // Eliminar duplicados
     setIdPallets(palletIds);
     if (palletIds.length === 0) {
@@ -395,8 +370,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                     <div>
                       <p className="text-sm font-medium">Centro de Costo</p>
                       <p className="font-semibold text-gray-800">
-                        {data?.ordenAcopioByIdAndEstadoPallet.centroCosto ??
-                          "N/A"}
+                        {orden.centro_costo || "N/A"}
                       </p>
                     </div>
                   </div>
@@ -406,8 +380,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                     <div>
                       <p className="text-sm font-medium">Fecha Despacho</p>
                       <p className="font-semibold text-gray-800">
-                        {data?.ordenAcopioByIdAndEstadoPallet.fechaDespacho ??
-                          "N/A"}
+                        {orden.fecha_despacho || "N/A"}
                       </p>
                     </div>
                   </div>
@@ -641,7 +614,7 @@ const CargaGuiaSalidaPage = ({ params }: PageProps) => {
                       {envio.cantidad_enviada}
                     </td>
                     <td className="border border-gray-300 px-2 sm:px-4 py-2 text-sm sm:text-base">
-                      {envio.pallet.numero_pallet}
+                      {envio.pallet?.numero_pallet}
                     </td>
                   </tr>
                 ))}
