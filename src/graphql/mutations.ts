@@ -1,5 +1,4 @@
-import { gql } from '@apollo/client';
-
+import { gql } from "@apollo/client";
 
 // Mutaciones para AUTH
 
@@ -28,15 +27,15 @@ export const CREATE_USER = gql`
   }
 `;
 export const UPDATE_USER = gql`
-mutation UpdateUser($updateUserInput: UpdateUserInput!) {
-  updateUser(updateUserInput: $updateUserInput) {
-    id
-    rut
-    nombre
-    correo
-    rol
+  mutation UpdateUser($updateUserInput: UpdateUserInput!) {
+    updateUser(updateUserInput: $updateUserInput) {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
   }
-}
 `;
 export const EDITAR_ESTADO_ELIMINADO_USER = gql`
   mutation EditStatusUser($id: Float!) {
@@ -67,8 +66,12 @@ export const EDIT_PASSWORD_USER = gql`
 // Mutaciones para Envío de Detalle de Orden de Acopio
 
 export const UPDATE_CANTIDAD_ENVIO_DETALLE = gql`
-  mutation updateCantidadEnvioDetalleOrdenAcopio($updateEnvioDetalleOrdenAcopioInput: UpdateEnvioDetalleOrdenAcopioInput!) {
-    updateCantidadEnvioDetalleOrdenAcopio(updateEnvioDetalleOrdenAcopioInput: $updateEnvioDetalleOrdenAcopioInput) {
+  mutation updateCantidadEnvioDetalleOrdenAcopio(
+    $updateEnvioDetalleOrdenAcopioInput: UpdateEnvioDetalleOrdenAcopioInput!
+  ) {
+    updateCantidadEnvioDetalleOrdenAcopio(
+      updateEnvioDetalleOrdenAcopioInput: $updateEnvioDetalleOrdenAcopioInput
+    ) {
       id
       cantidad_enviada
       pallet {
@@ -97,12 +100,7 @@ export const CREATE_ENVIO_DETALLE_ORDEN_ACOPIO = gql`
         id_trazabilidad: $id_trazabilidad
       }
     ) {
-      codigo_producto_enviado
-      cantidad_enviada
-      pallet {
       id
-      numero_pallet
-      }
     }
   }
 `;
@@ -130,15 +128,14 @@ export const CREATE_MULTIPLE_ENVIOS_DETALLE = gql`
   }
 `;
 
-
 // Mutaciones para Detalle de Orden de Acopio
 
 export const UPDATE_ESTADO_DETALLE_ACOPIO = gql`
-mutation updateEstadoEnviado($id: Float!) {
-  updateEstadoEnviado(id: $id) {
-    enviado
+  mutation updateEstadoEnviado($id: Float!) {
+    updateEstadoEnviado(id: $id) {
+      enviado
+    }
   }
-}
 `;
 
 // Mutaciones para Orden de Acopio
@@ -157,7 +154,7 @@ export const ELIMINAR_ORDEN_ACOPIO = gql`
 `;
 export const ELIMINAR_LISTA_ORDEN_ACOPIO = gql`
   mutation RemoveMultipleOrders($orderIds: [Float!]!) {
-  removeMultipleOrdenAcopio(ids: $orderIds)
+    removeMultipleOrdenAcopio(ids: $orderIds)
   }
 `;
 export const EDITAR_LISTA_ORDEN_ACOPIO = gql`
@@ -219,12 +216,12 @@ export const ACTUALIZAR_PRODUCTOS_SOFTLAND = gql`
   }
 `;
 export const ACTUALIZAR_INFO_PRODUCTOS_SOFTLAND = gql`
-mutation {
+  mutation {
     actualizarInformacionProductos
   }
 `;
 export const AJUSTE_DE_INVENTARIO = gql`
-  mutation{
+  mutation {
     ajusteDeInventarioSoftland
   }
 `;
@@ -240,8 +237,12 @@ export const UPDATE_STOCK_EMERGENCIA = gql`
 `;
 // Mutaciones para guia de entrada
 export const CREATE_GUIA_ENTRADA_WITH_DETAILS = gql`
-  mutation createGuiaEntradaWithDetails($createGuiaEntradaInput: CreateGuiaEntradaInput!) {
-    createGuiaEntradaWithDetails(createGuiaEntradaInput: $createGuiaEntradaInput) {
+  mutation createGuiaEntradaWithDetails(
+    $createGuiaEntradaInput: CreateGuiaEntradaInput!
+  ) {
+    createGuiaEntradaWithDetails(
+      createGuiaEntradaInput: $createGuiaEntradaInput
+    ) {
       id
       numero_orden_compra
       fecha_generacion
@@ -277,8 +278,16 @@ export const UPDATE_ESTADO_GUIA_ENTRADAS = gql`
 
 // Mutación para editar cantidad y precio en detalle de guía de entrada
 export const UPDATE_GUIA_ENTRADA_DETALLE_CANTIDAD_Y_PRECIO = gql`
-  mutation editarCantidadYPrecio($id_guia_entrada_detalle: Int!, $cantidad: Float!, $precio: Float!) {
-    editarCantidadYPrecio(id_guia_entrada_detalle: $id_guia_entrada_detalle, cantidad: $cantidad, precio: $precio) {
+  mutation editarCantidadYPrecio(
+    $id_guia_entrada_detalle: Int!
+    $cantidad: Float!
+    $precio: Float!
+  ) {
+    editarCantidadYPrecio(
+      id_guia_entrada_detalle: $id_guia_entrada_detalle
+      cantidad: $cantidad
+      precio: $precio
+    ) {
       cantidad_ingresada
       precio_unitario
       producto {
@@ -292,7 +301,9 @@ export const UPDATE_GUIA_ENTRADA_DETALLE_CANTIDAD_Y_PRECIO = gql`
 
 // Mutaciones para Trazabilidad
 export const CREATE_TRAZABILIDAD = gql`
-  mutation createTrazabilidad($createTrazabilidadInput: [CreateTrazabilidadInput!]!) {
+  mutation createTrazabilidad(
+    $createTrazabilidadInput: [CreateTrazabilidadInput!]!
+  ) {
     createTrazabilidad(createTrazabilidadInput: $createTrazabilidadInput) {
       id
       numero_lote
@@ -350,10 +361,10 @@ export const ACTUALIZAR_STOCK_PENDIENTE_OC = gql`
 // Mutaciones para detalle orden de acopio
 export const EDITAR_CANTIDAD_DETALLE_ORDEN_ACOPIO = gql`
   mutation updateDetalleProducto($id: Int!, $cantidad: Float!) {
-    updateDetalleProducto(id: $id, cantidad: $cantidad){
+    updateDetalleProducto(id: $id, cantidad: $cantidad) {
       id
     }
-}
+  }
 `;
 export const ELIMINAR_PRODUCTO_DETALLE_ORDEN_ACOPIO = gql`
   mutation deleteDetalleOrdenAcopio($id: Int!) {
@@ -372,7 +383,7 @@ export const ENVIAR_CORREO_GUIA_SALIDA = gql`
   }
 `;
 export const ENVIAR_CORREO_CONSOLIDADO_SS_SR = gql`
-  mutation($id_consolidado: Float!) {
+  mutation ($id_consolidado: Float!) {
     generarExcelConsolidadoSSSR(id_consolidado: $id_consolidado)
   }
 `;
@@ -382,18 +393,22 @@ export const ENVIAR_CORREO_CONSOLIDADO_CL = gql`
   }
 `;
 export const ENVIAR_CORREO_CONSOLIDADO_SM = gql`
-mutation GenerarExcelConsolidadoSolicitudSM($id_consolidado: Float!) {
+  mutation GenerarExcelConsolidadoSolicitudSM($id_consolidado: Float!) {
     generarExcelConsolidadoSolicitudSM(id_consolidado: $id_consolidado)
   }
 `;
 // Mutaciones para consolidado
 
 export const CAMBIAR_ESTADO_ORDENES_ACOPIO_CONSOLIDADO = gql`
-  mutation($id: Int!, $nuevoEstado: String!) {
-    cambiarEstadoOrdenesAcopioByIDConsolidado(id: $id, nuevoEstado: $nuevoEstado)
+  mutation ($id: Int!, $nuevoEstado: String!) {
+    cambiarEstadoOrdenesAcopioByIDConsolidado(
+      id: $id
+      nuevoEstado: $nuevoEstado
+    )
   }
 `;
-export const CREAR_CONSOLIDADO_SEMANA1_SM = gql`mutation CrearConsolidadoSemana1SM($id: Int!) {
+export const CREAR_CONSOLIDADO_SEMANA1_SM = gql`
+  mutation CrearConsolidadoSemana1SM($id: Int!) {
     crearConsolidadoSemana1SM(id: $id) {
       id
       fecha_inicio
@@ -405,7 +420,7 @@ export const CREAR_CONSOLIDADO_SEMANA1_SM = gql`mutation CrearConsolidadoSemana1
         centro_costo
         estado
         tipo
-        detalles  { 
+        detalles {
           codigo_producto
           cantidad
         }

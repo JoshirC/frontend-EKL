@@ -5,13 +5,7 @@ import { useQuery } from "@apollo/client";
 import { GET_ORDENES_ACOPIO_DOS_ESTADOS } from "@/graphql/query";
 import Alert from "@/components/Alert";
 import ListaVacia from "@/components/listaVacia";
-
-type OrdenAcopio = {
-  id: number;
-  centroCosto: string;
-  fecha: string;
-  estado: string;
-};
+import { OrdenAcopio } from "@/types/graphql";
 
 export default function CentroCostoNamePage({
   params,
@@ -98,7 +92,7 @@ export default function CentroCostoNamePage({
                     {orden.id}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.fecha}
+                    {orden.fecha_despacho}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {orden.estado}

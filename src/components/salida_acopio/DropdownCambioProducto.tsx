@@ -8,6 +8,7 @@ import { GET_PRODUCTOS_ASOCIADOS_POR_CODIGO } from "@/graphql/query";
 import { useJwtStore } from "@/store/jwtStore";
 import Alert from "../Alert";
 import CambiarProducto from "./cambiarProducto";
+import { Producto } from "@/types/graphql";
 
 interface DropdownAccionesProps {
   id_detalle_orden_acopio: number;
@@ -17,15 +18,6 @@ interface DropdownAccionesProps {
   onClose: () => void;
   onProductoEnviado?: () => void;
 }
-
-type Producto = {
-  codigo: string;
-  nombre_producto: string;
-  cantidad: number;
-  unidad_medida: string;
-  familia: string;
-  trazabilidad: boolean;
-};
 
 interface ProductoEnviado {
   codigo: string;
@@ -69,7 +61,6 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
   const [createEnvioDetalleOrdenAcopio] = useMutation(
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO
   );
-  const [updateEstadoEnviado] = useMutation(UPDATE_ESTADO_DETALLE_ACOPIO);
 
   const productosAsociados: Producto[] = useMemo(() => {
     return data?.productosAsociados || [];
@@ -135,7 +126,9 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
           numero_pallet: numeroPallet,
         },
       });
-      await updateEstadoEnviado({ variables: { id: id_detalle_orden_acopio } });
+      setAlertType("exitoso");
+      setAlertMessage("Producto enviado exitosamente");
+      setShowAlert(true);
       setProductosEnviados((prev) =>
         prev.map((p) => (p.codigo === codigo ? { ...p, enviado: true } : p))
       );

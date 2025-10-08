@@ -9,7 +9,7 @@ import Alert from "@/components/Alert";
 import ListaVacia from "@/components/listaVacia";
 
 type CentroCosto = {
-  centroCosto: string;
+  centro_costo: string;
   Subir: number;
   Parcial: number;
 };
@@ -73,13 +73,13 @@ const CargaSoftlandPage: React.FC = () => {
           <div className="grid grid-cols-1 gap-6">
             {centrosDeCostos.map((centro) => (
               <div
-                key={centro.centroCosto}
+                key={centro.centro_costo}
                 className="bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
               >
                 {/* Header con el nombre del centro de costo */}
                 <div className="bg-gray-200 px-6 py-4 border-b border-gray-200 rounded-t-lg">
                   <h3 className="text-xl font-bold text-gray-800">
-                    {centro.centroCosto}
+                    {centro.centro_costo}
                   </h3>
                 </div>
 
@@ -112,7 +112,7 @@ const CargaSoftlandPage: React.FC = () => {
                       <button
                         className="bg-orange-400 text-white font-semibold px-6 py-3 rounded shadow-md hover:bg-orange-500 transition-all duration-300 hover:shadow-lg w-full lg:w-auto"
                         onClick={() => {
-                          window.location.href = `/salida/carga_softland/${centro.centroCosto}`;
+                          window.location.href = `/salida/carga_softland/${centro.centro_costo}`;
                         }}
                       >
                         Ingresar
