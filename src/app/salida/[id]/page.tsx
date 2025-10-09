@@ -21,16 +21,7 @@ import Cargando from "@/components/cargando";
 import ModalSelectorPallets from "@/components/salida_acopio/modalSelectorPallets";
 import { ordenarProductos } from "@/utils/ordenarProductosConsolidados";
 import { DetalleOrdenAcopio } from "@/types/graphql";
-
-type CreateMultipleEnviosResponse = {
-  creados: { id: number }[];
-  fallidos: {
-    id_detalle_orden_acopio: number;
-    codigo_producto_enviado: string;
-    motivo: string;
-  }[];
-};
-
+import ModalAdicional from "@/components/salida_acopio/modalAdicional";
 export default function AcopioSalidaIdPage({
   params,
 }: {
@@ -68,6 +59,7 @@ export default function AcopioSalidaIdPage({
   const [dropdownDividirEnvioOpen, setDropdownDividirEnvioOpen] = useState<
     number | null
   >(null);
+  const [showModalAdicional, setShowModalAdicional] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [editPalletValue, setEditPalletValue] = useState<string>("");
@@ -77,7 +69,6 @@ export default function AcopioSalidaIdPage({
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [palletGroups, setPalletGroups] = useState<number[]>([]);
-  const [selectedPallets, setSelectedPallets] = useState<number[]>([]);
   const [selectedPallet, setSelectedPallet] = useState<number | null>(null);
   const [showCargando, setShowCargando] = useState(false);
   // Query para obtener datos
@@ -647,6 +638,16 @@ export default function AcopioSalidaIdPage({
           id_orden_acopio={data.ordenAcopio.id}
         />
       )}
+      {showModalAdicional && (
+        <ModalAdicional
+          isOpen={showModalAdicional}
+          onClose={() => setShowModalAdicional(false)}
+          id_orden_acopio={data.ordenAcopio.id}
+          onProductCreated={() => {
+            stableRefetch();
+          }}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         {data.ordenAcopio.estado === "Confirmacion" &&
         rolUsuario != "Bodeguero" ? (
@@ -1192,6 +1193,14 @@ export default function AcopioSalidaIdPage({
               ))}
             </tbody>
           </table>
+          <div className="flex justify-end mt-4">
+            <button
+              className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
+              onClick={() => setShowModalAdicional(true)}
+            >
+              Agregar Producto Adicional
+            </button>
+          </div>
         </div>
       </div>
     </div>

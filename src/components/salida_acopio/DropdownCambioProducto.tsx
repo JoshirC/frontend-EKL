@@ -262,6 +262,7 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
           }
         }
         id_detalle_orden_acopio={id_detalle_orden_acopio}
+        cantidad_solicitada={cantidad}
       />
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

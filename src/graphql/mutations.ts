@@ -138,6 +138,13 @@ export const UPDATE_ESTADO_DETALLE_ACOPIO = gql`
   }
 `;
 
+export const CREATE_DETALLE_ADICIONAL_ORDEN_ACOPIO = gql`
+  mutation CreateAdicional($input: CreateAdicionalInput!) {
+    createAdicional(createAdicionalInput: $input) {
+      id
+    }
+  }
+`;
 // Mutaciones para Orden de Acopio
 
 export const UPDATE_ESTADO_ORDEN_ACOPIO = gql`

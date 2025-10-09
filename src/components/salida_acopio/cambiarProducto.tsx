@@ -20,6 +20,7 @@ interface CambiarProductoProps {
   onClose: () => void;
   producto: Producto;
   id_detalle_orden_acopio: number;
+  cantidad_solicitada?: number;
 }
 
 const CambiarProducto: React.FC<CambiarProductoProps> = ({
@@ -27,6 +28,7 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
   onClose,
   producto,
   id_detalle_orden_acopio,
+  cantidad_solicitada,
 }) => {
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
   const [numerosPallet, setNumerosPallet] = useState<Record<string, number>>(
@@ -49,11 +51,6 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
     CREATE_ENVIO_DETALLE_ORDEN_ACOPIO
   );
 
-  useEffect(() => {
-    document.body.classList.toggle("overflow-hidden", isOpen);
-    return () => document.body.classList.remove("overflow-hidden");
-  }, [isOpen]);
-
   const productosFiltrados = useMemo(() => {
     if (!data?.productos) return [];
     const termino = filtro.trim().toLowerCase();
@@ -65,6 +62,16 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
         )
       : data.productos;
   }, [data, filtro]);
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen]);
 
   const onEnviarProducto = async (codigo: string, cantidad_sistema: number) => {
     const cantidad = cantidades[codigo];
@@ -123,13 +130,20 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-8 max-h-[80vh] overflow-y-auto">
+      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-8 max-h-[80vh] overflow-y-auto relative">
         <h1 className="text-2xl font-bold text-center mb-4">
-          Reemplazar {producto.nombre_producto}
+          Reemplazar {producto.nombre_producto}{" "}
+          {cantidad_solicitada && `(${cantidad_solicitada})`}
         </h1>
         <p className="text-sm mb-4 text-gray-600">
           Busque el nuevo producto para reemplazar el seleccionado.
         </p>
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-8 text-gray-300 hover:text-red-500 text-4xl font-bold"
+        >
+          ×
+        </button>
         {showAlert && (
           <Alert
             type={alertType}
@@ -240,12 +254,6 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
             </p>
           )}
         </div>
-        <button
-          onClick={onClose}
-          className="bg-gray-500 text-white font-semibold px-4 py-2 rounded hover:bg-gray-600 transition duration-200 mt-4"
-        >
-          Cerrar
-        </button>
       </div>
     </div>
   );
