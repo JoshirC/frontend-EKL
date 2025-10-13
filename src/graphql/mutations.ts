@@ -378,6 +378,13 @@ export const ELIMINAR_PRODUCTO_DETALLE_ORDEN_ACOPIO = gql`
     deleteDetalleOrdenAcopio(id: $id)
   }
 `;
+export const UPDATE_ESTADO_COMPRA_ORDEN_ACOPIO = gql`
+  mutation updateEstadoComprado($id: Float!) {
+    updateEstadoComprado(id: $id) {
+      id
+    }
+  }
+`;
 // Mutaciones para Envio Correos
 export const ENVIAR_CORREO_GUIA_ENTRADA = gql`
   mutation enviarExcelGuias {

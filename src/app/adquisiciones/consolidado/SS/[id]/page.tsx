@@ -6,16 +6,20 @@ import { CONSOLIDADO_SS_SR_BY_ID } from "@/graphql/query";
 import {
   ENVIAR_CORREO_CONSOLIDADO_SS_SR,
   CAMBIAR_ESTADO_ORDENES_ACOPIO_CONSOLIDADO,
+  UPDATE_ESTADO_COMPRA_ORDEN_ACOPIO,
 } from "@/graphql/mutations";
 import { ordenarProductos } from "@/utils/ordenarProductosConsolidados";
 import FamilyPagination from "@/components/FamilyPagination";
 import Alert from "@/components/Alert";
 import Cargando from "@/components/cargando";
+import Confirmacion from "@/components/confirmacion";
 
 interface ss_page_Props {
   params: Promise<{ tipo: string; id: string }>;
 }
 export default function SsPage({ params }: ss_page_Props) {
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [id_detalle, setIdDetalle] = useState<number | null>(null);
   const [cargando, setCargando] = useState<boolean>(false);
   const [mensajeCargando, setMensajeCargando] = useState<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -23,8 +27,9 @@ export default function SsPage({ params }: ss_page_Props) {
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+  const [mostrarCentros, setMostrarCentros] = useState<boolean>(false);
   const { id } = use(params);
-  const { loading, error, data } = useQuery(CONSOLIDADO_SS_SR_BY_ID, {
+  const { loading, error, data, refetch } = useQuery(CONSOLIDADO_SS_SR_BY_ID, {
     variables: { id: parseInt(id, 10) },
   });
   const [enviarCorreoConsolidado] = useMutation(
@@ -64,7 +69,24 @@ export default function SsPage({ params }: ss_page_Props) {
       },
     }
   );
-
+  const [actualizarEstadoCompra] = useMutation(
+    UPDATE_ESTADO_COMPRA_ORDEN_ACOPIO,
+    {
+      onCompleted: () => {
+        setCargando(false);
+        setAlertType("exitoso");
+        setAlertMessage("Estado de compra actualizado");
+        setShowAlert(true);
+        refetch();
+      },
+      onError: (error) => {
+        setCargando(false);
+        setAlertMessage(error.message);
+        setAlertType("error");
+        setShowAlert(true);
+      },
+    }
+  );
   // estados para filtros
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,8 +114,8 @@ export default function SsPage({ params }: ss_page_Props) {
       : [];
 
   // productos filtrados (derivados, sin useEffect)
-  const productosFiltrados = ordenarProductos(consolidado.productos).filter(
-    (prod) => {
+  const productosFiltrados = ordenarProductos(consolidado.productos)
+    .filter((prod) => {
       const matchesSearch =
         prod.codigo_producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
         prod.descripcion_producto
@@ -105,8 +127,12 @@ export default function SsPage({ params }: ss_page_Props) {
         selectedFamilies.includes(prod.familia);
 
       return matchesSearch && matchesFamily;
-    }
-  );
+    })
+    .sort((a, b) => {
+      // Ordenar productos con estado_compra true al final
+      if (a.estado_compra === b.estado_compra) return 0;
+      return a.estado_compra ? 1 : -1;
+    });
 
   const handleEnviarCorreo = () => {
     if (id != null) {
@@ -124,6 +150,13 @@ export default function SsPage({ params }: ss_page_Props) {
       });
       setMensajeCargando("Enviando a Acopio, por favor espere...");
       setCargando(true);
+    }
+  };
+  const handleProductoComprado = (id: number) => {
+    if (id != null) {
+      actualizarEstadoCompra({
+        variables: { id: id },
+      });
     }
   };
 
@@ -165,6 +198,19 @@ export default function SsPage({ params }: ss_page_Props) {
             onClose={() => setCargando(false)}
           />
         )}
+        {showConfirmacion && (
+          <Confirmacion
+            isOpen={showConfirmacion}
+            titulo="Desconfirmar Compra"
+            mensaje="¿Estás seguro de que deseas marcar este producto como no comprado?"
+            onConfirm={() => {
+              handleProductoComprado(id_detalle!);
+              setShowConfirmacion(false);
+            }}
+            onClose={() => setShowConfirmacion(false)}
+          />
+        )}
+
         {/* Info del consolidado */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
           <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
@@ -189,7 +235,7 @@ export default function SsPage({ params }: ss_page_Props) {
 
         {/* Controles de filtro */}
         {consolidado.productos.length > 0 && (
-          <div className="mt-4 pb-4">
+          <div className="mt-4 pb-4 flex flex-col sm:flex-row sm:items-center gap-4">
             <FamilyPagination
               familyGroups={familyGroups}
               selectedFamilies={selectedFamilies}
@@ -201,6 +247,12 @@ export default function SsPage({ params }: ss_page_Props) {
               searchPlaceholder="Buscar por código o descripción..."
               showSearch={true}
             />
+            <button
+              className="bg-orange-400 hover:bg-orange-500 text-white font-bold px-4 py-2 rounded text-sm text-center"
+              onClick={() => setMostrarCentros(!mostrarCentros)}
+            >
+              {mostrarCentros ? "Ocultar" : "Mostrar"} Centros
+            </button>
           </div>
         )}
 
@@ -219,7 +271,7 @@ export default function SsPage({ params }: ss_page_Props) {
                     Familia
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
-                    Cod. Producto
+                    Código
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                     Descripción
@@ -229,14 +281,15 @@ export default function SsPage({ params }: ss_page_Props) {
                   </th>
 
                   {/* Cabeceras dinámicas por centro */}
-                  {consolidado.centrosUnicos.map((centro) => (
-                    <th
-                      key={centro}
-                      className="border border-gray-300 px-2 sm:px-4 py-2"
-                    >
-                      {centro}
-                    </th>
-                  ))}
+                  {mostrarCentros &&
+                    consolidado.centrosUnicos.map((centro) => (
+                      <th
+                        key={centro}
+                        className="border border-gray-300 px-2 sm:px-4 py-2"
+                      >
+                        {centro}
+                      </th>
+                    ))}
 
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
                     Total
@@ -250,13 +303,23 @@ export default function SsPage({ params }: ss_page_Props) {
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
                     Compra Recomendada
                   </th>
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                    Estado
+                  </th>
+                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {productosFiltrados.map((prod) => (
                   <tr
                     key={prod.codigo_producto}
-                    className="hover:bg-gray-100 transition-colors"
+                    className={`hover:bg-gray-100 transition-colors ${
+                      prod.estado_compra
+                        ? "bg-orange-100 border-l-4 border-orange-500"
+                        : ""
+                    }`}
                   >
                     <td className="border border-gray-300 px-2 py-1 text-left">
                       {prod.familia}
@@ -272,19 +335,20 @@ export default function SsPage({ params }: ss_page_Props) {
                     </td>
 
                     {/* Cantidades por centro */}
-                    {consolidado.centrosUnicos.map((centro) => {
-                      const centroData = prod.centros?.find(
-                        (c) => c.centro === centro
-                      );
-                      return (
-                        <td
-                          key={centro}
-                          className="border border-gray-300 px-2 py-1"
-                        >
-                          {centroData ? centroData.cantidad : ""}
-                        </td>
-                      );
-                    })}
+                    {mostrarCentros &&
+                      consolidado.centrosUnicos.map((centro) => {
+                        const centroData = prod.centros?.find(
+                          (c) => c.centro === centro
+                        );
+                        return (
+                          <td
+                            key={centro}
+                            className="border border-gray-300 px-2 py-1"
+                          >
+                            {centroData ? centroData.cantidad : ""}
+                          </td>
+                        );
+                      })}
 
                     <td className="border border-gray-300 px-2 py-1 text-orange-500">
                       {prod.total}
@@ -299,6 +363,52 @@ export default function SsPage({ params }: ss_page_Props) {
                       {parseInt(prod.compra_recomendada) > 0
                         ? prod.compra_recomendada
                         : 0}
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      <div className="flex items-center justify-center">
+                        <button
+                          className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                          onClick={() => {
+                            if (prod.estado_compra) {
+                              setIdDetalle(prod.id_detalle);
+                              setShowConfirmacion(true);
+                            } else {
+                              handleProductoComprado(prod.id_detalle);
+                            }
+                          }}
+                        >
+                          {prod.estado_compra ? (
+                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                              <svg
+                                className="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-gray-400"></div>
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 px-2 py-1">
+                      {mostrarCentros ? (
+                        <button className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded w-full font-semibold text-sm">
+                          Editar Cantidades
+                        </button>
+                      ) : (
+                        <button className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded w-full font-semibold text-sm">
+                          Cambiar Producto
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
