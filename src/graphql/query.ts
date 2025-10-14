@@ -398,7 +398,7 @@ export const GET_OC_EN_SEMANA = gql`
       NumInterOC
       NumOC
       FecFinalOC
-      NomCon
+      NomAux
     }
   }
 `;

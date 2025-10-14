@@ -236,6 +236,8 @@ export type ListadoOCDto = {
   NumOC: string;
   FecFinalOC: string;
   NomCon: string;
+  CodAux: string;
+  NomAux: string;
 };
 export type ProductoConsolidado = {
   id_detalle: number;

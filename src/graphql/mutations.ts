@@ -400,7 +400,21 @@ export const UPDATE_PRODUCTO_CONSOLIDADO = gql`
     )
   }
 `;
-
+export const UPDATE_CANTIDAD_PRODUCTO_CONSOLIDADO = gql`
+  mutation actualizarCantidadesConsolidado(
+    $id_consolidado: Float!
+    $nueva_cantidad: Float!
+    $codigo_producto: String!
+    $centro_costo: String!
+  ) {
+    actualizarCantidadesConsolidado(
+      id_consolidado: $id_consolidado
+      nueva_cantidad: $nueva_cantidad
+      codigo_producto: $codigo_producto
+      centro_costo: $centro_costo
+    )
+  }
+`;
 // Mutaciones para Envio Correos
 export const ENVIAR_CORREO_GUIA_ENTRADA = gql`
   mutation enviarExcelGuias {

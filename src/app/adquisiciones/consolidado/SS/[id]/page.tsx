@@ -10,6 +10,7 @@ import {
   ENVIAR_CORREO_CONSOLIDADO_SS_SR,
   CAMBIAR_ESTADO_ORDENES_ACOPIO_CONSOLIDADO,
   UPDATE_ESTADO_COMPRA_ORDEN_ACOPIO,
+  UPDATE_CANTIDAD_PRODUCTO_CONSOLIDADO,
 } from "@/graphql/mutations";
 import { ordenarProductos } from "@/utils/ordenarProductosConsolidados";
 import FamilyPagination from "@/components/FamilyPagination";
@@ -36,6 +37,15 @@ export default function SsPage({ params }: ss_page_Props) {
     useState(false);
   const [productoSeleccionado, setProductoSeleccionado] =
     useState<ProductoConsolidado | null>(null);
+  const [productoSeleccionadoCodigo, setProductoSeleccionadoCodigo] = useState<
+    string | null
+  >(null);
+  const [editandoCantidades, setEditandoCantidades] = useState<number | null>(
+    null
+  );
+  const [cantidadesEditadas, setCantidadesEditadas] = useState<{
+    [key: string]: number;
+  }>({});
   const { id } = use(params);
   const { loading, error, data, refetch } = useQuery(CONSOLIDADO_SS_SR_BY_ID, {
     variables: { id: parseInt(id, 10) },
@@ -89,6 +99,22 @@ export default function SsPage({ params }: ss_page_Props) {
       },
       onError: (error) => {
         setCargando(false);
+        setAlertMessage(error.message);
+        setAlertType("error");
+        setShowAlert(true);
+      },
+    }
+  );
+  const [actualizarCantidadProductoConsolidado] = useMutation(
+    UPDATE_CANTIDAD_PRODUCTO_CONSOLIDADO,
+    {
+      onCompleted: () => {
+        refetch();
+        setAlertMessage("Cantidad actualizada exitosamente");
+        setAlertType("exitoso");
+        setShowAlert(true);
+      },
+      onError: (error) => {
         setAlertMessage(error.message);
         setAlertType("error");
         setShowAlert(true);
@@ -164,6 +190,27 @@ export default function SsPage({ params }: ss_page_Props) {
     if (id != null) {
       actualizarEstadoCompra({
         variables: { id: id },
+      });
+    }
+  };
+  const handleCantidadChange = (
+    codigo_producto: string,
+    nuevaCantidad: number,
+    centro_costo: string
+  ) => {
+    if (
+      codigo_producto &&
+      nuevaCantidad !== null &&
+      nuevaCantidad !== undefined &&
+      centro_costo
+    ) {
+      actualizarCantidadProductoConsolidado({
+        variables: {
+          id_consolidado: parseFloat(id),
+          codigo_producto,
+          nueva_cantidad: parseFloat(nuevaCantidad.toString()),
+          centro_costo,
+        },
       });
     }
   };
@@ -302,15 +349,20 @@ export default function SsPage({ params }: ss_page_Props) {
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
                     Total
                   </th>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Stock Actual
-                  </th>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Stock Pendiente
-                  </th>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Compra Recomendada
-                  </th>
+                  {!mostrarCentros && (
+                    <>
+                      <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                        Stock Actual
+                      </th>
+                      <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                        Stock Pendiente
+                      </th>
+                      <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                        Compra Recomendada
+                      </th>
+                    </>
+                  )}
+
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
                     Estado
                   </th>
@@ -349,12 +401,78 @@ export default function SsPage({ params }: ss_page_Props) {
                           const centroData = prod.centros?.find(
                             (c) => c.centro === centro
                           );
+                          const cantidad = centroData
+                            ? centroData.cantidad
+                            : "";
+                          const editKey = `${prod.id_detalle}-${centro}`;
+
                           return (
                             <td
-                              key={centro}
+                              key={`${prod.codigo_producto}-${centro}`}
                               className="border border-gray-300 px-2 py-1"
                             >
-                              {centroData ? centroData.cantidad : ""}
+                              {editandoCantidades === prod.id_detalle &&
+                              cantidad ? (
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    value={
+                                      cantidadesEditadas[editKey] ?? cantidad
+                                    }
+                                    className="border border-gray-300 rounded px-2 py-1 w-20 text-center"
+                                    onChange={(e) => {
+                                      const nuevaCantidad = parseFloat(
+                                        e.target.value
+                                      );
+                                      setCantidadesEditadas((prev) => ({
+                                        ...prev,
+                                        [editKey]: isNaN(nuevaCantidad)
+                                          ? 0
+                                          : nuevaCantidad,
+                                      }));
+                                    }}
+                                  />
+                                  <button
+                                    className="bg-blue-500 hover:bg-blue-600 text-white p-1 rounded text-xs"
+                                    onClick={() => {
+                                      const cantidadAguardar =
+                                        cantidadesEditadas[editKey];
+                                      handleCantidadChange(
+                                        prod.codigo_producto,
+                                        cantidadAguardar!,
+                                        centro
+                                      );
+                                    }}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-6 w-6"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth={2}
+                                    >
+                                      {" "}
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M17 16v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7l5 5v7a2 2 0 0 1-2 2z"
+                                      />{" "}
+                                      <rect
+                                        x="9"
+                                        y="13"
+                                        width="6"
+                                        height="4"
+                                        rx="1"
+                                        fill="currentColor"
+                                      />{" "}
+                                    </svg>
+                                  </button>
+                                </div>
+                              ) : (
+                                <>{cantidad}</>
+                              )}
                             </td>
                           );
                         })}
@@ -362,17 +480,21 @@ export default function SsPage({ params }: ss_page_Props) {
                       <td className="border border-gray-300 px-2 py-1 text-orange-500">
                         {prod.total}
                       </td>
-                      <td className="border border-gray-300 px-2 py-1">
-                        {prod.stock_actual}
-                      </td>
-                      <td className="border border-gray-300 px-2 py-1">
-                        {prod.stock_oc}
-                      </td>
-                      <td className="border border-gray-300 px-2 py-1">
-                        {parseInt(prod.compra_recomendada) > 0
-                          ? prod.compra_recomendada
-                          : 0}
-                      </td>
+                      {!mostrarCentros && (
+                        <>
+                          <td className="border border-gray-300 px-2 py-1">
+                            {prod.stock_actual}
+                          </td>
+                          <td className="border border-gray-300 px-2 py-1">
+                            {prod.stock_oc}
+                          </td>
+                          <td className="border border-gray-300 px-2 py-1">
+                            {parseInt(prod.compra_recomendada) > 0
+                              ? prod.compra_recomendada
+                              : 0}
+                          </td>
+                        </>
+                      )}
                       <td className="border border-gray-300 px-2 py-1">
                         <div className="flex items-center justify-center">
                           <button
@@ -410,8 +532,26 @@ export default function SsPage({ params }: ss_page_Props) {
                       </td>
                       <td className="border border-gray-300 px-2 py-1">
                         {mostrarCentros ? (
-                          <button className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded w-full font-semibold text-sm">
-                            Editar Cantidades
+                          <button
+                            className={`${
+                              editandoCantidades === prod.id_detalle
+                                ? "bg-red-500 hover:bg-red-600"
+                                : "bg-orange-400 hover:bg-orange-500"
+                            } text-white px-3 py-2 rounded w-full font-semibold text-sm`}
+                            onClick={() => {
+                              setEditandoCantidades(
+                                editandoCantidades === prod.id_detalle
+                                  ? null
+                                  : prod.id_detalle
+                              );
+                              if (editandoCantidades === prod.id_detalle) {
+                                setCantidadesEditadas({});
+                              }
+                            }}
+                          >
+                            {editandoCantidades === prod.id_detalle
+                              ? "Terminar Edición"
+                              : "Editar Cantidades"}
                           </button>
                         ) : (
                           <button

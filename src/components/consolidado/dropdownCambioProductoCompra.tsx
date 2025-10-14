@@ -150,44 +150,50 @@ const DropdownCambioProductoCompra: React.FC<
       )}
       {/* Lista de productos asociados */}
       <div>
-        {productosAsociados.map((producto) => (
-          <div
-            key={producto.id}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-gray-200"
-          >
-            <div className="text-start">
-              <p>
-                <strong>Producto:</strong> {producto.nombre_producto}{" "}
-                {producto.unidad_medida}
-              </p>
-              <p>
-                <strong>Código:</strong> {producto.codigo}
-              </p>
-            </div>
-            <div className="space-x-3 flex items-center">
-              <select
-                className="border border-gray-300 rounded px-4 py-3"
-                value={selectedFamilias[producto.id] || ""}
-                onChange={(e) =>
-                  handleFamiliaChange(producto.id, e.target.value)
-                }
-              >
-                <option value="">Seleccione una familia</option>
-                {familias.map((familia) => (
-                  <option key={familia} value={familia}>
-                    {familia}
-                  </option>
-                ))}
-              </select>
-              <button
-                className="bg-blue-400 hover:bg-blue-500 text-white rounded font-semibold px-4 py-2"
-                onClick={() => handleReemplazar(producto.id)}
-              >
-                Reemplazar
-              </button>
-            </div>
+        {productosAsociados.length === 0 ? (
+          <div className="text-center text-gray-500 py-8">
+            No existen productos en el árbol del código.
           </div>
-        ))}
+        ) : (
+          productosAsociados.map((producto) => (
+            <div
+              key={producto.id}
+              className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-gray-200"
+            >
+              <div className="text-start">
+                <p>
+                  <strong>Producto:</strong> {producto.nombre_producto}{" "}
+                  {producto.unidad_medida}
+                </p>
+                <p>
+                  <strong>Código:</strong> {producto.codigo}
+                </p>
+              </div>
+              <div className="space-x-3 flex items-center">
+                <select
+                  className="border border-gray-300 rounded px-4 py-3"
+                  value={selectedFamilias[producto.id] || ""}
+                  onChange={(e) =>
+                    handleFamiliaChange(producto.id, e.target.value)
+                  }
+                >
+                  <option value="">Seleccione una familia</option>
+                  {familias.map((familia) => (
+                    <option key={familia} value={familia}>
+                      {familia}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="bg-blue-400 hover:bg-blue-500 text-white rounded font-semibold px-4 py-2"
+                  onClick={() => handleReemplazar(producto.id)}
+                >
+                  Reemplazar
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
