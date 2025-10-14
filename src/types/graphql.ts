@@ -237,3 +237,10 @@ export type ListadoOCDto = {
   FecFinalOC: string;
   NomCon: string;
 };
+export type ProductoConsolidado = {
+  id_detalle: number;
+  familia: string;
+  codigo_producto: string;
+  descripcion_producto: string;
+  unidad: string;
+};

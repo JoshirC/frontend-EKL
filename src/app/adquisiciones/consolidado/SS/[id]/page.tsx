@@ -1,7 +1,10 @@
 "use client";
 import React, { useState, use } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { ConsolidadoPorIdResponseSSSR } from "@/types/graphql";
+import {
+  ConsolidadoPorIdResponseSSSR,
+  ProductoConsolidado,
+} from "@/types/graphql";
 import { CONSOLIDADO_SS_SR_BY_ID } from "@/graphql/query";
 import {
   ENVIAR_CORREO_CONSOLIDADO_SS_SR,
@@ -13,6 +16,7 @@ import FamilyPagination from "@/components/FamilyPagination";
 import Alert from "@/components/Alert";
 import Cargando from "@/components/cargando";
 import Confirmacion from "@/components/confirmacion";
+import DropdownCambioProductoCompra from "@/components/consolidado/dropdownCambioProductoCompra";
 
 interface ss_page_Props {
   params: Promise<{ tipo: string; id: string }>;
@@ -28,6 +32,10 @@ export default function SsPage({ params }: ss_page_Props) {
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
   const [mostrarCentros, setMostrarCentros] = useState<boolean>(false);
+  const [dropdownCambiarProductoOpen, setDropdownCambiarProductoOpen] =
+    useState(false);
+  const [productoSeleccionado, setProductoSeleccionado] =
+    useState<ProductoConsolidado | null>(null);
   const { id } = use(params);
   const { loading, error, data, refetch } = useQuery(CONSOLIDADO_SS_SR_BY_ID, {
     variables: { id: parseInt(id, 10) },
@@ -313,104 +321,145 @@ export default function SsPage({ params }: ss_page_Props) {
               </thead>
               <tbody>
                 {productosFiltrados.map((prod) => (
-                  <tr
-                    key={prod.codigo_producto}
-                    className={`hover:bg-gray-100 transition-colors ${
-                      prod.estado_compra
-                        ? "bg-orange-100 border-l-4 border-orange-500"
-                        : ""
-                    }`}
-                  >
-                    <td className="border border-gray-300 px-2 py-1 text-left">
-                      {prod.familia}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1 text-left">
-                      {prod.codigo_producto}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1 text-left">
-                      {prod.descripcion_producto}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {prod.unidad}
-                    </td>
+                  <React.Fragment key={prod.codigo_producto}>
+                    <tr
+                      key={prod.codigo_producto}
+                      className={`hover:bg-gray-100 transition-colors ${
+                        prod.estado_compra
+                          ? "bg-orange-100 border-l-4 border-orange-500"
+                          : ""
+                      }`}
+                    >
+                      <td className="border border-gray-300 px-2 py-1 text-left">
+                        {prod.familia}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1 text-left">
+                        {prod.codigo_producto}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1 text-left">
+                        {prod.descripcion_producto}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1">
+                        {prod.unidad}
+                      </td>
 
-                    {/* Cantidades por centro */}
-                    {mostrarCentros &&
-                      consolidado.centrosUnicos.map((centro) => {
-                        const centroData = prod.centros?.find(
-                          (c) => c.centro === centro
-                        );
-                        return (
-                          <td
-                            key={centro}
-                            className="border border-gray-300 px-2 py-1"
+                      {/* Cantidades por centro */}
+                      {mostrarCentros &&
+                        consolidado.centrosUnicos.map((centro) => {
+                          const centroData = prod.centros?.find(
+                            (c) => c.centro === centro
+                          );
+                          return (
+                            <td
+                              key={centro}
+                              className="border border-gray-300 px-2 py-1"
+                            >
+                              {centroData ? centroData.cantidad : ""}
+                            </td>
+                          );
+                        })}
+
+                      <td className="border border-gray-300 px-2 py-1 text-orange-500">
+                        {prod.total}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1">
+                        {prod.stock_actual}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1">
+                        {prod.stock_oc}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1">
+                        {parseInt(prod.compra_recomendada) > 0
+                          ? prod.compra_recomendada
+                          : 0}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1">
+                        <div className="flex items-center justify-center">
+                          <button
+                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                            onClick={() => {
+                              if (prod.estado_compra) {
+                                setIdDetalle(prod.id_detalle);
+                                setShowConfirmacion(true);
+                              } else {
+                                handleProductoComprado(prod.id_detalle);
+                              }
+                            }}
                           >
-                            {centroData ? centroData.cantidad : ""}
-                          </td>
-                        );
-                      })}
-
-                    <td className="border border-gray-300 px-2 py-1 text-orange-500">
-                      {prod.total}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {prod.stock_actual}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {prod.stock_oc}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {parseInt(prod.compra_recomendada) > 0
-                        ? prod.compra_recomendada
-                        : 0}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      <div className="flex items-center justify-center">
-                        <button
-                          className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                          onClick={() => {
-                            if (prod.estado_compra) {
+                            {prod.estado_compra ? (
+                              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg
+                                  className="w-4 h-4 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-gray-400"></div>
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1">
+                        {mostrarCentros ? (
+                          <button className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded w-full font-semibold text-sm">
+                            Editar Cantidades
+                          </button>
+                        ) : (
+                          <button
+                            className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded w-full font-semibold text-sm"
+                            onClick={() => {
                               setIdDetalle(prod.id_detalle);
-                              setShowConfirmacion(true);
-                            } else {
-                              handleProductoComprado(prod.id_detalle);
+                              setProductoSeleccionado({
+                                id_detalle: prod.id_detalle,
+                                familia: prod.familia,
+                                codigo_producto: prod.codigo_producto,
+                                descripcion_producto: prod.descripcion_producto,
+                                unidad: prod.unidad,
+                              });
+                              setDropdownCambiarProductoOpen(true);
+                            }}
+                          >
+                            Cambiar Producto
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {dropdownCambiarProductoOpen &&
+                      id_detalle === prod.id_detalle && (
+                        <tr>
+                          <td
+                            colSpan={
+                              mostrarCentros
+                                ? 12 + consolidado.centrosUnicos.length
+                                : 12
                             }
-                          }}
-                        >
-                          {prod.estado_compra ? (
-                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                              <svg
-                                className="w-4 h-4 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                            </div>
-                          ) : (
-                            <div className="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-gray-400"></div>
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {mostrarCentros ? (
-                        <button className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded w-full font-semibold text-sm">
-                          Editar Cantidades
-                        </button>
-                      ) : (
-                        <button className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded w-full font-semibold text-sm">
-                          Cambiar Producto
-                        </button>
+                            className="border-0 p-2 sm:p-4 bg-gray-100"
+                          >
+                            <DropdownCambioProductoCompra
+                              id_consolidado={parseFloat(id)}
+                              producto_seleccionado={productoSeleccionado}
+                              onClose={() =>
+                                setDropdownCambiarProductoOpen(false)
+                              }
+                              onProductoChange={() => {
+                                refetch();
+                                setIdDetalle(null);
+                                setProductoSeleccionado(null);
+                              }}
+                            />
+                          </td>
+                        </tr>
                       )}
-                    </td>
-                  </tr>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

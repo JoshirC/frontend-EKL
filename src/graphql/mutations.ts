@@ -385,6 +385,22 @@ export const UPDATE_ESTADO_COMPRA_ORDEN_ACOPIO = gql`
     }
   }
 `;
+export const UPDATE_PRODUCTO_CONSOLIDADO = gql`
+  mutation cambiarProductoDetalle(
+    $id_consolidado: Float!
+    $codigo_producto: String!
+    $codigo_producto_cambio: String!
+    $familia_planilla: String!
+  ) {
+    cambiarProductoDetalle(
+      id_consolidado: $id_consolidado
+      codigo_producto: $codigo_producto
+      codigo_producto_cambio: $codigo_producto_cambio
+      familia_planilla: $familia_planilla
+    )
+  }
+`;
+
 // Mutaciones para Envio Correos
 export const ENVIAR_CORREO_GUIA_ENTRADA = gql`
   mutation enviarExcelGuias {
