@@ -52,7 +52,7 @@ const OrdenEntrantesPage = () => {
                     {orden.NumOC}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
-                    {orden.NomCon}
+                    {orden.NomAux}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                     {new Date(

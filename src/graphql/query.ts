@@ -1,15 +1,15 @@
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 //Querys para Usuarios
 export const GET_USUARIOS_NO_ELIMINADOS = gql`
-query GetUsuariosNoEliminados {
-  usersNoEliminados {
-    id
-    rut
-    nombre
-    correo
-    rol
+  query GetUsuariosNoEliminados {
+    usersNoEliminados {
+      id
+      rut
+      nombre
+      correo
+      rol
+    }
   }
-}
 `;
 export const GET_USUARIOS_ELIMINADOS = gql`
   query GetUsuariosEliminados {
@@ -130,41 +130,41 @@ export const GET_ORDENES_ACOPIO_MULTIPLES_ESTADOS = gql`
 export const GET_ORDEN_ACOPIO = gql`
   query ordenAcopio($id: Float!) {
     ordenAcopio(id: $id) {
-    id
-    centro_costo
-    fecha_despacho
-    estado
-    tipo
-    detalles {
       id
-      codigo_producto
-      cantidad
-      familia_planilla
-      producto {
-        codigo
-        nombre_producto
-        familia
-        unidad_medida
-        precio_unitario
-        cantidad
-      }
-      envios {
+      centro_costo
+      fecha_despacho
+      estado
+      tipo
+      detalles {
         id
-        cantidad_enviada
-        codigo_producto_enviado
-        pallet {
-          numero_pallet
-          estado
+        codigo_producto
+        cantidad
+        familia_planilla
+        producto {
+          codigo
+          nombre_producto
+          familia
+          unidad_medida
+          precio_unitario
+          cantidad
+        }
+        envios {
+          id
+          cantidad_enviada
+          codigo_producto_enviado
+          pallet {
+            numero_pallet
+            estado
+          }
         }
       }
-    }
-    pallets {
-      id
-      numero_pallet
-      estado
+      pallets {
+        id
+        numero_pallet
+        estado
+      }
     }
   }
-}
 `;
 
 export const GET_ORDEN_ACOPIO_BY_ID_AND_ESTADO_PALLET = gql`
@@ -245,44 +245,44 @@ export const GET_DETALLE_ORDEN_ACOPIO_BY_ID = gql`
 export const GET_ENVIO_DETALLE_ORDEN_ACOPIO_BY_ID_ORDEN = gql`
   query envioDetalleOrdenAcopioByIdOrden($id_orden_acopio: Float!) {
     envioDetalleOrdenAcopioByIdOrden(id_orden_acopio: $id_orden_acopio) {
-    id
-    codigo_producto_enviado
-    cantidad_enviada
-    detalleOrdenAcopio {
       id
-      codigo_producto
-      cantidad
-      familia_planilla
+      codigo_producto_enviado
+      cantidad_enviada
+      detalleOrdenAcopio {
+        id
+        codigo_producto
+        cantidad
+        familia_planilla
+        producto {
+          codigo
+          nombre_producto
+        }
+      }
+      usuario {
+        nombre
+      }
       producto {
         codigo
         nombre_producto
+        familia
+        cantidad
+        trazabilidad
+      }
+      pallet {
+        numero_pallet
+        guiasSalida {
+          numero_folio
+        }
+      }
+      trazabilidad {
+        id
+        numero_lote
+        fecha_elaboracion
+        fecha_vencimiento
+        temperatura
+        observaciones
       }
     }
-    usuario {
-      nombre
-    }
-    producto {
-      codigo
-      nombre_producto
-      familia
-      cantidad
-      trazabilidad
-    }
-    pallet {
-      numero_pallet
-      guiasSalida{
-        numero_folio
-      } 
-    }
-    trazabilidad {
-      id
-      numero_lote
-      fecha_elaboracion
-      fecha_vencimiento
-      temperatura
-      observaciones
-    }
-  }
   }
 `;
 
@@ -372,7 +372,7 @@ export const BUSCAR_PRODUCTO_SOFTLAND = gql`
 export const GET_ORDEN_COMPRA = gql`
   query ordenCompra($codigo_orden_compra: String!) {
     ordenCompra(codigo_orden_compra: $codigo_orden_compra) {
-      productos{
+      productos {
         codigo
         nombre
         cantidad
@@ -398,7 +398,7 @@ export const GET_OC_EN_SEMANA = gql`
       NumInterOC
       NumOC
       FecFinalOC
-      NomCon
+      NomAux
     }
   }
 `;
@@ -427,11 +427,11 @@ export const GET_GUIA_ENTRADA_BY_ESTADO = gql`
       fecha_factura
       numero_orden_compra
       guiaEntradaDetalle {
-      id
-      producto {
-        codigo
-        nombre_producto
-    }
+        id
+        producto {
+          codigo
+          nombre_producto
+        }
         cantidad_ingresada
         precio_unitario
       }
@@ -491,9 +491,9 @@ export const GET_LISTA_TRAZABILIDAD = gql`
           nombre
           rut
         }
-      } 
-      enviosDetalle{
-        envioDetalle{
+      }
+      enviosDetalle {
+        envioDetalle {
           id
           cantidad_enviada
         }
@@ -564,7 +564,7 @@ export const GET_RESUMEN_ORDEN_POR_TIPO = gql`
   }
 `;
 export const CONSOLIDADO_POR_TIPO_ORDEN = gql`
-  query($tipoOrden: String!) {
+  query ($tipoOrden: String!) {
     consolidadoPorTipoOrden(tipoOrden: $tipoOrden) {
       id
       fecha_inicio
@@ -579,12 +579,14 @@ export const CONSOLIDADO_POR_TIPO_ORDEN = gql`
   }
 `;
 export const CONSOLIDADO_SS_SR_BY_ID = gql`
-  query($id: Int!) {
+  query ($id: Int!) {
     consolidadoPorId(id: $id) {
       estado
       fecha_inicio
       fecha_termino
       productos {
+        id_detalle
+        estado_compra
         familia
         codigo_producto
         descripcion_producto
@@ -594,45 +596,45 @@ export const CONSOLIDADO_SS_SR_BY_ID = gql`
         stock_oc
         cantidad_a_enviar
         compra_recomendada
-      centros {
-        centro
-        cantidad
+        centros {
+          centro
+          cantidad
+        }
+        total
       }
-      total
+      centrosUnicos
     }
-    centrosUnicos
   }
-}
 `;
 
 export const CONSOLIDADO_CL_BY_ID = gql`
   query GetConsolidadoSolicitudPorId($id: Int!) {
-      consolidadoSolicitudPorId(id: $id) {
-        id
-        estado
-        fecha_inicio
-        fecha_termino
-        centros {
-          centro
-          productos {
-            familia
-            codigo_producto
-            descripcion_producto
-            unidad
-            Lu
-            Ma
-            Mi
-            Ju
-            Vi
-            Sa
-            total
+    consolidadoSolicitudPorId(id: $id) {
+      id
+      estado
+      fecha_inicio
+      fecha_termino
+      centros {
+        centro
+        productos {
+          familia
+          codigo_producto
+          descripcion_producto
+          unidad
+          Lu
+          Ma
+          Mi
+          Ju
+          Vi
+          Sa
+          total
         }
       }
     }
   }
 `;
 export const CONSOLIDADO_SM_BY_ID = gql`
-query GetConsolidadoSolicitudSemanasPorId($id: Int!) {
+  query GetConsolidadoSolicitudSemanasPorId($id: Int!) {
     consolidadoSolicitudSemanasPorId(id: $id) {
       id
       estado

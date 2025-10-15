@@ -1,21 +1,30 @@
 "use client";
 import React, { useState, use } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { ConsolidadoPorIdResponseSSSR } from "@/types/graphql";
+import {
+  ConsolidadoPorIdResponseSSSR,
+  ProductoConsolidado,
+} from "@/types/graphql";
 import { CONSOLIDADO_SS_SR_BY_ID } from "@/graphql/query";
 import {
   ENVIAR_CORREO_CONSOLIDADO_SS_SR,
   CAMBIAR_ESTADO_ORDENES_ACOPIO_CONSOLIDADO,
+  UPDATE_ESTADO_COMPRA_ORDEN_ACOPIO,
+  UPDATE_CANTIDAD_PRODUCTO_CONSOLIDADO,
 } from "@/graphql/mutations";
 import { ordenarProductos } from "@/utils/ordenarProductosConsolidados";
 import FamilyPagination from "@/components/FamilyPagination";
 import Alert from "@/components/Alert";
 import Cargando from "@/components/cargando";
+import Confirmacion from "@/components/confirmacion";
+import DropdownCambioProductoCompra from "@/components/consolidado/dropdownCambioProductoCompra";
 
 interface ss_page_Props {
   params: Promise<{ tipo: string; id: string }>;
 }
 export default function SsPage({ params }: ss_page_Props) {
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [id_detalle, setIdDetalle] = useState<number | null>(null);
   const [cargando, setCargando] = useState<boolean>(false);
   const [mensajeCargando, setMensajeCargando] = useState<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -23,8 +32,22 @@ export default function SsPage({ params }: ss_page_Props) {
     "exitoso" | "error" | "advertencia"
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
+  const [mostrarCentros, setMostrarCentros] = useState<boolean>(false);
+  const [dropdownCambiarProductoOpen, setDropdownCambiarProductoOpen] =
+    useState(false);
+  const [productoSeleccionado, setProductoSeleccionado] =
+    useState<ProductoConsolidado | null>(null);
+  const [productoSeleccionadoCodigo, setProductoSeleccionadoCodigo] = useState<
+    string | null
+  >(null);
+  const [editandoCantidades, setEditandoCantidades] = useState<number | null>(
+    null
+  );
+  const [cantidadesEditadas, setCantidadesEditadas] = useState<{
+    [key: string]: number;
+  }>({});
   const { id } = use(params);
-  const { loading, error, data } = useQuery(CONSOLIDADO_SS_SR_BY_ID, {
+  const { loading, error, data, refetch } = useQuery(CONSOLIDADO_SS_SR_BY_ID, {
     variables: { id: parseInt(id, 10) },
   });
   const [enviarCorreoConsolidado] = useMutation(
@@ -64,7 +87,40 @@ export default function SsPage({ params }: ss_page_Props) {
       },
     }
   );
-
+  const [actualizarEstadoCompra] = useMutation(
+    UPDATE_ESTADO_COMPRA_ORDEN_ACOPIO,
+    {
+      onCompleted: () => {
+        setCargando(false);
+        setAlertType("exitoso");
+        setAlertMessage("Estado de compra actualizado");
+        setShowAlert(true);
+        refetch();
+      },
+      onError: (error) => {
+        setCargando(false);
+        setAlertMessage(error.message);
+        setAlertType("error");
+        setShowAlert(true);
+      },
+    }
+  );
+  const [actualizarCantidadProductoConsolidado] = useMutation(
+    UPDATE_CANTIDAD_PRODUCTO_CONSOLIDADO,
+    {
+      onCompleted: () => {
+        refetch();
+        setAlertMessage("Cantidad actualizada exitosamente");
+        setAlertType("exitoso");
+        setShowAlert(true);
+      },
+      onError: (error) => {
+        setAlertMessage(error.message);
+        setAlertType("error");
+        setShowAlert(true);
+      },
+    }
+  );
   // estados para filtros
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,8 +148,8 @@ export default function SsPage({ params }: ss_page_Props) {
       : [];
 
   // productos filtrados (derivados, sin useEffect)
-  const productosFiltrados = ordenarProductos(consolidado.productos).filter(
-    (prod) => {
+  const productosFiltrados = ordenarProductos(consolidado.productos)
+    .filter((prod) => {
       const matchesSearch =
         prod.codigo_producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
         prod.descripcion_producto
@@ -105,8 +161,12 @@ export default function SsPage({ params }: ss_page_Props) {
         selectedFamilies.includes(prod.familia);
 
       return matchesSearch && matchesFamily;
-    }
-  );
+    })
+    .sort((a, b) => {
+      // Ordenar productos con estado_compra true al final
+      if (a.estado_compra === b.estado_compra) return 0;
+      return a.estado_compra ? 1 : -1;
+    });
 
   const handleEnviarCorreo = () => {
     if (id != null) {
@@ -124,6 +184,34 @@ export default function SsPage({ params }: ss_page_Props) {
       });
       setMensajeCargando("Enviando a Acopio, por favor espere...");
       setCargando(true);
+    }
+  };
+  const handleProductoComprado = (id: number) => {
+    if (id != null) {
+      actualizarEstadoCompra({
+        variables: { id: id },
+      });
+    }
+  };
+  const handleCantidadChange = (
+    codigo_producto: string,
+    nuevaCantidad: number,
+    centro_costo: string
+  ) => {
+    if (
+      codigo_producto &&
+      nuevaCantidad !== null &&
+      nuevaCantidad !== undefined &&
+      centro_costo
+    ) {
+      actualizarCantidadProductoConsolidado({
+        variables: {
+          id_consolidado: parseFloat(id),
+          codigo_producto,
+          nueva_cantidad: parseFloat(nuevaCantidad.toString()),
+          centro_costo,
+        },
+      });
     }
   };
 
@@ -165,6 +253,19 @@ export default function SsPage({ params }: ss_page_Props) {
             onClose={() => setCargando(false)}
           />
         )}
+        {showConfirmacion && (
+          <Confirmacion
+            isOpen={showConfirmacion}
+            titulo="Desconfirmar Compra"
+            mensaje="¿Estás seguro de que deseas marcar este producto como no comprado?"
+            onConfirm={() => {
+              handleProductoComprado(id_detalle!);
+              setShowConfirmacion(false);
+            }}
+            onClose={() => setShowConfirmacion(false)}
+          />
+        )}
+
         {/* Info del consolidado */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
           <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
@@ -189,7 +290,7 @@ export default function SsPage({ params }: ss_page_Props) {
 
         {/* Controles de filtro */}
         {consolidado.productos.length > 0 && (
-          <div className="mt-4 pb-4">
+          <div className="mt-4 pb-4 flex flex-col sm:flex-row sm:items-center gap-4">
             <FamilyPagination
               familyGroups={familyGroups}
               selectedFamilies={selectedFamilies}
@@ -201,6 +302,12 @@ export default function SsPage({ params }: ss_page_Props) {
               searchPlaceholder="Buscar por código o descripción..."
               showSearch={true}
             />
+            <button
+              className="bg-orange-400 hover:bg-orange-500 text-white font-bold px-4 py-2 rounded text-sm text-center"
+              onClick={() => setMostrarCentros(!mostrarCentros)}
+            >
+              {mostrarCentros ? "Ocultar" : "Mostrar"} Centros
+            </button>
           </div>
         )}
 
@@ -219,7 +326,7 @@ export default function SsPage({ params }: ss_page_Props) {
                     Familia
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
-                    Cod. Producto
+                    Código
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left">
                     Descripción
@@ -229,78 +336,270 @@ export default function SsPage({ params }: ss_page_Props) {
                   </th>
 
                   {/* Cabeceras dinámicas por centro */}
-                  {consolidado.centrosUnicos.map((centro) => (
-                    <th
-                      key={centro}
-                      className="border border-gray-300 px-2 sm:px-4 py-2"
-                    >
-                      {centro}
-                    </th>
-                  ))}
+                  {mostrarCentros &&
+                    consolidado.centrosUnicos.map((centro) => (
+                      <th
+                        key={centro}
+                        className="border border-gray-300 px-2 sm:px-4 py-2"
+                      >
+                        {centro}
+                      </th>
+                    ))}
 
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
                     Total
                   </th>
+                  {!mostrarCentros && (
+                    <>
+                      <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                        Stock Actual
+                      </th>
+                      <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                        Stock Pendiente
+                      </th>
+                      <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                        Compra Recomendada
+                      </th>
+                    </>
+                  )}
+
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Stock Actual
+                    Estado
                   </th>
                   <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Stock Pendiente
-                  </th>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                    Compra Recomendada
+                    Acciones
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {productosFiltrados.map((prod) => (
-                  <tr
-                    key={prod.codigo_producto}
-                    className="hover:bg-gray-100 transition-colors"
-                  >
-                    <td className="border border-gray-300 px-2 py-1 text-left">
-                      {prod.familia}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1 text-left">
-                      {prod.codigo_producto}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1 text-left">
-                      {prod.descripcion_producto}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {prod.unidad}
-                    </td>
+                  <React.Fragment key={prod.codigo_producto}>
+                    <tr
+                      key={prod.codigo_producto}
+                      className={`hover:bg-gray-100 transition-colors ${
+                        prod.estado_compra
+                          ? "bg-orange-100 border-l-4 border-orange-500"
+                          : ""
+                      }`}
+                    >
+                      <td className="border border-gray-300 px-2 py-1 text-left">
+                        {prod.familia}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1 text-left">
+                        {prod.codigo_producto}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1 text-left">
+                        {prod.descripcion_producto}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1">
+                        {prod.unidad}
+                      </td>
 
-                    {/* Cantidades por centro */}
-                    {consolidado.centrosUnicos.map((centro) => {
-                      const centroData = prod.centros?.find(
-                        (c) => c.centro === centro
-                      );
-                      return (
-                        <td
-                          key={centro}
-                          className="border border-gray-300 px-2 py-1"
-                        >
-                          {centroData ? centroData.cantidad : ""}
-                        </td>
-                      );
-                    })}
+                      {/* Cantidades por centro */}
+                      {mostrarCentros &&
+                        consolidado.centrosUnicos.map((centro) => {
+                          const centroData = prod.centros?.find(
+                            (c) => c.centro === centro
+                          );
+                          const cantidad = centroData
+                            ? centroData.cantidad
+                            : "";
+                          const editKey = `${prod.id_detalle}-${centro}`;
 
-                    <td className="border border-gray-300 px-2 py-1 text-orange-500">
-                      {prod.total}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {prod.stock_actual}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {prod.stock_oc}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {parseInt(prod.compra_recomendada) > 0
-                        ? prod.compra_recomendada
-                        : 0}
-                    </td>
-                  </tr>
+                          return (
+                            <td
+                              key={`${prod.codigo_producto}-${centro}`}
+                              className="border border-gray-300 px-2 py-1"
+                            >
+                              {editandoCantidades === prod.id_detalle &&
+                              cantidad ? (
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    value={
+                                      cantidadesEditadas[editKey] ?? cantidad
+                                    }
+                                    className="border border-gray-300 rounded px-2 py-1 w-20 text-center"
+                                    onChange={(e) => {
+                                      const nuevaCantidad = parseFloat(
+                                        e.target.value
+                                      );
+                                      setCantidadesEditadas((prev) => ({
+                                        ...prev,
+                                        [editKey]: isNaN(nuevaCantidad)
+                                          ? 0
+                                          : nuevaCantidad,
+                                      }));
+                                    }}
+                                  />
+                                  <button
+                                    className="bg-blue-500 hover:bg-blue-600 text-white p-1 rounded text-xs"
+                                    onClick={() => {
+                                      const cantidadAguardar =
+                                        cantidadesEditadas[editKey];
+                                      handleCantidadChange(
+                                        prod.codigo_producto,
+                                        cantidadAguardar!,
+                                        centro
+                                      );
+                                    }}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-6 w-6"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth={2}
+                                    >
+                                      {" "}
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M17 16v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7l5 5v7a2 2 0 0 1-2 2z"
+                                      />{" "}
+                                      <rect
+                                        x="9"
+                                        y="13"
+                                        width="6"
+                                        height="4"
+                                        rx="1"
+                                        fill="currentColor"
+                                      />{" "}
+                                    </svg>
+                                  </button>
+                                </div>
+                              ) : (
+                                <>{cantidad}</>
+                              )}
+                            </td>
+                          );
+                        })}
+
+                      <td className="border border-gray-300 px-2 py-1 text-orange-500">
+                        {prod.total}
+                      </td>
+                      {!mostrarCentros && (
+                        <>
+                          <td className="border border-gray-300 px-2 py-1">
+                            {prod.stock_actual}
+                          </td>
+                          <td className="border border-gray-300 px-2 py-1">
+                            {prod.stock_oc}
+                          </td>
+                          <td className="border border-gray-300 px-2 py-1">
+                            {parseInt(prod.compra_recomendada) > 0
+                              ? prod.compra_recomendada
+                              : 0}
+                          </td>
+                        </>
+                      )}
+                      <td className="border border-gray-300 px-2 py-1">
+                        <div className="flex items-center justify-center">
+                          <button
+                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                            onClick={() => {
+                              if (prod.estado_compra) {
+                                setIdDetalle(prod.id_detalle);
+                                setShowConfirmacion(true);
+                              } else {
+                                handleProductoComprado(prod.id_detalle);
+                              }
+                            }}
+                          >
+                            {prod.estado_compra ? (
+                              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg
+                                  className="w-4 h-4 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-gray-400"></div>
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1">
+                        {mostrarCentros ? (
+                          <button
+                            className={`${
+                              editandoCantidades === prod.id_detalle
+                                ? "bg-red-500 hover:bg-red-600"
+                                : "bg-orange-400 hover:bg-orange-500"
+                            } text-white px-3 py-2 rounded w-full font-semibold text-sm`}
+                            onClick={() => {
+                              setEditandoCantidades(
+                                editandoCantidades === prod.id_detalle
+                                  ? null
+                                  : prod.id_detalle
+                              );
+                              if (editandoCantidades === prod.id_detalle) {
+                                setCantidadesEditadas({});
+                              }
+                            }}
+                          >
+                            {editandoCantidades === prod.id_detalle
+                              ? "Terminar Edición"
+                              : "Editar Cantidades"}
+                          </button>
+                        ) : (
+                          <button
+                            className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded w-full font-semibold text-sm"
+                            onClick={() => {
+                              setIdDetalle(prod.id_detalle);
+                              setProductoSeleccionado({
+                                id_detalle: prod.id_detalle,
+                                familia: prod.familia,
+                                codigo_producto: prod.codigo_producto,
+                                descripcion_producto: prod.descripcion_producto,
+                                unidad: prod.unidad,
+                              });
+                              setDropdownCambiarProductoOpen(true);
+                            }}
+                          >
+                            Cambiar Producto
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {dropdownCambiarProductoOpen &&
+                      id_detalle === prod.id_detalle && (
+                        <tr>
+                          <td
+                            colSpan={
+                              mostrarCentros
+                                ? 12 + consolidado.centrosUnicos.length
+                                : 12
+                            }
+                            className="border-0 p-2 sm:p-4 bg-gray-100"
+                          >
+                            <DropdownCambioProductoCompra
+                              id_consolidado={parseFloat(id)}
+                              producto_seleccionado={productoSeleccionado}
+                              onClose={() =>
+                                setDropdownCambiarProductoOpen(false)
+                              }
+                              onProductoChange={() => {
+                                refetch();
+                                setIdDetalle(null);
+                                setProductoSeleccionado(null);
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
