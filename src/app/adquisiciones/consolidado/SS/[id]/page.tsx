@@ -177,12 +177,21 @@ export default function SsPage({ params }: ss_page_Props) {
       setCargando(true);
     }
   };
-  const handleCambiarEstado = () => {
+  const handleTerminarCompra = () => {
+    if (id != null) {
+      cambiarEstadoOrdenesAcopio({
+        variables: { id: parseInt(id, 10), nuevoEstado: "Proceso" },
+      });
+      setMensajeCargando("Enviando a Acopio, por favor espere...");
+      setCargando(true);
+    }
+  };
+  const handleEnviarABodega = () => {
     if (id != null) {
       cambiarEstadoOrdenesAcopio({
         variables: { id: parseInt(id, 10), nuevoEstado: "Pendiente" },
       });
-      setMensajeCargando("Enviando a Acopio, por favor espere...");
+      setMensajeCargando("Enviando a Bodega, por favor espere...");
       setCargando(true);
     }
   };
@@ -232,8 +241,14 @@ export default function SsPage({ params }: ss_page_Props) {
               Enviar por Correo
             </button>
             <button
+              className="bg-orange-400 hover:bg-orange-500 text-white font-bold px-4 py-2 rounded"
+              onClick={handleEnviarABodega}
+            >
+              Enviar a Bodega
+            </button>
+            <button
               className="bg-blue-400 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded"
-              onClick={handleCambiarEstado}
+              onClick={handleTerminarCompra}
             >
               Completar Compra
             </button>
