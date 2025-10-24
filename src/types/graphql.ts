@@ -3,13 +3,12 @@ export interface LoginUserInput {
   contrasena: string;
 }
 
-
 export interface LoginResponse {
   login: {
     access_token: string;
     user: User;
   };
-} 
+}
 
 export type Producto = {
   id: number;
@@ -29,13 +28,14 @@ export type Producto = {
   guiaEntradaDetalle: GuiaEntradaDetalle[]; // renombrado según entity y no opcional
   trazabilidad_entidad: Trazabilidad[]; // no opcional
   detallesSolicitud?: DetalleSolicitudSMCL[]; // opcional
-}
+};
 
 export interface OrdenAcopio {
   id: number;
   centro_costo: string;
   fecha_despacho: string;
   estado: string;
+  tipo: string;
   detalles: DetalleOrdenAcopio[];
   consolidado?: Consolidado | null;
   detallesSolicitudSMCL?: DetalleSolicitudSMCL[] | null;
@@ -58,7 +58,7 @@ export type Trazabilidad = {
   usuario: User;
   producto: Producto;
   enviosDetalleOrdenCompra?: EnvioDetalleOrdenAcopio[];
-}
+};
 
 export type User = {
   id: number;
@@ -70,7 +70,7 @@ export type User = {
   eliminado: boolean;
   envios: EnvioDetalleOrdenAcopio[];
   trazabilidad: Trazabilidad[];
-}
+};
 
 export type Pallet = {
   id: number;
@@ -80,7 +80,7 @@ export type Pallet = {
   ordenAcopio: OrdenAcopio;
   envios?: EnvioDetalleOrdenAcopio[];
   guiasSalida?: GuiaSalida[];
-}
+};
 
 export type GuiaSalida = {
   id: number;
@@ -93,7 +93,7 @@ export type GuiaSalida = {
   orden: OrdenAcopio;
   pallet?: Pallet;
   envios?: EnvioDetalleOrdenAcopio[];
-}
+};
 
 export type GuiaEntrada = {
   id: number;
@@ -107,7 +107,7 @@ export type GuiaEntrada = {
   numero_orden_compra: number;
   estado: string;
   guiaEntradaDetalle: GuiaEntradaDetalle[];
-}
+};
 
 export type GuiaEntradaDetalle = {
   id: number;
@@ -116,7 +116,7 @@ export type GuiaEntradaDetalle = {
   precio_unitario: number;
   id_guia_entrada: number;
   guiaEntrada: GuiaEntrada;
-}
+};
 
 export type EnvioDetalleOrdenAcopio = {
   id: number;
@@ -128,7 +128,7 @@ export type EnvioDetalleOrdenAcopio = {
   pallet?: Pallet;
   trazabilidad?: Trazabilidad | null;
   guiaSalida?: GuiaSalida;
-}
+};
 
 export type DetalleSolicitudSMCL = {
   id: number;
@@ -139,7 +139,7 @@ export type DetalleSolicitudSMCL = {
   periodo_solicitado: string;
   ordenAcopio: OrdenAcopio;
   producto: Producto;
-}
+};
 
 export type DetalleOrdenAcopio = {
   id: number;
@@ -150,7 +150,7 @@ export type DetalleOrdenAcopio = {
   ordenAcopio: OrdenAcopio;
   envios?: EnvioDetalleOrdenAcopio[] | null;
   producto: Producto;
-}
+};
 
 export type Consolidado = {
   id: number;
@@ -158,28 +158,28 @@ export type Consolidado = {
   fecha_termino: string;
   estado: string;
   ordenesAcopio?: OrdenAcopio[];
-}
+};
 
 export type ConsolidadoPorIdResponseSSSR = {
-      estado: string;
-      fecha_inicio: string;
-      fecha_termino: string;
-      productos: {
-        familia: string;
-        codigo_producto: string;
-        descripcion_producto: string;
-        unidad: string;
-        stock_actual: number;
-        stock_emergencia: number;
-        stock_oc: number;
-        compra_recomendada: number;
-        centros: {
-          centro: string;
-          cantidad: number;
-        }[];
-        total: number;
-      }[];
-      centrosUnicos: string[];
+  estado: string;
+  fecha_inicio: string;
+  fecha_termino: string;
+  productos: {
+    familia: string;
+    codigo_producto: string;
+    descripcion_producto: string;
+    unidad: string;
+    stock_actual: number;
+    stock_emergencia: number;
+    stock_oc: number;
+    compra_recomendada: number;
+    centros: {
+      centro: string;
+      cantidad: number;
+    }[];
+    total: number;
+  }[];
+  centrosUnicos: string[];
 };
 export type ConsolidadoCLPorIdResponse = {
   id: number;

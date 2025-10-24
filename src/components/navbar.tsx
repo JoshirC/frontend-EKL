@@ -418,6 +418,14 @@ const Navbar = () => {
                 </button>
                 {openReporte && (
                   <div className="mt-10 w-35 bg-orange-300 text-l text-black shadow-lg rounded-md sm:absolute">
+                    <Link href="/reporte/consolidado">
+                      <div
+                        className="block px-4 py-2 hover:bg-orange-200 rounded-md"
+                        onClick={handleSelectOption}
+                      >
+                        Consolidados
+                      </div>
+                    </Link>
                     <Link href="/reporte/registro_acopio">
                       <div
                         className="block px-4 py-2 hover:bg-orange-200 rounded-md"
