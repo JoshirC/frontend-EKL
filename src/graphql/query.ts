@@ -398,7 +398,7 @@ export const GET_OC_EN_SEMANA = gql`
       NumInterOC
       NumOC
       FecFinalOC
-      NomCon
+      NomAux
     }
   }
 `;
@@ -585,6 +585,8 @@ export const CONSOLIDADO_SS_SR_BY_ID = gql`
       fecha_inicio
       fecha_termino
       productos {
+        id_detalle
+        estado_compra
         familia
         codigo_producto
         descripcion_producto

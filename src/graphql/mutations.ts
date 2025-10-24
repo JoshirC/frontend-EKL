@@ -378,6 +378,43 @@ export const ELIMINAR_PRODUCTO_DETALLE_ORDEN_ACOPIO = gql`
     deleteDetalleOrdenAcopio(id: $id)
   }
 `;
+export const UPDATE_ESTADO_COMPRA_ORDEN_ACOPIO = gql`
+  mutation updateEstadoComprado($id: Float!) {
+    updateEstadoComprado(id: $id) {
+      id
+    }
+  }
+`;
+export const UPDATE_PRODUCTO_CONSOLIDADO = gql`
+  mutation cambiarProductoDetalle(
+    $id_consolidado: Float!
+    $codigo_producto: String!
+    $codigo_producto_cambio: String!
+    $familia_planilla: String!
+  ) {
+    cambiarProductoDetalle(
+      id_consolidado: $id_consolidado
+      codigo_producto: $codigo_producto
+      codigo_producto_cambio: $codigo_producto_cambio
+      familia_planilla: $familia_planilla
+    )
+  }
+`;
+export const UPDATE_CANTIDAD_PRODUCTO_CONSOLIDADO = gql`
+  mutation actualizarCantidadesConsolidado(
+    $id_consolidado: Float!
+    $nueva_cantidad: Float!
+    $codigo_producto: String!
+    $centro_costo: String!
+  ) {
+    actualizarCantidadesConsolidado(
+      id_consolidado: $id_consolidado
+      nueva_cantidad: $nueva_cantidad
+      codigo_producto: $codigo_producto
+      centro_costo: $centro_costo
+    )
+  }
+`;
 // Mutaciones para Envio Correos
 export const ENVIAR_CORREO_GUIA_ENTRADA = gql`
   mutation enviarExcelGuias {

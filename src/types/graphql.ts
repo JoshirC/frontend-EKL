@@ -165,6 +165,8 @@ export type ConsolidadoPorIdResponseSSSR = {
   fecha_inicio: string;
   fecha_termino: string;
   productos: {
+    id_detalle: number;
+    estado_compra: boolean;
     familia: string;
     codigo_producto: string;
     descripcion_producto: string;
@@ -235,4 +237,13 @@ export type ListadoOCDto = {
   NumOC: string;
   FecFinalOC: string;
   NomCon: string;
+  CodAux: string;
+  NomAux: string;
+};
+export type ProductoConsolidado = {
+  id_detalle: number;
+  familia: string;
+  codigo_producto: string;
+  descripcion_producto: string;
+  unidad: string;
 };
