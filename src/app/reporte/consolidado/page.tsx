@@ -1,19 +1,50 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { useQuery } from "@apollo/client";
+import React, { useEffect, useState } from "react";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_CONSOLIDADO_CERRADOS } from "@/graphql/query";
+import { GENERAR_EXCEL_CUMPLIMIENTO } from "@/graphql/mutations";
 import { Consolidado } from "@/types/graphql";
+import Cargando from "@/components/cargando";
+import Alert from "@/components/Alert";
 
 const ConsolidadoPage: React.FC = () => {
+  const [showCargando, setShowCargando] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<
+    "exitoso" | "error" | "advertencia"
+  >("exitoso");
+  const [alertMessage, setAlertMessage] = useState("");
   const { loading, error, data } = useQuery(GET_CONSOLIDADO_CERRADOS);
   const consolidados: Consolidado[] = data ? data.consolidadosCerrados : [];
+
+  const [generarExcelCumplimiento] = useMutation(GENERAR_EXCEL_CUMPLIMIENTO, {
+    onCompleted: () => {
+      console.log("Excel generado");
+      setShowCargando(false);
+      setAlertMessage("Archivo Excel generado exitosamente.");
+      setAlertType("exitoso");
+      setShowAlert(true);
+    },
+    onError: (error) => {
+      console.error("Error al generar el Excel:", error);
+      setShowCargando(false);
+      setAlertMessage("Error al generar el archivo Excel.");
+      setAlertType("error");
+      setShowAlert(true);
+    },
+  });
 
   // Ordenar consolidados por fecha de inicio (descendente)
   const consolidadosOrdenados = [...consolidados].sort(
     (a, b) =>
       new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime()
   );
+
+  const handleGenerarExcel = (id_consolidado: number) => {
+    setShowCargando(true);
+    generarExcelCumplimiento({ variables: { id_consolidado } });
+  };
 
   if (loading) {
     return (
@@ -37,6 +68,20 @@ const ConsolidadoPage: React.FC = () => {
   }
   return (
     <div className="p-4 sm:p-10">
+      {showCargando && (
+        <Cargando
+          mensaje="Generando Archivo Excel"
+          onClose={() => setShowCargando(false)}
+          isOpen={showCargando}
+        />
+      )}
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="text-xl sm:text-2xl font-semibold">
@@ -90,7 +135,9 @@ const ConsolidadoPage: React.FC = () => {
                     {consolidado.ordenesAcopio?.[0]?.tipo === "SS" ? (
                       <button
                         className="bg-orange-400 text-white font-semibold px-3 sm:px-4 py-2 w-full rounded hover:bg-orange-500 transition duration-300"
-                        onClick={() => {}}
+                        onClick={() => {
+                          handleGenerarExcel(consolidado.id);
+                        }}
                       >
                         Informe de Cumplimiento
                       </button>

@@ -44,6 +44,11 @@ const centrosCosto: CentroCosto[] = [
   { codigo: "023-02", nombre: "Rio Blanco" },
   { codigo: "023-04", nombre: "Unifrutti" },
   { codigo: "020-01", nombre: "Punitaqui" },
+  { codigo: "009-04", nombre: "Planta Copiapó" },
+  { codigo: "021-32", nombre: "Promet - Campamento Lomas de Taltal" },
+  { codigo: "021-36", nombre: "Promet - Fidelia" },
+  { codigo: "027-01", nombre: "Campamento Cristales" },
+  { codigo: "027-02", nombre: "Campamento Pampas" },
 ];
 
 const CargaGuiaSalidaPage = ({ params }: PageProps) => {

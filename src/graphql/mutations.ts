@@ -472,3 +472,8 @@ export const CREAR_CONSOLIDADO_SEMANA1_SM = gql`
     }
   }
 `;
+export const GENERAR_EXCEL_CUMPLIMIENTO = gql`
+  mutation GenerarExcelCumplimiento($id_consolidado: Float!) {
+    generarExcelCumplimiento(id_consolidado: $id_consolidado)
+  }
+`;

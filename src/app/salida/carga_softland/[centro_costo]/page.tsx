@@ -92,7 +92,7 @@ export default function CentroCostoNamePage({
                     {orden.id}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {orden.fecha_despacho}
+                    {orden.fecha_despacho || "N/A"}
                   </td>
                   <td className="border border-gray-300 px-2 sm:px-4 py-2">
                     {orden.estado}

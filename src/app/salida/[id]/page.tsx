@@ -803,12 +803,12 @@ export default function AcopioSalidaIdPage({
 
                       let rowClass = "";
                       if (tieneEnvios && cantidadEnviada === 0)
-                        rowClass = "bg-red-100 border-l-4 border-red-500";
+                        rowClass = "bg-red-200 border-l-4 border-red-500";
                       else if (
                         tieneEnvios &&
                         cantidadEnviada < cantidadSolicitada
                       )
-                        rowClass = "bg-blue-100 border-l-4 border-blue-400";
+                        rowClass = "bg-red-200 border-l-4 border-red-500";
                       else if (palletCerrado)
                         rowClass = "bg-gray-200 border-l-4 border-gray-500";
                       else if (tieneEnvios)
