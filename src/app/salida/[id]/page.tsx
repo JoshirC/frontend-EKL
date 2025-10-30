@@ -869,12 +869,6 @@ export default function AcopioSalidaIdPage({
                                 className="w-full border border-gray-300 rounded p-1"
                                 disabled={desactivacionBoton}
                               />
-                              {cantidadesTemporales[detalle.id] !==
-                                undefined && (
-                                <span className="ml-2 text-red-500 font-semibold">
-                                  {detalle.producto.cantidad?.toString() || "0"}
-                                </span>
-                              )}
                             </div>
                           )}
                         </td>
