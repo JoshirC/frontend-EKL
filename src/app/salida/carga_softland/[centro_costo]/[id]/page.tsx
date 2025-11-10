@@ -49,6 +49,7 @@ const centrosCosto: CentroCosto[] = [
   { codigo: "021-36", nombre: "Promet - Fidelia" },
   { codigo: "027-01", nombre: "Campamento Cristales" },
   { codigo: "027-02", nombre: "Campamento Pampas" },
+  { codigo: "021-16", nombre: "Rocas Campamento" },
 ];
 
 const CargaGuiaSalidaPage = ({ params }: PageProps) => {
