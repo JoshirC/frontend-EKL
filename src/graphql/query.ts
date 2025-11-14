@@ -673,3 +673,21 @@ export const GET_CONSOLIDADO_CERRADOS = gql`
     }
   }
 `;
+// Query para Pallets
+export const GET_PALLETS_BY_ORDEN_ACOPIO = gql`
+  query palletsByOrdenAcopio($ordenAcopioId: Int!) {
+    palletsByOrdenAcopio(ordenAcopioId: $ordenAcopioId) {
+      id
+      numero_pallet
+      envios {
+        cantidad_enviada
+        producto {
+          codigo
+          nombre_producto
+          unidad_medida
+          familia
+        }
+      }
+    }
+  }
+`;

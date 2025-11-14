@@ -7,6 +7,7 @@ import DropdownTrazabilidad from "@/components/salida_acopio/dropdownTrazabilida
 import DropdownDividirEnvio from "@/components/salida_acopio/dropdownDividirEnvio";
 import FamilyFilter from "@/components/FamilyPagination";
 import PalletFilter from "@/components/PalletFilter";
+import ModalImpresionPallet from "@/components/salida_acopio/modalImpresionPallet";
 import {
   CREATE_ENVIO_DETALLE_ORDEN_ACOPIO,
   UPDATE_CANTIDAD_ENVIO_DETALLE,
@@ -34,6 +35,8 @@ export default function AcopioSalidaIdPage({
   // Estados
   const [desactivacionBoton, setDesactivacionBoton] = useState(false);
   const [showSelectorPallets, setShowSelectorPallets] = useState(false);
+  const [showModalImpresionPallet, setShowModalImpresionPallet] =
+    useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
@@ -648,28 +651,31 @@ export default function AcopioSalidaIdPage({
           }}
         />
       )}
+      {showModalImpresionPallet && (
+        <ModalImpresionPallet
+          isOpen={showModalImpresionPallet}
+          idOrdenAcopio={data.ordenAcopio.id}
+          nombreCC={data.ordenAcopio.centro_costo}
+          onClose={() => setShowModalImpresionPallet(false)}
+        />
+      )}
       <div className="bg-white p-4 sm:p-6 rounded shadow">
-        {data.ordenAcopio.estado === "Confirmacion" &&
-        rolUsuario != "Bodeguero" ? (
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Detalles Orden de Acopio</h2>
-            <button
-              className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
-              onClick={() => {
-                handleConfirmarAcopio(data.ordenAcopio.id);
-                setShowCargando(true);
-              }}
-            >
-              Confirmar Acopio de Productos
-            </button>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+          <div className="text-xl sm:text-2xl font-semibold">
+            Detalle de Acopio N°{id_acopio}
           </div>
-        ) : (
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-            <div className="text-xl sm:text-2xl font-semibold">
-              Detalle de Acopio N°{id_acopio}
-            </div>
-            <div className="flex gap-2">
-              {rolUsuario != "Bodeguero" && (
+          <div className="flex gap-2">
+            {rolUsuario != "Bodeguero" && (
+              <>
+                <button
+                  className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
+                  onClick={() => {
+                    handleConfirmarAcopio(data.ordenAcopio.id);
+                    setShowCargando(true);
+                  }}
+                >
+                  Confirmar Acopio de Productos
+                </button>
                 <button
                   className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
                   onClick={() => {
@@ -678,23 +684,31 @@ export default function AcopioSalidaIdPage({
                 >
                   Acopio Parcial
                 </button>
-              )}
-              <button
-                className={`bg-gray-400 text-white font-semibold px-4 py-2 rounded transition duration-200 ${
-                  desactivacionBoton
-                    ? "bg-gray-400 cursor-not-allowed "
-                    : "hover:bg-gray-500"
-                }`}
-                onClick={() =>
-                  (window.location.href = "/salida/acopio_productos")
-                }
-                disabled={desactivacionBoton}
-              >
-                Salir
-              </button>
-            </div>
+              </>
+            )}
+            <button
+              className="bg-blue-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-blue-500"
+              onClick={() => {
+                setShowModalImpresionPallet(true);
+              }}
+            >
+              Imprimir Pallet
+            </button>
+            <button
+              className={`bg-gray-400 text-white font-semibold px-4 py-2 rounded transition duration-200 ${
+                desactivacionBoton
+                  ? "bg-gray-400 cursor-not-allowed "
+                  : "hover:bg-gray-500"
+              }`}
+              onClick={() =>
+                (window.location.href = "/salida/acopio_productos")
+              }
+              disabled={desactivacionBoton}
+            >
+              Salir
+            </button>
           </div>
-        )}
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
           <div className="bg-gray-100 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
