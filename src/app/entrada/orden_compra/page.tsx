@@ -72,6 +72,7 @@ type HistorialProducto = {
 };
 
 const OrdenCompraPage: React.FC = () => {
+  const [totalFactura, setTotalFactura] = useState<number>(0);
   // Estado para almacenar el número de orden de compra
   const [ordenCompra, setOrdenCompra] = useState<string>("");
   // Estado para almacenar los detalles de la orden de compra
@@ -243,19 +244,36 @@ const OrdenCompraPage: React.FC = () => {
 
   const handleEditarDetalles = (
     index: number,
-    campo: "cantidad" | "precio_unitario",
+    campo: "cantidad" | "precio_unitario" | "valor_total",
     valor: number | null
   ) => {
     const nuevaLista: DetalleOrdenCompra[] = [...detalles];
     const detalleEditado = { ...nuevaLista[index] };
+
     if (valor !== null && !isNaN(valor)) {
-      detalleEditado[campo] = valor;
+      if (campo === "valor_total") {
+        // Si el usuario edita el valor total, lo guardamos
+        detalleEditado.valor_total = valor;
+
+        // Si ya existe cantidad, calcular precio unitario nuevo
+        if (detalleEditado.cantidad > 0) {
+          detalleEditado.precio_unitario =
+            detalleEditado.valor_total / detalleEditado.cantidad;
+        }
+      } else {
+        // Para cantidad o precio unitario (flujo normal)
+        detalleEditado[campo] = valor;
+      }
     }
+
+    // Recalcular el total con los valores actualizados
     detalleEditado.valor_total =
       (detalleEditado.cantidad || 0) * (detalleEditado.precio_unitario || 0);
+
     nuevaLista[index] = detalleEditado;
     setDetalles(nuevaLista);
 
+    // Mantener trazabilidad cuando cambia cantidad
     if (campo === "cantidad" && valor !== null && !isNaN(valor)) {
       setTrazabilidadProductos((prev) =>
         prev.map((t) =>
@@ -266,7 +284,8 @@ const OrdenCompraPage: React.FC = () => {
       );
     }
 
-    // ==== INICIO CAMBIO: registrar sólo si realmente cambió cantidad o precio ===
+    // Registro de cambios (cantidad/precio)
+
     const detalleOriginal = detallesOriginales.find(
       (d) => d.codigo === detalleEditado.codigo
     );
@@ -274,12 +293,12 @@ const OrdenCompraPage: React.FC = () => {
     const cambioCantidad =
       detalleOriginal?.cantidad !== undefined &&
       detalleOriginal.cantidad !== detalleEditado.cantidad;
+
     const cambioPrecio =
       detalleOriginal?.precio_unitario !== undefined &&
       detalleOriginal.precio_unitario !== detalleEditado.precio_unitario;
 
     setHistorialCambiosProductos((prev) => {
-      // quitar cualquier registro previo de este producto en estado 'editado'
       const sinPrevio = prev.filter(
         (h) =>
           !(
@@ -288,9 +307,8 @@ const OrdenCompraPage: React.FC = () => {
           )
       );
 
-      // si no hubo cambios reales, no agregamos nada (posible reversión)
       if (!cambioCantidad && !cambioPrecio) {
-        return sinPrevio;
+        return sinPrevio; // eliminar si el usuario devolvió valores originales
       }
 
       return [
@@ -299,16 +317,13 @@ const OrdenCompraPage: React.FC = () => {
           codigo_producto: detalleEditado.codigo,
           nombre: detalleEditado.nombre,
           estado: "editado" as const,
-          // cantidades originales y nuevas
           cantidad_solicitada: detalleOriginal?.cantidad || 0,
           cantidad_ingresada: detalleEditado.cantidad,
-          // precios originales y nuevos (ya estaban en el tipo pero no se enviaban antes)
           precio_compra: detalleOriginal?.precio_unitario || 0,
           precio_ingreso: detalleEditado.precio_unitario,
         },
       ];
     });
-    // ==== FIN CAMBIO ===
   };
 
   const handleConfirmacionEliminar = (confirmacion: boolean) => {
@@ -462,12 +477,6 @@ const OrdenCompraPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     validateForm();
-    if (!isFormValid) {
-      setAlertType("error");
-      setAlertMessage("Por favor, complete todos los campos requeridos.");
-      setShowAlert(true);
-      return;
-    }
   };
   const handleTrazabilidadGuardada = (codigoProducto: string, datos: any) => {
     setTrazabilidadProductos((prev) => {
@@ -523,6 +532,13 @@ const OrdenCompraPage: React.FC = () => {
       console.error("Error al enviar el correo:", error.message);
     }
   };
+  useEffect(() => {
+    const total = detalles.reduce(
+      (sum, item) => sum + (item.valor_total || 0),
+      0
+    );
+    setTotalFactura(total);
+  }, [detalles]);
   if (loading)
     return (
       <div className="p-10">
@@ -589,55 +605,68 @@ const OrdenCompraPage: React.FC = () => {
       )}
       {/* Contenedor principal */}
       <div className="bg-white shadow rounded p-6">
-        {/* Titulo */}
-        <h1 className="text-2xl font-semibold">Orden de Compra</h1>
-        {/* Buscador y Botón */}
-        <div className=" flex flex-col sm:flex-row gap-4 mt-4">
-          <input
-            id="ordenCompra"
-            className="w-full p-4 border border-gray-300 rounded-md"
-            placeholder="Ingrese el número de la orden de compra a buscar"
-            onChange={(e) => setOrdenCompra(e.target.value)}
-          />
+        {detalles.length == 0 && (
+          <>
+            {/* Titulo */}
+            <h1 className="text-2xl font-semibold">Orden de Compra</h1>
+            {/* Buscador y Botón */}
+            <div className=" flex flex-col sm:flex-row gap-4 mt-4">
+              <input
+                id="ordenCompra"
+                className="w-full p-4 border border-gray-300 rounded-md"
+                placeholder="Ingrese el número de la orden de compra a buscar"
+                onChange={(e) => setOrdenCompra(e.target.value)}
+              />
 
-          <button
-            type="submit"
-            className="bg-gray-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-gray-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
-            onClick={() => {
-              handleBuscarOrdenCompra();
-              setBotonBuscar(true);
-            }}
-          >
-            Buscar
-          </button>
-        </div>
+              <button
+                type="submit"
+                className="bg-gray-400 text-white font-semibold p-3 sm:p-4 rounded hover:bg-gray-500 transition duration-300 w-full sm:w-auto whitespace-nowrap"
+                onClick={() => {
+                  handleBuscarOrdenCompra();
+                  setBotonBuscar(true);
+                }}
+              >
+                Buscar
+              </button>
+            </div>
+          </>
+        )}
         {/* Tabla de Contenidos */}
         {detalles.length > 0 && ordenCompra != "" ? (
           <div>
-            <form onSubmit={handleSubmit} className="mt-6">
+            <form onSubmit={handleSubmit}>
               <div className="mb-8">
                 <div className="flex flex-col sm:flex-row justify-between items-center">
                   <h2 className="text-xl font-semibold text-gray-800 mb-3">
                     Información de la Guía
                   </h2>
-                  <button
-                    className={`w-full sm:w-auto font-semibold p-3 rounded transition-colors duration-200 shadow-sm ${
-                      isFormValid
-                        ? "bg-orange-400 hover:bg-orange-500 text-white cursor-pointer"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                    disabled={!isFormValid || botonCargar}
-                    type="submit"
-                    onClick={() => {
-                      handleCrearGuiaEntrada();
-                      setShowCargando(true);
-                    }}
-                  >
-                    {botonCargar ? "Ingresando" : "Generar Guía de Entrada"}
-                  </button>
+                  <div className="space-x-2">
+                    <button
+                      className={`w-full sm:w-auto font-semibold p-3 rounded transition-colors duration-200 shadow-sm ${
+                        isFormValid
+                          ? "bg-orange-400 hover:bg-orange-500 text-white cursor-pointer"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                      disabled={!isFormValid || botonCargar}
+                      type="submit"
+                      onClick={() => {
+                        handleCrearGuiaEntrada();
+                        setShowCargando(true);
+                      }}
+                    >
+                      {botonCargar ? "Ingresando" : "Generar Guía de Entrada"}
+                    </button>
+                    <button
+                      className="p-3 rounded bg-blue-400 hover:bg-blue-500 text-white font-semibold transition-colors shadow-sm w-full sm:w-auto"
+                      onClick={() => window.location.reload()}
+                    >
+                      Ingresar Nueva OC
+                    </button>
+                  </div>
                 </div>
+
                 {/* Primera fila de campos */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 mt-4">
                   <div>
                     <label
                       htmlFor="numeroFolio"
@@ -742,10 +771,20 @@ const OrdenCompraPage: React.FC = () => {
                 </div>
               </div>
             </form>
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">
-              Productos para la Guia de Entrada
-            </h2>
-            <div className="overflow-x-auto mt-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Productos para la Guía de Entrada
+              </h2>
+
+              <h2 className="text-xl font-bold">
+                Total: ${" "}
+                {totalFactura.toLocaleString("es-CL", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </h2>
+            </div>
+            <div className="overflow-x-auto mt-2">
               <table className="table-auto text-center w-full border-collapse border border-gray-200 mt-2 text-sm sm:text-base">
                 <thead className="bg-gray-200">
                   <tr>
@@ -764,9 +803,11 @@ const OrdenCompraPage: React.FC = () => {
                     <th className="border border-gray-300 px-2 sm:px-4 py-2">
                       Valor Total
                     </th>
-                    <th className="border border-gray-300 px-2 sm:px-4 py-2">
-                      Trazabilidad
-                    </th>
+                    {/*             
+                      <th className="border border-gray-300 px-2 sm:px-4 py-2">
+                        Trazabilidad
+                      </th>
+                    */}
                     <th className="border border-gray-300 px-2 sm:px-4 py-2">
                       Estado
                     </th>
@@ -851,13 +892,37 @@ const OrdenCompraPage: React.FC = () => {
                           </>
                         )}
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                          ${" "}
-                          {detalle.valor_total.toLocaleString("es-CL", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
+                          {indexEditar === index ? (
+                            <input
+                              name="valor_total"
+                              type="number"
+                              min="1"
+                              step="any"
+                              placeholder={detalle.valor_total.toString()}
+                              className="w-full p-2 border border-gray-300 rounded-md"
+                              onChange={(e) =>
+                                handleEditarDetalles(
+                                  index,
+                                  "valor_total",
+                                  e.target.value === ""
+                                    ? null
+                                    : parseFloat(e.target.value)
+                                )
+                              }
+                            />
+                          ) : (
+                            <>
+                              ${" "}
+                              {detalle.valor_total.toLocaleString("es-CL", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </>
+                          )}
                         </td>
+
                         {/* Validación si el producto debe tener trazabilidad */}
+                        {/*
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           {detalle.producto?.trazabilidad ? (
                             <button
@@ -887,6 +952,8 @@ const OrdenCompraPage: React.FC = () => {
                             <span className="text-sm"></span>
                           )}
                         </td>
+                        */}
+
                         <td className="border border-gray-300 px-2 sm:px-4 py-2">
                           <div className="flex items-center justify-center">
                             <button
