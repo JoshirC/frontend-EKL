@@ -6,6 +6,7 @@ import { GET_PRODUCTOS } from "@/graphql/query";
 import { CREATE_ENVIO_DETALLE_ORDEN_ACOPIO } from "@/graphql/mutations";
 import Alert from "../Alert";
 import { useJwtStore } from "@/store/jwtStore";
+import Confirmacion from "../confirmacion";
 type Producto = {
   codigo: string;
   nombre_producto: string;
@@ -44,6 +45,10 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
   const [productosEnviados, setProductosEnviados] = useState<
     Record<string, boolean>
   >({});
+  const [codigoReemplazo, setCodigoReemplazo] = useState("");
+  const [cantidadReemplazo, setCantidadReemplazo] = useState(0);
+  const [cantidadSistemaProducto, setCantidadSistemaProducto] = useState(0);
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
   const { rutUsuario } = useJwtStore();
 
   const { loading, error, data } = useQuery(GET_PRODUCTOS);
@@ -125,6 +130,12 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
     }
     setBotonActivo(null);
   };
+  const handleConfirmacion = (confirmed: boolean) => {
+    if (confirmed) {
+      onEnviarProducto(codigoReemplazo, cantidadSistemaProducto);
+    }
+    setShowConfirmacion(false);
+  };
 
   if (!isOpen) return null;
 
@@ -150,6 +161,15 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
             message={alertMessage}
             onClose={() => setShowAlert(false)}
             modal={true}
+          />
+        )}
+        {showConfirmacion && (
+          <Confirmacion
+            isOpen={showConfirmacion}
+            titulo="Confirmación de Cantidades"
+            mensaje={`La cantidad a enviar (${cantidadReemplazo}) excede significativamente la solicitada (${cantidad_solicitada}). ¿Desea continuar?`}
+            onClose={() => setShowConfirmacion(false)}
+            onConfirm={handleConfirmacion}
           />
         )}
         <input
@@ -193,12 +213,13 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
                       placeholder={p.cantidad.toString()}
                       className="w-20 border border-gray-300 rounded p-2 text-sm"
                       value={cantidades[p.codigo] || ""}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setCantidades((prev) => ({
                           ...prev,
                           [p.codigo]: Number(e.target.value),
-                        }))
-                      }
+                        }));
+                        setCantidadReemplazo(Number(e.target.value));
+                      }}
                       disabled={productosEnviados[p.codigo]}
                     />
                     <input
@@ -224,7 +245,15 @@ const CambiarProducto: React.FC<CambiarProductoProps> = ({
                       </div>
                     ) : (
                       <button
-                        onClick={() => onEnviarProducto(p.codigo, p.cantidad)}
+                        onClick={() => {
+                          if (p.cantidad > cantidad_solicitada! * 3) {
+                            setCodigoReemplazo(p.codigo);
+                            setCantidadSistemaProducto(p.cantidad);
+                            setShowConfirmacion(true);
+                          } else {
+                            onEnviarProducto(p.codigo, p.cantidad);
+                          }
+                        }}
                         className={`${
                           botonActivo === p.codigo
                             ? "bg-gray-400 cursor-wait"

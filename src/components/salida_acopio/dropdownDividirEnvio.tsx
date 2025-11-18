@@ -4,6 +4,7 @@ import { useMutation } from "@apollo/client";
 import { CREATE_ENVIO_DETALLE_ORDEN_ACOPIO } from "@/graphql/mutations";
 import { useJwtStore } from "@/store/jwtStore";
 import Alert from "../Alert";
+import Confirmacion from "../confirmacion";
 
 interface DropdownDividirEnvioProps {
   onClose: () => void;
@@ -45,6 +46,9 @@ const DropdownDividirEnvio: React.FC<DropdownDividirEnvioProps> = ({
   const [showCambiarProducto, setShowCambiarProducto] = useState(false);
   const [envioLines, setEnvioLines] = useState([{ cantidad: "", pallet: "" }]);
   const [showAlert, setShowAlert] = useState(false);
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [codigoReemplazo, setCodigoReemplazo] = useState("");
+  const [cantidadReemplazo, setCantidadReemplazo] = useState(0);
   const [alertType, setAlertType] = useState<
     "exitoso" | "error" | "advertencia"
   >("exitoso");

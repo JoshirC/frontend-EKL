@@ -44,7 +44,10 @@ export default function AcopioSalidaIdPage({
   const [alertMessage, setAlertMessage] = useState("");
   const [cerrarModal, setCerrarModal] = useState(false);
   const [showConfirmacion, setShowConfirmacion] = useState(false);
-  const [idEnvioEliminar, setIdEnvioEliminar] = useState<number | null>(null);
+  const [mensajeConfirmacion, setMensajeConfirmacion] = useState("");
+  const [tituloConfirmacion, setTituloConfirmacion] = useState("");
+  const [accionConfirmacion, setAccionConfirmacion] = useState<string>("");
+  const [idEnvio, setIdEnvio] = useState<number | null>(null);
   const [cantidadesTemporales, setCantidadesTemporales] = useState<
     Record<number, number>
   >({});
@@ -524,11 +527,14 @@ export default function AcopioSalidaIdPage({
       }
     }
   };
-  const handleConfirmacion = (confirmado: boolean) => {
-    if (confirmado && idEnvioEliminar) {
-      handleEliminarEnvio(idEnvioEliminar);
+  const handleConfirmacion = (confirmado: boolean, accion: string) => {
+    if (confirmado && idEnvio && accion === "anular") {
+      handleEliminarEnvio(idEnvio);
     }
-    setIdEnvioEliminar(null);
+    if (confirmado && accion === "sobrepasar") {
+      handleEnvioUnico(idEnvio!);
+    }
+    setIdEnvio(null);
     setShowConfirmacion(false);
   };
   const handleConfirmarAcopio = async (id: number) => {
@@ -554,30 +560,6 @@ export default function AcopioSalidaIdPage({
       setDesactivacionBoton(false);
     }
   };
-  const handleAcopioParcial = async (id: number) => {
-    setDesactivacionBoton(true);
-    try {
-      await updateEstadoOrdenAcopio({
-        variables: {
-          id,
-          estado: "Parcial",
-        },
-      });
-      setAlertType("exitoso");
-      setAlertMessage("Acopio parcial confirmado exitosamente");
-      setShowAlert(true);
-      setTimeout(() => {
-        window.location.href = "/salida/carga_softland";
-      }, 2000);
-    } catch (error) {
-      setAlertType("error");
-      setAlertMessage("Error al confirmar el acopio parcial: " + error);
-      setShowAlert(true);
-    } finally {
-      setDesactivacionBoton(false);
-    }
-  };
-
   // Función helper para verificar si un pallet está cerrado
   const isPalletCerrado = (detalle: DetalleOrdenAcopio): boolean => {
     return !!detalle.envios?.some(
@@ -621,10 +603,12 @@ export default function AcopioSalidaIdPage({
       {showConfirmacion && (
         <Confirmacion
           isOpen={showConfirmacion}
-          titulo="Anular Envío"
-          mensaje={`¿Estás seguro de que deseas anular el envio?`}
+          titulo={tituloConfirmacion}
+          mensaje={mensajeConfirmacion}
           onClose={() => setShowConfirmacion(false)}
-          onConfirm={handleConfirmacion}
+          onConfirm={(confirmado) =>
+            handleConfirmacion(confirmado, accionConfirmacion)
+          }
         />
       )}
       {showCargando && (
@@ -907,7 +891,29 @@ export default function AcopioSalidaIdPage({
                               cantidadesTemporales[detalle.id] !== undefined &&
                               cantidadesTemporales[detalle.id] >= 0 && (
                                 <button
-                                  onClick={() => handleEnvioUnico(detalle.id)}
+                                  onClick={() => {
+                                    const cantidadEnviada =
+                                      cantidadesTemporales[detalle.id];
+                                    const cantidadSolicitada =
+                                      detalle.cantidad ?? 0;
+
+                                    if (
+                                      cantidadEnviada >
+                                      cantidadSolicitada * 3
+                                    ) {
+                                      setShowConfirmacion(true);
+                                      setTituloConfirmacion(
+                                        "Confirmación de Envío"
+                                      );
+                                      setMensajeConfirmacion(
+                                        `La cantidad enviada (${cantidadEnviada}) excede significativamente la solicitada (${cantidadSolicitada}). ¿Desea continuar?`
+                                      );
+                                      setAccionConfirmacion("sobrepasar");
+                                      setIdEnvio(detalle.id);
+                                    } else {
+                                      handleEnvioUnico(detalle.id);
+                                    }
+                                  }}
                                   className={`w-full text-white font-semibold py-2 px-2 rounded transition duration-200 ${
                                     desactivacionBoton ||
                                     loadingSave === detalle.id
@@ -1105,9 +1111,12 @@ export default function AcopioSalidaIdPage({
                                 }`}
                                 onClick={() => {
                                   setShowConfirmacion(true);
-                                  setIdEnvioEliminar(
-                                    detalle.envios?.[0]?.id || 0
+                                  setTituloConfirmacion("Anular Envío");
+                                  setMensajeConfirmacion(
+                                    "¿Está seguro que desea anular este envío?"
                                   );
+                                  setAccionConfirmacion("anular");
+                                  setIdEnvio(detalle.envios?.[0]?.id || 0);
                                 }}
                                 disabled={loadingSave === detalle.id}
                               >

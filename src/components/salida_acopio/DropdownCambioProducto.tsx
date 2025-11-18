@@ -9,6 +9,7 @@ import { useJwtStore } from "@/store/jwtStore";
 import Alert from "../Alert";
 import CambiarProducto from "./cambiarProducto";
 import { Producto } from "@/types/graphql";
+import Confirmacion from "../confirmacion";
 
 interface DropdownAccionesProps {
   id_detalle_orden_acopio: number;
@@ -40,6 +41,9 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
   const [alertMessage, setAlertMessage] = useState("");
   const [showCambiarProducto, setShowCambiarProducto] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [codigoReemplazo, setCodigoReemplazo] = useState("");
+  const [cantidadReemplazo, setCantidadReemplazo] = useState(0);
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
   const [numerosPallet, setNumerosPallet] = useState<Record<string, number>>(
     {}
@@ -141,6 +145,13 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
     }
   };
 
+  const handleConfirmacion = (confirmed: boolean) => {
+    if (confirmed) {
+      handleEnviarProducto(codigoReemplazo, cantidad);
+    }
+    setShowConfirmacion(false);
+  };
+
   const renderProducto = (producto: Producto) => {
     const enviado = productosEnviados.find(
       (p) => p.codigo === producto.codigo
@@ -173,12 +184,13 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
               min="1"
               value={cantidades[producto.codigo] || ""}
               placeholder={producto.cantidad.toString()}
-              onChange={(e) =>
+              onChange={(e) => {
                 setCantidades((prev) => ({
                   ...prev,
                   [producto.codigo]: Number(e.target.value),
-                }))
-              }
+                }));
+                setCantidadReemplazo(Number(e.target.value));
+              }}
               className="w-20 border border-gray-300 rounded p-2 text-sm"
               disabled={loadingState}
             />
@@ -197,9 +209,14 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
               disabled={loadingState}
             />
             <button
-              onClick={() =>
-                handleEnviarProducto(producto.codigo, producto.cantidad)
-              }
+              onClick={() => {
+                if (producto.cantidad > cantidad * 3) {
+                  setCodigoReemplazo(producto.codigo);
+                  setShowConfirmacion(true);
+                } else {
+                  handleEnviarProducto(producto.codigo, producto.cantidad);
+                }
+              }}
               className={`${
                 loadingState ? "bg-gray-400" : "bg-blue-400 hover:bg-blue-500"
               } text-white font-semibold p-2 sm:px-4 rounded w-full sm:w-auto transition duration-200`}
@@ -264,6 +281,15 @@ const DropdownCambioProducto: React.FC<DropdownAccionesProps> = ({
         id_detalle_orden_acopio={id_detalle_orden_acopio}
         cantidad_solicitada={cantidad}
       />
+      {showConfirmacion && (
+        <Confirmacion
+          isOpen={showConfirmacion}
+          titulo="Confirmación de Cantidades"
+          mensaje={`La cantidad a enviar (${cantidadReemplazo}) excede significativamente la solicitada (${cantidad}). ¿Desea continuar?`}
+          onClose={() => setShowConfirmacion(false)}
+          onConfirm={handleConfirmacion}
+        />
+      )}
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-lg font-semibold">Productos para reemplazar</h2>
