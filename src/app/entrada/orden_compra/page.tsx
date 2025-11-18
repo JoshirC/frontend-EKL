@@ -152,7 +152,7 @@ const OrdenCompraPage: React.FC = () => {
         setAlertType("exitoso");
         setAlertMessage("Guía de entrada creada exitosamente.");
         setShowAlert(true);
-        handleEnviarCorreoCambios();
+        // handleEnviarCorreoCambios(); ->> Desactivado para evitar sobre cargar de correos
         setTimeout(() => {
           window.location.reload();
         }, 2000);

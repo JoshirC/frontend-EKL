@@ -46,7 +46,7 @@ const GuiaSalidaModal: React.FC<GuiaSalidaModalProps> = ({
   const [editarEstadoPallets] = useMutation(CAMBIO_ESTADO_PALLET, {
     onCompleted: () => {
       setAlertType("exitoso");
-      setAlertMessage("Formato descargado exitosamente");
+      setAlertMessage("Formato generado exitosamente");
       setShowAlert(true);
       setTimeout(() => {
         onClose();
