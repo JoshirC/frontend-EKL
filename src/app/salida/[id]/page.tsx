@@ -651,15 +651,18 @@ export default function AcopioSalidaIdPage({
           <div className="flex gap-2">
             {rolUsuario != "Bodeguero" && (
               <>
-                <button
-                  className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
-                  onClick={() => {
-                    handleConfirmarAcopio(data.ordenAcopio.id);
-                    setShowCargando(true);
-                  }}
-                >
-                  Confirmar Acopio de Productos
-                </button>
+                {currentItems.length > 0 &&
+                  currentItems.every((d) => (d.envios?.length ?? 0) > 0) && (
+                    <button
+                      className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
+                      onClick={() => {
+                        handleConfirmarAcopio(data.ordenAcopio.id);
+                        setShowCargando(true);
+                      }}
+                    >
+                      Confirmar Acopio de Productos
+                    </button>
+                  )}
                 <button
                   className="bg-orange-400 text-white font-semibold px-4 py-2 rounded transition duration-200 hover:bg-orange-500"
                   onClick={() => {

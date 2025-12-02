@@ -369,14 +369,6 @@ const Navbar = () => {
                     </Link>
                     {!["Bodeguero"].includes(rolUsuario ?? "") && (
                       <>
-                        <Link href="/salida/revision">
-                          <div
-                            className="block px-4 py-2 hover:bg-orange-200 rounded-md"
-                            onClick={handleSelectOption}
-                          >
-                            Revisión
-                          </div>
-                        </Link>
                         <Link href="/salida/carga_softland">
                           <div
                             className="block px-4 py-2 hover:bg-orange-200 rounded-md"
