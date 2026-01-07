@@ -185,7 +185,14 @@ const Navbar = () => {
                 </div>
               </Link>
             )}
-
+            {/* Centros de Costos */}
+            {["Administrador", "Soporte"].includes(rolUsuario ?? "") && (
+              <Link href="/centros">
+                <div className="text-black font-semibold hover:text-gray-100 transition duration-300">
+                  Centros
+                </div>
+              </Link>
+            )}
             {/* Adquisiciones */}
             {!["Jefe Bodega", "Bodeguero"].includes(rolUsuario ?? "") && (
               <div className="relative flex justify-center">

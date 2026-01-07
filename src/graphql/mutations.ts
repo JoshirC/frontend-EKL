@@ -477,3 +477,34 @@ export const GENERAR_EXCEL_CUMPLIMIENTO = gql`
     generarExcelCumplimiento(id_consolidado: $id_consolidado)
   }
 `;
+
+// Mutaciones para Centros de Costos
+export const CREATE_CENTRO_COSTO = gql`
+  mutation CreateCentroCosto($createCentroCostoInput: CreateCentroCostoInput!) {
+    createCentroCosto(createCentroCostoInput: $createCentroCostoInput) {
+      id
+    }
+  }
+`;
+export const UPDATE_STATUS_CENTRO = gql`
+  mutation UpdateActivoCentroCosto($updateActivoCentroCostoId: Float!) {
+    updateActivoCentroCosto(id: $updateActivoCentroCostoId) {
+      activo
+    }
+  }
+`;
+export const UPDATE_CENTRO = gql`
+  mutation UpdateCentroCosto(
+    $updateCentroCostoId: Float!
+    $codigo: String
+    $nombre: String
+  ) {
+    updateCentroCosto(
+      id: $updateCentroCostoId
+      codigo: $codigo
+      nombre: $nombre
+    ) {
+      id
+    }
+  }
+`;

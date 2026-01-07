@@ -691,3 +691,14 @@ export const GET_PALLETS_BY_ORDEN_ACOPIO = gql`
     }
   }
 `;
+// Query para Centros de Costos
+export const GET_CENTROS_COSTOS_UNICOS = gql`
+  query CentrosCosto {
+    centrosCosto {
+      id
+      nombre
+      codigo
+      activo
+    }
+  }
+`;

@@ -23,11 +23,11 @@ export type Producto = {
   cantidad_oc?: number;
   cantidad_a_enviar?: number;
   trazabilidad: boolean;
-  detallesOrden: DetalleOrdenAcopio[]; // renombrado según entity
-  enviosDetalle?: EnvioDetalleOrdenAcopio[]; // renombrado según entity
-  guiaEntradaDetalle: GuiaEntradaDetalle[]; // renombrado según entity y no opcional
-  trazabilidad_entidad: Trazabilidad[]; // no opcional
-  detallesSolicitud?: DetalleSolicitudSMCL[]; // opcional
+  detallesOrden: DetalleOrdenAcopio[];
+  enviosDetalle?: EnvioDetalleOrdenAcopio[];
+  guiaEntradaDetalle: GuiaEntradaDetalle[];
+  trazabilidad_entidad: Trazabilidad[];
+  detallesSolicitud?: DetalleSolicitudSMCL[];
 };
 
 export interface OrdenAcopio {
@@ -246,4 +246,11 @@ export type ProductoConsolidado = {
   codigo_producto: string;
   descripcion_producto: string;
   unidad: string;
+};
+export type CentroCosto = {
+  id: number;
+  codigo: string;
+  nombre: string;
+  activo: boolean;
+  ordenesAcopio?: OrdenAcopio[];
 };
