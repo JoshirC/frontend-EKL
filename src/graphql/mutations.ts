@@ -508,3 +508,15 @@ export const UPDATE_CENTRO = gql`
     }
   }
 `;
+export const CREAR_USUARIO_CENTRO = gql`
+  mutation Mutation($usuarioCentroInput: CreateUsuarioCentroInput!) {
+    createUsuarioCentro(usuarioCentroInput: $usuarioCentroInput) {
+      id
+    }
+  }
+`;
+export const DELETE_USUARIO_CENTRO = gql`
+  mutation DeleteUsuarioCentro($deleteUsuarioCentroId: Float!) {
+    deleteUsuarioCentro(id: $deleteUsuarioCentroId)
+  }
+`;

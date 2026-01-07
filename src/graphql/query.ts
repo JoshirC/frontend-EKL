@@ -702,3 +702,15 @@ export const GET_CENTROS_COSTOS_UNICOS = gql`
     }
   }
 `;
+export const GET_FIND_USUARIOS_CENTRO = gql`
+  query FindusuarioCentroByCentroCosto($idCentroCosto: Float!) {
+    FindusuarioCentroByCentroCosto(id_centro_costo: $idCentroCosto) {
+      id
+      usuario {
+        id
+        nombre
+        rol
+      }
+    }
+  }
+`;

@@ -7,6 +7,7 @@ import { CentroCosto } from "@/types/graphql";
 import { UPDATE_STATUS_CENTRO } from "@/graphql/mutations";
 import NuevoCentro from "@/components/centros/nuevoCentro";
 import EditarCentro from "@/components/centros/editarCentro";
+import DropdownUsuarios from "@/components/centros/dropdownUsuarios";
 import Alert from "@/components/Alert";
 const CentroPage: React.FC = () => {
   const { loading, error, data, refetch } = useQuery(GET_CENTROS_COSTOS_UNICOS);
@@ -18,6 +19,9 @@ const CentroPage: React.FC = () => {
   >("exitoso");
   const [alertMessage, setAlertMessage] = useState("");
   const [centroEdit, setCentroEdit] = useState<CentroCosto | null>(null);
+  const [dropdownUsuarioOpen, setDropdownUsuarioOpen] = useState<number | null>(
+    null
+  );
 
   const centrosCostos: CentroCosto[] = data ? data.centrosCosto : [];
   const [updateStatusCentroCosto] = useMutation(UPDATE_STATUS_CENTRO);
@@ -121,47 +125,71 @@ const CentroPage: React.FC = () => {
             </thead>
             <tbody>
               {centrosCostos.map((centro) => (
-                <tr key={centro.id}>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {centro.id}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {centro.codigo}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {centro.nombre}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    {centro.activo ? "Activo" : "Inactivo"}
-                  </td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2">
-                    <div className="flex flex-col sm:flex-row lg:space-x-2 lg:w-full gap-2">
-                      <button className="bg-orange-400 hover:bg-orange-500 text-white font-semibold w-full px-3 py-2 rounded">
-                        Ver Usuarios
-                      </button>
-                      <button
-                        onClick={() => {
-                          setCentroEdit(centro);
-                          setShowEditarCentro(true);
-                        }}
-                        className="bg-blue-400 text-white font-semibold w-full px-3 py-2 rounded hover:bg-blue-500 transition duration-300"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleActualizarEstadoCentro(centro.id)}
-                        className={` text-white font-semibold w-full px-3 py-2 rounded ${
-                          centro.activo
-                            ? "bg-red-500 hover:bg-red-600"
-                            : "bg-gray-400 hover:bg-gray-500"
-                        }
+                <React.Fragment key={centro.id}>
+                  <tr>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {centro.id}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {centro.codigo}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {centro.nombre}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      {centro.activo ? "Activo" : "Inactivo"}
+                    </td>
+                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                      <div className="flex flex-col sm:flex-row lg:space-x-2 lg:w-full gap-2">
+                        <button
+                          className="bg-orange-400 hover:bg-orange-500 text-white font-semibold w-full px-3 py-2 rounded"
+                          onClick={() => {
+                            console.log("click", centro.id);
+                            setDropdownUsuarioOpen(centro.id);
+                          }}
+                        >
+                          Ver Usuarios
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCentroEdit(centro);
+                            setShowEditarCentro(true);
+                          }}
+                          className="bg-blue-400 text-white font-semibold w-full px-3 py-2 rounded hover:bg-blue-500 transition duration-300"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleActualizarEstadoCentro(centro.id)
+                          }
+                          className={` text-white font-semibold w-full px-3 py-2 rounded ${
+                            centro.activo
+                              ? "bg-red-500 hover:bg-red-600"
+                              : "bg-gray-400 hover:bg-gray-500"
+                          }
                         `}
+                        >
+                          {centro.activo ? "Desactivar" : "Activar"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {dropdownUsuarioOpen === centro.id && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="border-0 p-2 sm:p-4 bg-gray-100"
                       >
-                        {centro.activo ? "Desactivar" : "Activar"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                        <DropdownUsuarios
+                          onClose={() => setDropdownUsuarioOpen(null)}
+                          id={centro.id}
+                          nombre={centro.nombre}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
