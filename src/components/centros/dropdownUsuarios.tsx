@@ -5,6 +5,7 @@ import { User } from "@/types/graphql";
 import React, { useState } from "react";
 import Confirmacion from "../confirmacion";
 import Alert from "../Alert";
+import AgregarUsuarioCentro from "./agregarUsuarioCentro";
 interface DropdownUsuariosProps {
   onClose: () => void;
   id: number;
@@ -20,6 +21,7 @@ const DropdownUsuarios: React.FC<DropdownUsuariosProps> = ({
   id,
   nombre,
 }) => {
+  const [showModalAgregarUsuario, setShowModalAgregarUsuario] = useState(false);
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [idUsuarioCentro, setIdUsuarioCentro] = useState(0);
   const [showAlert, setShowAlert] = useState(false);
@@ -88,7 +90,12 @@ const DropdownUsuarios: React.FC<DropdownUsuariosProps> = ({
           Usuarios de {nombre}
         </h2>
         <div className="space-x-4">
-          <button className="bg-orange-400 hover:bg-orange-500 text-white rounded font-semibold px-4 py-2">
+          <button
+            onClick={() => {
+              setShowModalAgregarUsuario(true);
+            }}
+            className="bg-orange-400 hover:bg-orange-500 text-white rounded font-semibold px-4 py-2"
+          >
             Agregar Usuario
           </button>
           <button
@@ -115,6 +122,15 @@ const DropdownUsuarios: React.FC<DropdownUsuariosProps> = ({
           mensaje={`¿Estás seguro de que deseas eliminar al usuario de ${nombre}?`}
           onClose={() => setShowConfirmacion(false)}
           onConfirm={handleConfirmarEliminar}
+        />
+      )}
+      {showModalAgregarUsuario && (
+        <AgregarUsuarioCentro
+          isOpen={showModalAgregarUsuario}
+          onClose={() => setShowModalAgregarUsuario(false)}
+          onSuccess={() => refetch()}
+          idCentro={id}
+          nombreCentro={nombre}
         />
       )}
       {/* Contenido del Dropdwon */}
